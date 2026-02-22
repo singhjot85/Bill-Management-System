@@ -48,9 +48,6 @@ repos:
     rev: v1.36.4
     hooks:
       - id: djlint-reformat-django
+        files: ^bma/.*/templates/.*\.html$
       - id: djlint-django
-        exclude: |
-          ^bma/requests/templates/basic_bill\.html|
-          ^bma/payments/templates/public_datacapture\.html|
-          ^bma/core/templates/auth\.html|
-          ^bma/core/templates/error\.html
+        files: ^bma/.*/templates/.*\.html$
