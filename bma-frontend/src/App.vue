@@ -63,9 +63,15 @@
   </div>
   <div>
     <Badge>Default</Badge>
-    <Badge variant="success">Active</Badge>
-    <Badge variant="warning">Pending</Badge>
-    <Badge variant="danger">Deleted</Badge>
+    <Badge padding="10px 20px" margin="8px" variant="success">
+      Spaced Badge
+    </Badge>
+    <Badge bordered borderColor="#000" variant="danger">
+      Bordered
+    </Badge>
+    <Badge :rounded="false" radius="lg" variant="warning">
+      Rounded Large Radius
+    </Badge>
   </div>
 
 </template>

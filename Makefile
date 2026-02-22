@@ -1,4 +1,4 @@
-.PHONY: run mm m sp superuser setup setup-system setup-python
+.PHONY: run mm m sp superuser setup setup-system setup-python sdu
 
 run:
 	poetry run python manage.py runserver
@@ -24,3 +24,7 @@ setup-python:
 	poetry install --no-interaction
 
 setup: setup-system setup-python
+
+start-dev-ui:
+	cd bma-frontend && npm install && npm run dev
+sdu: start-dev-ui
