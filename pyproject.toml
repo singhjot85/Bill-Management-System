@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Payments and Bill Management App"
 authors = []
 readme = "README.md"
-requires-python = ">=3.13,<4"
+requires-python = ">=3.11,<4"
 dependencies = [
     "django (>=5.2.7,<6.0.0)",
     "djangorestframework (>=3.16.1,<4.0.0)",
@@ -19,6 +19,7 @@ dependencies = [
     "flask (>=3.1.2,<4.0.0)",
     "xhtml2pdf (>=0.2.17,<0.3.0)",
     "weasyprint (>=66.0,<67.0)",
+    "pre-commit (>=4.5.1,<5.0.0)",
 ]
 
 
