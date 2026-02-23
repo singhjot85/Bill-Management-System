@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import Button from './components/Button.vue'
+import Button from './components/base/Button.vue'
 
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme')
