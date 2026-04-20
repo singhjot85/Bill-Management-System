@@ -1,6 +1,0 @@
-{
-    "python-envs.defaultEnvManager": "ms-python.python:venv",
-    "python-envs.defaultPackageManager": "pms-python.python:poetry",
-    "python.defaultInterpreterPath": "",
-    "python.terminal.activateEnvironment": true
-}
