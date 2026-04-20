@@ -24,7 +24,7 @@ media/
 staticfiles/
 local_settings.py
 
-.vscode/
+# .vscode/
 .history/
 *.code-workspace
 
