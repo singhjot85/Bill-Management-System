@@ -1,6 +1,6 @@
 exclude: "docs|node_modules|.git"
 default_stages: [pre-commit, pre-push]
-fail_fast: true
+fail_fast: false
 
 repos:
   - repo: https://github.com/psf/black
@@ -48,6 +48,11 @@ repos:
     rev: v1.36.4
     hooks:
       - id: djlint-reformat-django
+        exclude: |
+          ^bma/requests/templates/basic_bill\.html|
+          ^bma/payments/templates/public_datacapture\.html|
+          ^bma/core/templates/auth\.html|
+          ^bma/core/templates/error\.html
       - id: djlint-django
         exclude: |
           ^bma/requests/templates/basic_bill\.html|

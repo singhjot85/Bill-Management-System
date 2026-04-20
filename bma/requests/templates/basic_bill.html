@@ -1,9 +1,9 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <style>
+    <head>
+        <meta charset="UTF-8">
+        <style>
         @page {
             size: A4;
             margin: 2cm;
@@ -116,71 +116,75 @@
             border-top: 1px solid #ccc;
             padding-top: 10px;
         }
-    </style>
-</head>
-
-<body>
-    <div class="invoice-box">
-        <!-- Header -->
-        <div class="header">
-            <div class="org-info">
-                <h2>{{ organization_name }}</h2>
-                <p>{{ organization_address }}</p>
-                <p>Email: {{ org_email }}</p>
-                <p>Phone: {{ org_country_code }} {{ org_phone_number }}</p>
+        </style>
+    </head>
+    <body>
+        <div class="invoice-box">
+            <!-- Header -->
+            <div class="header">
+                <div class="org-info">
+                    <h2>{{ organization_name }}</h2>
+                    <p>{{ organization_address }}</p>
+                    <p>Email: {{ org_email }}</p>
+                    <p>Phone: {{ org_country_code }} {{ org_phone_number }}</p>
+                </div>
+                <div class="invoice-info">
+                    <p>
+                        <strong>Invoice #:</strong>{{ invoice_number }}
+                    </p>
+                    <p>
+                        <strong>Invoice Date:</strong> {{ invoice_date|date:"Y-m-d" }}
+                    </p>
+                    <p>
+                        <strong>Generated On:</strong> {{ today|date:"Y-m-d" }}
+                    </p>
+                </div>
             </div>
-            <div class="invoice-info">
-                <p><strong>Invoice #: </strong>{{ invoice_number }}</p>
-                <p><strong>Invoice Date:</strong> {{ invoice_date|date:"Y-m-d" }}</p>
-                <p><strong>Generated On:</strong> {{ today|date:"Y-m-d" }}</p>
+            <!-- Billed To -->
+            <div class="bill-to">
+                <p class="section-title">Billed To:</p>
+                <p>
+                    <strong>{{ name }}</strong>
+                </p>
+                <p>Email: {{ email }}</p>
+                <p>Phone: {{ country_code }} {{ phone_number }}</p>
             </div>
-        </div>
-
-        <!-- Billed To -->
-        <div class="bill-to">
-            <p class="section-title">Billed To:</p>
-            <p><strong>{{ name }}</strong></p>
-            <p>Email: {{ email }}</p>
-            <p>Phone: {{ country_code }} {{ phone_number }}</p>
-        </div>
-
-        <!-- Invoice Details -->
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 60%;">Description</th>
-                    <th style="width: 20%;">Currency</th>
-                    <th style="width: 20%; text-align: right;">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Service / Product Charge</td>
-                    <td>{{ currency }}</td>
-                    <td style="text-align: right;">{{ amount }}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Totals -->
-        <div class="total-section">
+            <!-- Invoice Details -->
             <table>
-                <tr>
-                    <th>Subtotal</th>
-                    <td style="text-align: right;">{{ amount }}</td>
-                </tr>
-                <tr>
-                    <th>Total</th>
-                    <td style="text-align: right; font-weight: bold;">{{ total }}</td>
-                </tr>
+                <thead>
+                    <tr>
+                        <th style="width: 60%;">Description</th>
+                        <th style="width: 20%;">Currency</th>
+                        <th style="width: 20%; text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Service / Product Charge</td>
+                        <td>{{ currency }}</td>
+                        <td style="text-align: right;">{{ amount }}</td>
+                    </tr>
+                </tbody>
             </table>
+            <!-- Totals -->
+            <div class="total-section">
+                <table>
+                    <tr>
+                        <th>Subtotal</th>
+                        <td style="text-align: right;">{{ amount }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total</th>
+                        <td style="text-align: right; font-weight: bold;">{{ total }}</td>
+                    </tr>
+                </table>
+            </div>
+            <!-- Footer -->
+            <div class="footer">
+                Thank you for your business!
+                <br>
+                This invoice was generated automatically on {{ today|date:"Y-m-d" }}.
+            </div>
         </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            Thank you for your business! <br>
-            This invoice was generated automatically on {{ today|date:"Y-m-d" }}.
-        </div>
-    </div>
-</body>
+    </body>
 </html>

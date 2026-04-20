@@ -5,35 +5,33 @@
     <head>
         <!-- Razorpay app ingestion -->
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{% static 'css/main.css' %}">
-        <link rel="icon" type="image/png" href="{% static 'favicons/favicon.png' %}">
-        <title>Data Capture</title>        
+        <link rel="icon"
+              type="image/png"
+              href="{% static 'favicons/favicon.png' %}">
+        <title>Data Capture</title>
     </head>
     <body>
         <div class="main-container">
             <h2 class="form-title">Please Enter the details</h2>
-            <form class="main-form" id="order-form" >
+            <form class="main-form" id="order-form">
                 {% render_form order_serializer %}
             </form>
-            <form class="main-form" id="payment-form" >
+            <form class="main-form" id="payment-form">
                 {% render_form payment_serializer %}
             </form>
-
-            <iframe id="pdfFrame" width="100%" height="600px" style="border: none;" hidden></iframe>
-
+            <iframe id="pdfFrame" width="100%" height="600px" style="border: none" hidden></iframe>
             <button id="bill-button" hidden>Generate Bill</button>
             <br>
             <button id="payment-button">Make Payment</button>
-
             <div id="loading-overlay" hidden>
                 <div class="spinner"></div>
                 <p>Please Wait...</p>
             </div>
         </div>
-       <script>
+        <script>
             let userAPIResponse = null,
                 orderAPIResponse = null,
                 paymentsAPIResponse = null;
@@ -53,13 +51,13 @@
             }
 
             async function makeJSONAPICall(url, data) {
-                const complete_url = url ? `/public/payments/${url}/`: `/public/payments/`; 
+                const complete_url = url ? `/public/payments/${url}/`: `/public/payments/`;
                 try{
                     const response = await fetch(
                         complete_url,
                         {
                             method: "POST",
-                            headers: { 
+                            headers: {
                                 "Content-Type": "application/json" ,
                                 "Accept": "application/json"
                             },
@@ -138,10 +136,10 @@
                     user_id: userAPIResponse?.id,
                     order_id: orderAPIResponse?.id,
                     payment_id: paymentsAPIResponse?.id
-                }) 
+                })
                 const billAPIResponse = await fetch("/public/payments/generate_bill/", {
                     method: "POST",
-                    headers: { 
+                    headers: {
                         "Content-Type": "application/json"
                     },
                     body: billAPIData,

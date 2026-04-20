@@ -28,7 +28,7 @@ POC Scope:
 **Backend:** django, djangorestframework, django-tenats
 **Frontend:** django-templates, bootstrap(css)
 **Database:** SQLlite
-**CI/CD:** Docker, 
+**CI/CD:** Docker,
 
 Final Delivery Scope:
 **Backend:** POC + django-celery, django-celery-beat, valkey
