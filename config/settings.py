@@ -5,10 +5,7 @@ APP_NAME = "bma"
 BASE_DIR = Path(__file__).resolve().parent.parent
 APP_DIR = os.path.join(BASE_DIR, APP_NAME)
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRETE_KEY",
-    "",
-)
+SECRET_KEY = os.getenv("DJANGO_SECRETE_KEY", "")
 RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_SECRETE", "")
 RAZORPAY_API_SECRETE = os.getenv("RAZORPAY_API_SECRETE", "")
 DEFAULT_AUTO_FIELD = os.getenv("DJANGO_DEFAULT_ID", "django.db.models.BigAutoField")

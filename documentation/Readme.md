@@ -15,10 +15,10 @@ A system that can be used to generate and manage bills/invoices.
 - Private User:
     - Role: Private
     - Resposibilities: Can login, enter data, make payments, request bills, review their bills.
-- BO User:
+- Tenant Admin:
     - Role: Manager (Current Tenant's Admin).
     - Resposibilities: Can login, enter data, make payments, request bills, review everyone's bills.
-- Admin:
+- Platform Admin:
     - Role: Project Admin
     - Resposibilities: Can login, manage tenants, configure new tenants.
 
@@ -27,11 +27,10 @@ A system that can be used to generate and manage bills/invoices.
 POC Scope:
 **Backend:** django, djangorestframework, django-tenats
 **Frontend:** django-templates, bootstrap(css)
-**Database:** SQLlite
+**Database:** PostgreSQL
 **CI/CD:** Docker,
 
 Final Delivery Scope:
 **Backend:** POC + django-celery, django-celery-beat, valkey
 **Frontend:** Vue + Vite
-**Database:** PostgreSQL
 **CI/CD:** POC + Kubernetes, GHActions
