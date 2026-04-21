@@ -1,0 +1,34 @@
+"""
+This file list all the apps that are used in the project, this keep the settings.py file clean.
+"""
+
+DEFAULT_DJANGO_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    # "django.contrib.staticfiles",
+]
+
+EXTRA_DEPENDENCIES = [
+    "django_extensions",
+    "rest_framework",
+]
+
+PROJECT_APPS = [
+    "project_apps.tenants",
+    "project_apps.customer_management",
+    "project_apps.payments_management",
+    "project_apps.setup",
+]
+
+DJANGO_TENANT_PUBLIC_APPS = [
+    "project_apps.tenants",
+]
+
+DJANGO_TENANT_PRIVATE_APPS = [
+    "project_apps.customer_management",
+    "project_apps.payments_management",
+    "project_apps.setup",
+]
