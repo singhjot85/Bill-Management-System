@@ -34,5 +34,7 @@ DJANGO_TENANT_PRIVATE_APPS = [
     "project_apps.setup",
 ]
 
-CUSTOMER = "customer_management.Customer"
+CUSTOMER_CUSTOMER = "customer_management.Customer"
 CUSTOMER_ADDRESS = "customer_management.CustomerAddress"
+PAYMENT_INVOICE = "payment_management.Invoice"
+PAYMENT_TEMPLATES = "payment_management.Template"

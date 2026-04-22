@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
 
-from project_apps.utils import BetterModelMixin
+from project_apps.utils import BetterModelMixin, VersionedBetterModelMixin
 
 # TODO: Move to a util, and do some refining.
 def get_invoice_url(obj):
@@ -55,6 +55,21 @@ class Invoice(BetterModelMixin):
     def save(self, *args, **kwargs):
         self.invoice_number = self._generate_invoice_number()
         return super().save(*args, **kwargs)
+
+
+class TemplateTypeChoices(models.TextChoices):
+
+    DEFAULT_INVOICE = "default_invoice", _("Default Invoice Template")
+
+
+class Templates(VersionedBetterModelMixin):
+
+    template_name = models.CharField(max_length=255, null=True, blank=True)
+    template_type = models.CharField(max_length=124, choices=TemplateTypeChoices.choices, default=TemplateTypeChoices.DEFAULT_INVOICE)
+    is_active = models.BooleanField(default=True)
+
+    html = models.TextField(null=True, blank=True)
+    plain_text = models.TextField(null=True, blank=True)
 
 
 class PaymentStatusChoices(models.TextChoices):
