@@ -1,7 +1,6 @@
+from bma.core.constants import CountryCodeChoices, SuffixChoices
 from django import forms
 from django.utils.translation import gettext_lazy as _  # noqa: F401
-
-from bma.core.constants import CountryCodeChoices, SuffixChoices
 
 
 class LoginForm(forms.Form):

@@ -1,20 +1,18 @@
 from datetime import datetime
 
-from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
-from model_utils.models import UUIDModel, SoftDeletableModel, TimeStampedModel
+from django.contrib.auth import get_user_model
+from django.db import models
+from model_utils.models import SoftDeletableModel, TimeStampedModel, UUIDModel
 
 User = get_user_model()
 
 
 class SoftDeleteManager(models.Manager):
-    
+
     def get_queryset(self):
         return self._queryset_class(
-            model=self.model,
-            using=self._db,
-            **({'hints': self._hints} if hasattr(self, '_hints') else {})
+            model=self.model, using=self._db, **({"hints": self._hints} if hasattr(self, "_hints") else {})
         ).filter(is_removed=False)
 
 
@@ -28,8 +26,8 @@ class SoftDeleteModelMixin(models.Model):
 
     class Meta:
         abstract = True
-    
-    def delete(self, using=None, keep_parents=False, soft:bool=True, deleted_by:User=None):
+
+    def delete(self, using=None, keep_parents=False, soft: bool = True, deleted_by: User = None):
         if not soft:
             super().delete(using, keep_parents)
 
@@ -40,19 +38,20 @@ class SoftDeleteModelMixin(models.Model):
         if deleted_by and isinstance(deleted_by, User):
             self.deleted_by = deleted_by
             update_fields += ["deleted_by"]
-        
+
         self.save(update_fields=update_fields)
 
 
 class InvalidVersionException(Exception):
     """Raised when a version is invalid"""
+
     pass
 
 
 class SimpleVersionModelMixin(models.Model):
 
     DEFAULT_ORDERING = ("-version_major", "-version_minor", "-version_patch")
-    DEFAULT_VERSION = (1,0,0)
+    DEFAULT_VERSION = (1, 0, 0)
 
     version_major = models.IntegerField(default=DEFAULT_VERSION[0])
     version_minor = models.IntegerField(default=DEFAULT_VERSION[1])
@@ -62,15 +61,15 @@ class SimpleVersionModelMixin(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, force_insert = ..., force_update = ..., using = ..., update_fields = ...):
+    def save(self, force_insert=..., force_update=..., using=..., update_fields=...):
         self.resolve_version()
         return super().save(force_insert, force_update, using, update_fields)
-    
+
     def validate_version(self) -> tuple[int, int, int]:
         major, minor, patch = self.DEFAULT_VERSION
         if not self.version:
             return major, minor, patch
-        
+
         try:
             splitted_version = self.version.split(".")
             major = int(splitted_version[0])
@@ -81,7 +80,7 @@ class SimpleVersionModelMixin(models.Model):
 
         return major, minor, patch
 
-    def resolve_version(self, save:bool=False):
+    def resolve_version(self, save: bool = False):
         """Resolve version fields"""
         update_fields = ["version_major", "version_minor", "version_patch", "version"]
         if self.version:
@@ -91,37 +90,37 @@ class SimpleVersionModelMixin(models.Model):
 
         if save:
             super().save(update_fields=update_fields)
-    
+
     def get_ordered_queryset(self, queryset: models.QuerySet):
         try:
             return queryset.order_by(*self.DEFAULT_ORDERING)
         except Exception as e:
             raise InvalidVersionException from e
-        
+
 
 class SafeModelMixin(SoftDeletableModel, TimeStampedModel):
     """A Model Mixin that is safe and makes debugging easier."""
-    
+
     class Meta:
         abstract = True
 
 
 class BetterModelMixin(UUIDModel, SafeModelMixin):
     """A Model mixin that gives a better primary key."""
-    
+
     class Meta:
         abstract = True
 
 
 class VersionedSafeModelMixin(SafeModelMixin, SimpleVersionModelMixin):
     """Safer Model with versioning."""
-    
+
     class Meta:
         abstract = True
 
 
 class VersionedBetterModelMixin(BetterModelMixin, SimpleVersionModelMixin):
     """Better Model with versioning."""
-    
+
     class Meta:
         abstract = True

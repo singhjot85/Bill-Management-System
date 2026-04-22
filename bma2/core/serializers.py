@@ -1,6 +1,5 @@
-from rest_framework import serializers
-
 from bma.core.models import BaseUserModel, Customer
+from rest_framework import serializers
 
 
 class BaseUserSerializer(serializers.ModelSerializer):

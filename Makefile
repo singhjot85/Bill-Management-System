@@ -1,4 +1,4 @@
-.PHONY: build run setup setup-system setup-python 
+.PHONY: build run setup setup-system setup-python
 
 poetry-run:
 	poetry run python manage.py runserver

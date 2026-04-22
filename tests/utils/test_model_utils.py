@@ -1,20 +1,21 @@
-import pytest
 from datetime import datetime
-from django.test import TestCase
+
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.test import TestCase
 
-from project_apps.utils.model_utils import SoftDeleteManager, SoftDeleteModelMixin
+from project_apps.utils.model_utils import SoftDeleteModelMixin
 
 User = get_user_model()
 
 
 class SoftDeleteModel(SoftDeleteModelMixin, models.Model):
     """Test model for SoftDeleteManager and SoftDeleteModelMixin"""
+
     name = models.CharField(max_length=100)
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
 
 
 class SoftDeleteManagerTestCase(TestCase):
@@ -71,7 +72,7 @@ class SoftDeleteModelMixinTestCase(TestCase):
 
     def setUp(self):
         """Set up test data"""
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_user(username="testuser", password="testpass")
         self.obj = SoftDeleteModel.objects.create(name="Test Object")
 
     def test_soft_delete_sets_fields_correctly(self):
@@ -151,7 +152,7 @@ class SoftDeleteIntegrationTestCase(TestCase):
 
     def setUp(self):
         """Set up test data"""
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_user(username="testuser", password="testpass")
 
         # Create multiple objects
         self.obj1 = SoftDeleteModel.objects.create(name="Object 1")

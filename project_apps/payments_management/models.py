@@ -1,12 +1,13 @@
 import random
 from datetime import datetime
 
-from django.db import models, connection
-from django.utils.translation import gettext_lazy as _
-from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import connection, models
+from django.utils.translation import gettext_lazy as _
 
 from project_apps.utils import BetterModelMixin, VersionedBetterModelMixin
+
 
 # TODO: Move to a util, and do some refining.
 def get_invoice_url(obj):
@@ -15,6 +16,7 @@ def get_invoice_url(obj):
 
     if isinstance(obj, Invoice):
         pass
+
 
 class InvoiceStatusChoices(models.TextChoices):
     """Invoice Status Choices"""
@@ -37,21 +39,28 @@ class Invoice(BetterModelMixin):
     payable_amount = models.FloatField(null=True, blank=True)
     amount_paid = models.FloatField(null=True, blank=True)
 
-    generated_by = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices")
-    customer = models.ForeignKey(to=settings.CUSTOMER_CUSTOMER, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices")
-    template = models.ForeignKey(to=settings.PAYMENT_INVOICETEMPLATE, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices")
+    generated_by = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices"
+    )
+    customer = models.ForeignKey(
+        to=settings.CUSTOMER_CUSTOMER, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices"
+    )
+    template = models.ForeignKey(
+        to=settings.PAYMENT_INVOICETEMPLATE, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices"
+    )
 
     def _generate_invoice_number(self):
         """
         TODO: Very weak logic, refine it
         """
         from project_apps.tenants.models import OrganizationTenant
+
         org = OrganizationTenant.models.get(schema_name=connection.schema_name)
-        return {org.name}-{random.randint(*self.RAND_INT_RANGE)}
+        return {org.name} - {random.randint(*self.RAND_INT_RANGE)}
 
     def __str__(self):
         return self.invoice_number
-    
+
     def save(self, *args, **kwargs):
         self.invoice_number = self._generate_invoice_number()
         return super().save(*args, **kwargs)
@@ -65,7 +74,9 @@ class TemplateTypeChoices(models.TextChoices):
 class Templates(VersionedBetterModelMixin):
 
     template_name = models.CharField(max_length=255, null=True, blank=True)
-    template_type = models.CharField(max_length=124, choices=TemplateTypeChoices.choices, default=TemplateTypeChoices.DEFAULT_INVOICE)
+    template_type = models.CharField(
+        max_length=124, choices=TemplateTypeChoices.choices, default=TemplateTypeChoices.DEFAULT_INVOICE
+    )
     is_active = models.BooleanField(default=True)
 
     html = models.TextField(null=True, blank=True)
@@ -79,8 +90,9 @@ class PaymentStatusChoices(models.TextChoices):
     COMPLETED = "completed", _("Completed")
     FAILED = "failed", _("Failed")
 
+
 class PaymentGatewayChoices(models.TextChoices):
-    
+
     PAYPAL = "pp", _("Pay Pal")
     RAZORPAY = "rz", _("Razorpay")
 
@@ -103,15 +115,23 @@ class Payment(BetterModelMixin):
     currency = models.CharField(max_length=124, choices=CURRENCY_CHOICES, null=True, blank=True)
 
     raw_payment_response = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
-    gateway_name = models.CharField(verbose_name="Paymeny Gateway", max_length=124, choices=PaymentGatewayChoices.choices)
+    gateway_name = models.CharField(
+        verbose_name="Paymeny Gateway", max_length=124, choices=PaymentGatewayChoices.choices
+    )
     gateway_signature = models.CharField(max_length=255, null=True, blank=True)
 
     is_verified = models.BooleanField(default=False)
     verified_on = models.DateTimeField()
 
-    payee = models.ForeignKey(to=settings.CUSTOMER_CUSTOMER, on_delete=models.PROTECT, null=True, blank=True, related_name="payments")
-    verified_by = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="payments")
-    invoice = models.ForeignKey(to=settings.PAYMENT_INVOICE, on_delete=models.PROTECT, null=True, blank=True, related_name="payments")
+    payee = models.ForeignKey(
+        to=settings.CUSTOMER_CUSTOMER, on_delete=models.PROTECT, null=True, blank=True, related_name="payments"
+    )
+    verified_by = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="payments"
+    )
+    invoice = models.ForeignKey(
+        to=settings.PAYMENT_INVOICE, on_delete=models.PROTECT, null=True, blank=True, related_name="payments"
+    )
 
     def _mark_payment_verified(self, *args, **kwargs):
         self.is_verified = True

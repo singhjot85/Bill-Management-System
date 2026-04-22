@@ -3,7 +3,7 @@ volumes:
 
 services:
   django:
-    build: 
+    build:
       context: ../../.
       dockerfile: compose\local\django\DockerFile
       secrets:
@@ -22,11 +22,11 @@ services:
       - WATCHFILES_FORCE_POLLING=true
     ports:
       - "8000:8000"
-  
+
   postgres:
-    build: 
+    build:
       context: ../../.
-      dockerfile: compose\local\pg\Dockerfile 
+      dockerfile: compose\local\pg\Dockerfile
       secrets:
         - global-env
     container_name: bma_postgres
@@ -44,4 +44,3 @@ services:
 secrets:
   global-env:
     file: ../../.env
-  

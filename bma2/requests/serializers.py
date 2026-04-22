@@ -1,9 +1,8 @@
 from datetime import date
 
-from rest_framework import serializers
-
 from bma.requests.models import Bill
 from bma.utils import generate_random_uuid
+from rest_framework import serializers
 
 
 class BillSerializer(serializers.ModelSerializer):

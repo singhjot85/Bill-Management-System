@@ -2,6 +2,7 @@ import uuid
 from io import BytesIO
 
 import jq
+from bma.constants import PAYMENTS_TYPE_CHOICE_TO_MODEL_MAP as payment_model_map
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -9,8 +10,6 @@ from django.http.response import HttpResponse
 from django.template.loader import get_template, render_to_string
 from weasyprint import HTML
 from xhtml2pdf import pisa
-
-from bma.constants import PAYMENTS_TYPE_CHOICE_TO_MODEL_MAP as payment_model_map
 
 """
 dependencies for weasyprint:

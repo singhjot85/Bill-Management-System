@@ -1,7 +1,6 @@
-from rest_framework.viewsets import ModelViewSet
-
 from bma.requests.models import Bill
 from bma.requests.serializers import BillSerializer
+from rest_framework.viewsets import ModelViewSet
 
 
 class BillViewSet(ModelViewSet):

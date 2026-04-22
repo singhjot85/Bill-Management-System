@@ -1,4 +1,4 @@
-exclude: "docs|node_modules|.git"
+exclude: "docs|node_modules|.git|bma2"
 default_stages: [pre-commit, pre-push]
 fail_fast: false
 

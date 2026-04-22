@@ -1,8 +1,3 @@
-from django.contrib import admin, messages
-from django.contrib.contenttypes.models import ContentType
-from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _
-
 from bma.payments.client import RazorPayClient
 from bma.payments.models import (
     CardDetails,
@@ -15,6 +10,10 @@ from bma.payments.models import (
     Payment,
     WalletDetails,
 )
+from django.contrib import admin, messages
+from django.contrib.contenttypes.models import ContentType
+from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 
 
 @admin.action(description="Generate orders")

@@ -1,7 +1,3 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.core.serializers.json import DjangoJSONEncoder
-from django.db import models
-
 from bma.constants import (
     CardlessEMIProviderChoices,
     CardNetworkChoices,
@@ -13,6 +9,9 @@ from bma.constants import (
 )
 from bma.core.models import BaseModel
 from bma.utils import generate_random_uuid
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import models
 
 
 class Order(BaseModel):

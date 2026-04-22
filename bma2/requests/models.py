@@ -1,9 +1,8 @@
+from bma.core.models import BaseModel, BaseUserModel
+from bma.utils import generate_random_uuid
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.functional import cached_property
-
-from bma.core.models import BaseModel, BaseUserModel
-from bma.utils import generate_random_uuid
 
 
 def upload_file_path():

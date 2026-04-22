@@ -1,10 +1,9 @@
-from django.contrib.auth import authenticate, login
-from django.http import HttpRequest
-from django.shortcuts import redirect, render
-
 from bma.core.constants import APIRequestMethods as Method
 from bma.core.forms import LoginForm, RegistrationForm
 from bma.core.models import BaseUserModel
+from django.contrib.auth import authenticate, login
+from django.http import HttpRequest
+from django.shortcuts import redirect, render
 
 AUTH_TEMPLATE = "auth.html"
 ERROR_TEMPLATE = "error.html"

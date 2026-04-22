@@ -1,12 +1,13 @@
 import os
-from .variables import *
+
 from .apps import (
     DEFAULT_DJANGO_APPS,
+    DJANGO_TENANT_PRIVATE_APPS,
+    DJANGO_TENANT_PUBLIC_APPS,
     EXTRA_DEPENDENCIES,
     PROJECT_APPS,
-    DJANGO_TENANT_PUBLIC_APPS,
-    DJANGO_TENANT_PRIVATE_APPS
 )
+from .variables import *
 
 STATIC_URL = "static/"
 ROOT_URLCONF = "config.routers"
@@ -24,9 +25,7 @@ SHARED_APPS = DJANGO_TENANT_PUBLIC_APPS
 
 TENANT_APPS = DJANGO_TENANT_PRIVATE_APPS
 
-DATABASE_ROUTERS = (
-    "django_tenants.routers.TenantSyncRouter",
-)
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 
 DATABASES = {
     "default": {
@@ -35,7 +34,7 @@ DATABASES = {
         "USER": DATABASE_USER,
         "PASSWORD": DATABASE_PASSWORD,
         "HOST": DATABASE_HOST,
-        "PORT": DATABASE_PORT
+        "PORT": DATABASE_PORT,
     }
 }
 
@@ -94,7 +93,7 @@ TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en-us"
 
 
-CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment") 
+CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")
 LOCAL_ENVS = ["local", "dev", "devlopment"]
 
 if CURRENT_ENV in LOCAL_ENVS:

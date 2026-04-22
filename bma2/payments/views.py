@@ -1,13 +1,5 @@
 from datetime import date
 
-from django.http.response import HttpResponse
-from rest_framework import status as APIStatus
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework.request import Request
-from rest_framework.response import Response
-
 from bma.core.constants import APIRequestMethods as Method
 from bma.core.models import Customer
 from bma.payments.client import api_key  # noqa
@@ -15,6 +7,13 @@ from bma.payments.models import Order, Payment
 from bma.payments.serializers import ExternalOrderSerializer, ExternalPaymentSerializer
 from bma.requests.serializers import PublicBillSerializer
 from bma.utils import add_rendered_pdf_to_response, get_contenttype_for_payment
+from django.http.response import HttpResponse
+from rest_framework import status as APIStatus
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 
 class PublicPaymentAPI(viewsets.ViewSet):

@@ -1,6 +1,5 @@
-from django.contrib import admin
-
 from bma.requests.models import Bill
+from django.contrib import admin
 
 DEFAULT_TEMPLATE_PATH = r"test_invoice.html"
 

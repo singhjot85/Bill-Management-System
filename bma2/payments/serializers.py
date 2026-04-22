@@ -1,7 +1,6 @@
-from rest_framework import serializers
-
 from bma.core.serializers import BaseUserSerializer, PublicCustomerSerializer
 from bma.payments.models import Order, Payment
+from rest_framework import serializers
 
 
 class PaymentSerializer(serializers.ModelSerializer):

@@ -25,7 +25,7 @@ All models will implement SoftDelete + TimeStamp mixins. Not written below to re
 - is_phone_verified
 - is_email_verified
 - source
-- customer_type  
+- customer_type
   (`PUBLIC / PRIVATE / VIP / CORPORATE`)
 - external_reference
 - details (JSON)
@@ -56,7 +56,7 @@ All models will implement SoftDelete + TimeStamp mixins. Not written below to re
 - invoice_date
 - due_date
 - status
-- tenant_invoice_number  
+- tenant_invoice_number
   (Example: `INV-2026-0001`)
 - document_url (FileField)
 - context_data (JSON)
@@ -73,7 +73,7 @@ All models will implement SoftDelete + TimeStamp mixins. Not written below to re
 
 - payments (1:M ← Payment)
 
-> Removed direct `payment` field from Invoice model to avoid duplication.  
+> Removed direct `payment` field from Invoice model to avoid duplication.
 > Payments should always reference Invoice from the Payment model.
 
 ---
@@ -114,7 +114,7 @@ All models will implement SoftDelete + TimeStamp mixins. Not written below to re
 - invoice (FK → Invoice)
 - verified_by (FK → AUTH_USER_MODEL)
 
-> Removed duplicate M:M reference between Payment and Invoice.  
+> Removed duplicate M:M reference between Payment and Invoice.
 > Correct relationship is: One Invoice → Many Payments
 
 ---
