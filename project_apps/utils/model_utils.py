@@ -20,7 +20,7 @@ class SoftDeleteManager(models.Manager):
 
 class SoftDeleteModelMixin:
 
-    deleted_by = models.ForeignKey(to=settings.AUTH_USER_MODEL, null=True, blank=True)
+    deleted_by = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
     is_removed = models.BooleanField(default=False, null=False)
 
@@ -43,9 +43,11 @@ class SoftDeleteModelMixin:
         
         self.save(update_fields=update_fields)
 
+
 class InvalidVersionException(Exception):
     """Raised when a version is invalid"""
     pass
+
 
 class SimpleVersionModelMixin:
 
@@ -99,19 +101,27 @@ class SimpleVersionModelMixin:
 
 class SafeModelMixin(SoftDeletableModel, TimeStampedModel):
     """A Model Mixin that is safe and makes debugging easier."""
-    pass
+    
+    class Meta:
+        abstract = True
 
 
 class BetterModelMixin(UUIDModel, SafeModelMixin):
     """A Model mixin that gives a better primary key."""
-    pass
+    
+    class Meta:
+        abstract = True
 
 
 class VersionedSafeModelMixin(SafeModelMixin, SimpleVersionModelMixin):
     """Safer Model with versioning."""
-    pass
+    
+    class Meta:
+        abstract = True
 
 
 class VersionedBetterModelMixin(BetterModelMixin, SimpleVersionModelMixin):
-    """Better Model with versioninig."""
-    pass
+    """Better Model with versioning."""
+    
+    class Meta:
+        abstract = True

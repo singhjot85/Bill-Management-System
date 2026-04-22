@@ -1,5 +1,5 @@
 import os
-from .paths import *
+from .variables import *
 from .apps import (
     DEFAULT_DJANGO_APPS,
     EXTRA_DEPENDENCIES,
@@ -8,10 +8,11 @@ from .apps import (
     DJANGO_TENANT_PRIVATE_APPS
 )
 
-
 STATIC_URL = "static/"
 ROOT_URLCONF = "config.routers"
 
+TENANT_MODEL = f"{APP_NAME}.{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
+TENANT_DOMAIN_MODEL = f"{APP_NAME}.{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
 
 INSTALLED_APPS = [
     *DEFAULT_DJANGO_APPS,
@@ -19,11 +20,22 @@ INSTALLED_APPS = [
     *PROJECT_APPS,
 ]
 
+SHARED_APPS = DJANGO_TENANT_PUBLIC_APPS
+
+TENANT_APPS = DJANGO_TENANT_PRIVATE_APPS
+
+DATABASE_ROUTERS = (
+    "django_tenants.routers.TenantSyncRouter",
+)
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT
     }
 }
 
@@ -45,6 +57,7 @@ TEMPLATES = [
 
 
 MIDDLEWARE = [
+    "django_tenants.middleware.main.TenantMainMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

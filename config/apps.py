@@ -12,8 +12,9 @@ DEFAULT_DJANGO_APPS = [
 ]
 
 EXTRA_DEPENDENCIES = [
-    "django_extensions",
+    # "django_extensions",
     "rest_framework",
+    "django_tenants"
 ]
 
 PROJECT_APPS = [
