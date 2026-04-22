@@ -1,5 +1,5 @@
-FROM postgres:13.2 as postgres
+FROM postgres:14
 
-COPY compose/local/pg/create_database.sh /usr/local/bin/postgres_scripts/
-RUN chmod +x /usr/local/bin/postgres_scripts/create_database.sh
-RUN rm -rf /usr/local/bin/postgres_scripts
+COPY compose/local/pg/create_database.sh /docker-entrypoint-initdb.d/
+
+RUN chmod +x /docker-entrypoint-initdb.d/create_database.sh

@@ -1,32 +1,48 @@
-# ARG PYTHON_VERSION 3.12-alpine # Lets not use this in development
 ARG PYTHON_VERSION=3.12
-ARG BUILD_ENV=local
 ARG APP_HOME=/app
+
 FROM python:${PYTHON_VERSION} as python
 
+# =========================
+# Build Stage
+# =========================
 FROM python as python-build-stage
 
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-        build-essential \
-        curl \
-    && pip install --no-cache-dir \ 
-        poetry==2.3.1 \
-        poetry-plugin-export
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    poetry==2.3.1 \
+    poetry-plugin-export
 
 COPY pyproject.toml poetry.lock /
 
-RUN --mount=type=secret,id=global-env \
-    . /run/secrets/global-env \
-    && poetry export -f requirements.txt --output requirements.txt --without-hashes \
-    && pip wheel --wheel-dir /usr/src/app/wheels -r requirements.txt
+RUN poetry export \
+    -f requirements.txt \
+    --output requirements.txt \
+    --without-hashes
 
-# Run stage
+RUN pip wheel \
+    --wheel-dir /usr/src/app/wheels \
+    -r requirements.txt
+
+# =========================
+# Run Stage
+# =========================
 FROM python as python-run-stage
 
 WORKDIR ${APP_HOME}
 
-COPY --from=python-build-stage /usr/src/app/wheels /wheels/
+COPY --from=python-build-stage /usr/src/app/wheels /wheels
+
+RUN pip install --no-cache-dir \
+    --no-index \
+    --find-links=/wheels \
+    /wheels/*
+
 COPY . ${APP_HOME}
 
-ENTRYPOINT [ "./entrypoint.sh" ]
+# ENTRYPOINT [ "executable" ]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -11,8 +11,8 @@ from .apps import (
 STATIC_URL = "static/"
 ROOT_URLCONF = "config.routers"
 
-TENANT_MODEL = f"{APP_NAME}.{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
-TENANT_DOMAIN_MODEL = f"{APP_NAME}.{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
+TENANT_MODEL = f"{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
+TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
 
 INSTALLED_APPS = [
     *DEFAULT_DJANGO_APPS,
@@ -30,7 +30,7 @@ DATABASE_ROUTERS = (
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django_tenants.postgresql_backend",
         "NAME": DATABASE_NAME,
         "USER": DATABASE_USER,
         "PASSWORD": DATABASE_PASSWORD,

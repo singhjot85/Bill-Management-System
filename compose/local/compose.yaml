@@ -11,23 +11,17 @@ services:
     container_name: bma_django
     restart: unless-stopped
     env_file:
-      - ./.envs/django.env
+      - ../../.envs/django.env
+      - ../../.envs/postgres.env
     depends_on:
       postgres:
         condition: service_healthy
-      # valkey:
-      #   condition: service_healthy
     volumes:
-      - .:/app
-      # - compose\local\django\start:/start # Copy Entrpoint script and add compose/ in .dockerignore
+      - ../../.:/app
+    environment:
+      - WATCHFILES_FORCE_POLLING=true
     ports:
       - "8000:8000"
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl <health-check-endpoint>"]
-    #   interval: 20s
-    #   timeout: 30s
-    #   retries: 5
-    #   start_period: 30s
   
   postgres:
     build: 
@@ -37,7 +31,7 @@ services:
         - global-env
     container_name: bma_postgres
     env_file:
-      - ./.envs/postgres.env
+      - ../../.envs/postgres.env
     ports:
       - "5432:5432"
     healthcheck:
