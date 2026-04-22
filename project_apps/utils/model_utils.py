@@ -18,7 +18,7 @@ class SoftDeleteManager(models.Manager):
         ).filter(is_removed=False)
 
 
-class SoftDeleteModelMixin:
+class SoftDeleteModelMixin(models.Model):
 
     deleted_by = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -49,7 +49,7 @@ class InvalidVersionException(Exception):
     pass
 
 
-class SimpleVersionModelMixin:
+class SimpleVersionModelMixin(models.Model):
 
     DEFAULT_ORDERING = ("-version_major", "-version_minor", "-version_patch")
     DEFAULT_VERSION = (1,0,0)
