@@ -38,11 +38,5 @@ docker-run:
 run: docker-run
 
 docker-bash:
-	${BASE_COMPOSE_CMD} exec -it bash
+	${BASE_COMPOSE_CMD} run --rm django bash
 bash: docker-bash
-
-# docker-clean-build:
-#     ${BASE_COMPOSE_CMD} down --rmi all && ${BASE_COMPOSE_CMD} build --no-cache
-
-# docker-clean-cache:
-#     docker builder prune -a

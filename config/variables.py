@@ -11,7 +11,7 @@ STATICFILES_DIRS = [
 
 TENANT_APP_NAME = "tenants"
 TENANT_MODEL_NAME = "OrganizationTenant"
-DOMAIN_MODEL_NAME = "OrganizatinDomain"
+DOMAIN_MODEL_NAME = "OrganizationDomain"
 
 AUTH_TEMPLATE_DIR = os.path.join(APP_DIR, "bma2", "core", "templates")
 PAYMENTS_TEMPLATE_DIR = os.path.join(APP_DIR, "bma2", "payments", "templates")

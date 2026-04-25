@@ -19,6 +19,9 @@ services:
     volumes:
       - ../../.:/app
     environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - DJANGO_DEBUG=True
       - WATCHFILES_FORCE_POLLING=true
     ports:
       - "8000:8000"

@@ -1,12 +1,6 @@
 import os
 
-from .apps import (
-    DEFAULT_DJANGO_APPS,
-    DJANGO_TENANT_PRIVATE_APPS,
-    DJANGO_TENANT_PUBLIC_APPS,
-    EXTRA_DEPENDENCIES,
-    PROJECT_APPS,
-)
+from .apps import *
 from .variables import *
 
 STATIC_URL = "static/"

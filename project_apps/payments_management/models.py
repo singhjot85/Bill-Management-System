@@ -46,7 +46,7 @@ class Invoice(BetterModelMixin):
         to=settings.CUSTOMER_CUSTOMER, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices"
     )
     template = models.ForeignKey(
-        to=settings.PAYMENT_INVOICETEMPLATE, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices"
+        to=settings.PAYMENT_TEMPLATES, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices"
     )
 
     def _generate_invoice_number(self):
