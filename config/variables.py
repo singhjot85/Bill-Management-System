@@ -13,9 +13,11 @@ TENANT_APP_NAME = "tenants"
 TENANT_MODEL_NAME = "OrganizationTenant"
 DOMAIN_MODEL_NAME = "OrganizationDomain"
 
-AUTH_TEMPLATE_DIR = os.path.join(APP_DIR, "bma2", "core", "templates")
-PAYMENTS_TEMPLATE_DIR = os.path.join(APP_DIR, "bma2", "payments", "templates")
-REQUESTS_TEMPLATE_DIR = os.path.join(APP_DIR, "bma2", "requests", "templates")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "static", "templates")
+# AUTH_TEMPLATE_DIR = os.path.join(APP_DIR, "project_apps", "customer_management", "templates")
+# PAYMENTS_TEMPLATE_DIR = os.path.join(APP_DIR, "project_apps", "payments_management", "templates")
+# REQUESTS_TEMPLATE_DIR = os.path.join(APP_DIR, "project_apps", "setup", "templates")
+# PUBLIC_TEMPLATE_DIR = os.path.join(APP_DIR, "project_apps", "tenants", "templates")
 
 DATABASE_NAME = os.getenv("POSTGRES_DB")
 DATABASE_USER = os.getenv("POSTGRES_USER")

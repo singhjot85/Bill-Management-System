@@ -5,7 +5,7 @@ services:
   django:
     build:
       context: ../../.
-      dockerfile: compose\local\django\DockerFile
+      dockerfile: compose/local/django/DockerFile
       secrets:
         - global-env
     container_name: bma_django
@@ -29,7 +29,7 @@ services:
   postgres:
     build:
       context: ../../.
-      dockerfile: compose\local\pg\Dockerfile
+      dockerfile: compose/local/pg/Dockerfile
       secrets:
         - global-env
     container_name: bma_postgres

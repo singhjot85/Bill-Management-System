@@ -1,16 +1,11 @@
 #!/bin/bash
 set -e
 
-echo "Creating Shared Schema..."
+echo "Running shared schema migrations..."
 python manage.py migrate_schemas --shared --noinput
 
-echo "Creating Default Private Schemas..."
-python manage.py bootstrap_tenant
+echo "Running tenant migrations..."
+python manage.py migrate --noinput
 
-# echo "Collecting Static Content..."
-#python manage.py collectstatic
-
-echo "Starting Server now..."
-python manage.py runserver
-
+echo "Executing command..."
 exec "$@"

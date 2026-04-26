@@ -1,5 +1,3 @@
-.PHONY: build run setup setup-system setup-python
-
 poetry-run:
 	poetry run python manage.py runserver
 
@@ -37,6 +35,29 @@ docker-run:
 	${BASE_COMPOSE_CMD} up
 run: docker-run
 
+BASE_DJANGO_CONTAINER:=${BASE_COMPOSE_CMD} run --rm django
+
 docker-bash:
-	${BASE_COMPOSE_CMD} run --rm django bash
+	${BASE_DJANGO_CONTAINER} bash
 bash: docker-bash
+
+app:=setup
+mig_name:=default_empty_migration
+docker-django-makemigrations-empty:
+	${BASE_DJANGO_CONTAINER} python manage.py makemigrations --empty ${app} --name ${mig_name}
+mme: docker-django-mme
+
+docker-django-makemigrations:
+	${BASE_DJANGO_CONTAINER} python manage.py makemigrations ${app}
+mm: docker-django-makemigrations
+
+docker-django-migrate:
+	${BASE_DJANGO_CONTAINER} python manage.py migrate
+m: docker-django-migrate
+
+docker-django-shell:
+	${BASE_DJANGO_CONTAINER} python manage.py shell
+
+s: docker-django-shell
+
+.PHONY: build run setup setup-system setup-python bash mme mm m s

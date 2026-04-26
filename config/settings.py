@@ -4,7 +4,9 @@ from .apps import *
 from .variables import *
 
 STATIC_URL = "static/"
+
 ROOT_URLCONF = "config.routers"
+PUBLIC_SCHEMA_URLCONF = "config.public_routers"
 
 TENANT_MODEL = f"{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
 TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
@@ -16,10 +18,13 @@ INSTALLED_APPS = [
 ]
 
 SHARED_APPS = DJANGO_TENANT_PUBLIC_APPS
-
 TENANT_APPS = DJANGO_TENANT_PRIVATE_APPS
+TENANT_SYNC_ROUTER = "django_tenants.routers.TenantSyncRouter"
 
-DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+DATABASE_ROUTERS = [
+    # This is what figure's out what will go in INSTALLED_APPS, when running 
+    TENANT_SYNC_ROUTER
+]
 
 DATABASES = {
     "default": {
@@ -36,7 +41,7 @@ DATABASES = {
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [AUTH_TEMPLATE_DIR, PAYMENTS_TEMPLATE_DIR, REQUESTS_TEMPLATE_DIR],
+        "DIRS": [TEMPLATES_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
