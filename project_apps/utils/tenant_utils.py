@@ -1,18 +1,16 @@
+from typing import TYPE_CHECKING
+
 from django.conf import settings
 from django_tenants.utils import get_public_schema_name
 from django.apps import apps
 
-# from project_apps.tenants.models import OrganizationTenant, OrganizationDomain
+from .constants import TenantTypes
+
+if TYPE_CHECKING:
+    from project_apps.tenants.models import OrganizationTenant, OrganizationDomain
 
 OrganizationTenant = apps.get_model(settings.TENANT_MODEL)
 OrganizationDomain = apps.get_model(settings.TENANT_DOMAIN_MODEL)
-
-
-LOCAL_SCHEMA_NAME = "localclient"
-LOCAL_TENANT_DOMAINS = [
-    f"{LOCAL_SCHEMA_NAME}.localhost",
-]
-
 
 class TenantCreationError(Exception):
     pass
@@ -30,130 +28,159 @@ class DomainDeletionError(Exception):
     pass
 
 
-def create_domains(tenant: "OrganizationTenant", domains: list):
-    if not isinstance(domains, list):
-        raise ValueError("domains must be a list")
+class DomainConfig:
 
-    try:
-        is_primary = True
+    def __init__(self, domain_names: list[str], is_public: bool= False):
+        """
+        Args:
+            domain_names (list[str]): List of strings containing domain names to be created
+            is_public (bool): Is it a public tenant.
+                defaults to False.
+        """
+        # if not (clean_domain_names := self.clean_domain_names(domain_names)):
+        #     raise DomainDeletionError("Please pass the list of domains to be created")
 
-        for domain in domains:
-            defaults = {
-                "domain": domain,
+        self._domain_names = self.clean_domain_names(domain_names)
+        self._is_public = is_public
+
+    @property
+    def resolved_domain(self):
+        """Resolved domain name for current app setting"""
+        if hasattr(self, "_resolved_domain"):
+            return self._resolved_domain
+        return self._get_resolved_domain()
+
+    def _get_resolved_domain(self):
+        """Resolved domain for current app execution."""
+        if settings.DEBUG:
+            self._resolved_domain = "localhost"
+        else:
+            self._resolved_domain = settings.RESOLVED_DOMAIN
+        return self._resolved_domain
+
+    def clean_domain_names(self, domain_names: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for domain_name in domain_names:
+            if (
+                not isinstance(domain_name, str) 
+                or (
+                    not domain_name.isalnum()
+                    or self._is_public
+                )
+            ):
+                raise DomainCreationError(f"Domain name [{domain_name}] is not allowed.")
+            cleaned.append(domain_name)
+        return cleaned
+
+    def get_domain_names(self) -> list[str]:
+        """Returns list of domain names to be used for the app."""
+        resolved_names = []
+        for domain_name in self._domain_names:
+            resolved_names.append(f"{domain_name}.{self.resolved_domain}")
+
+    def set_tenant(self, tenant: "OrganizationTenant"):
+        self._tenant = tenant
+
+    def get_domain_data(self) -> list[dict] | list:
+        data = []
+        is_primary = False
+        for domain_name in self.get_domain_names():
+            config = {
+                "tenant": self._tenant,
                 "is_primary": is_primary,
             }
-
-            OrganizationDomain.objects.get_or_create(
-                tenant=tenant,
-                domain=domain,
-                defaults=defaults,
-            )
-
+            config["domain"] = domain_name
             is_primary = False
+            data.append(config)
 
-    except Exception as exc:
-        raise DomainCreationError("Domain creation failed") from exc
-
-
-def create_public_tenant():
-    defaults = {
-        "name": get_public_schema_name().title(),
-    }
-
-    try:
-        org, _ = OrganizationTenant.objects.get_or_create(
-            schema_name=get_public_schema_name(),
-            defaults=defaults,
-        )
-
-        create_domains(org, ["localhost"])
-
-    except Exception as exc:
-        raise TenantCreationError("Public tenant creation failed") from exc
+        return data
 
 
-def create_local_tenant():
-    defaults = {
-        "name": LOCAL_SCHEMA_NAME.title(),
-    }
+class TenantCreationUtils:
 
-    try:
-        org, _ = OrganizationTenant.objects.get_or_create(
-            schema_name=LOCAL_SCHEMA_NAME,
-            defaults=defaults,
-        )
+    @staticmethod
+    def get_attrs(model, **kwargs) -> dict:
+        """Pick out class/model Attributes from passed kwargs"""
+        return_kwargs = {k: v for k, v in kwargs.items() if hasattr(model, k)}
+        return return_kwargs
 
-        create_domains(org, LOCAL_TENANT_DOMAINS)
+    @staticmethod
+    def _create_domain(tenant: "OrganizationTenant", *args, **kwargs) -> "OrganizationDomain":
+        try:
+            defaults: dict = TenantCreationUtils.get_attrs(OrganizationDomain, **kwargs)
+            tenant = defaults.pop("tenant", None)
+            if tenant:
+                return OrganizationDomain.objects.get_or_create(tenant=tenant, defaults=defaults)
+            else:
+                raise DomainCreationError("Tenant not passed for domain creation.")
+        except Exception as e:
+            raise DomainCreationError(f"Error Creating Domain for tenant: [{kwargs.get("tenant")}]") from e
 
-    except Exception as exc:
-        raise TenantCreationError("Local tenant creation failed") from exc
+    @staticmethod
+    def create_domains(tenant: "OrganizationTenant", domain_config: DomainConfig) -> list["OrganizationDomain"]:
+        """
+        Create a list of domains for the given tenant
+        Args:
+            tenant (OrganizationTenant): Tennat to be created
+            domain_config (DomainConfig): List of domain strings.
+        Raises:
+            DomainCreationError
+        """
+        domain_config.set_tenant(tenant)
+        domain_settings = domain_config.get_domain_data()
+        domains = []
+        for settings in domain_settings:
+            domains.append(TenantCreationUtils._create_domain(**settings))
+        return domains
 
+    @staticmethod
+    def _create_tenant(**kwargs) -> "OrganizationTenant":
+        defaults = TenantCreationUtils.get_attrs(OrganizationTenant, **kwargs)
+        schema_name = defaults.pop("schema_name", None)
+        if schema_name:
+            if not (org := OrganizationTenant.objects.filter(schema_name=schema_name)):
+                org = OrganizationTenant.objects.get_or_create(schema_name=schema_name, defaults=defaults)
+            return org
+        raise TenantCreationError("Error occurred Creating tenant, did you provide a schema_name ??")
 
-def init_tenants():
-    create_public_tenant()
+    @staticmethod
+    def create_tenant(
+        tenant_type: str, 
+        schema_name: str, 
+        tenant_name: str = None,
+        create_domain: bool = False,
+        domain_config: DomainConfig = None
+    ) -> tuple["OrganizationTenant", list["OrganizationDomain"]]:
+        """
+        Entrypoint util for Tenant creation,
+            - Creates a Organization record if not available.
+            - Creates a Domain even if one exists on the org
+                Intentional so that we can use this to add domains also
+        Args:
+            tenant_type (str): Type of tenant to be created
+                constants in TenantTypes
+            schema_name (str): Name of the schema.
+                In PRIVATE Tenant creation it'll falback to the one in project settings.
+            create_domain (bool, optional): Do we need to create domains.
+                defaults to False
+            domain_config (DomainConfig, optional): Domain Configuration object.
+                defaults to None
+            tenant_name (str, optional): Name of the tenant
+        """
+        if not tenant_type:
+            raise TenantCreationError("Please define the type of tenant you want to create")
 
-    if settings.DEBUG:
-        create_local_tenant()
+        if not tenant_name:
+            tenant_name = schema_name.title()
 
+        if tenant_type == TenantTypes.PUBLIC.value:
+            schema_name = get_public_schema_name()
 
-# -----------------------------
-# Reverse migration utilities
-# -----------------------------
+        tenant, domains = (None, [])
+        tenant = TenantCreationUtils._create_tenant(schema_name=schema_name, name=tenant_name)
+        if create_domain:
+            if not domain_config:
+                raise TenantCreationError("Domain info also needed to create a tenant.")
+            domains = TenantCreationUtils.create_domains(tenant, domain_config)
 
-
-def delete_domains(tenant: "OrganizationTenant"):
-    try:
-        OrganizationDomain.objects.filter(
-            tenant=tenant
-        ).delete()
-
-    except Exception as exc:
-        raise DomainDeletionError("Domain deletion failed") from exc
-
-
-def delete_public_tenant():
-    try:
-        tenant = OrganizationTenant.objects.filter(
-            schema_name=get_public_schema_name()
-        ).first()
-
-        if not tenant:
-            return
-
-        delete_domains(tenant)
-
-        # usually public tenant should not be deleted physically
-        # but since this is for reverse migration utility:
-        tenant.delete()
-
-    except Exception as exc:
-        raise TenantDeletionError("Public tenant deletion failed") from exc
-
-
-def delete_local_tenant():
-    try:
-        tenant = OrganizationTenant.objects.filter(
-            schema_name=LOCAL_SCHEMA_NAME
-        ).first()
-
-        if not tenant:
-            return
-
-        delete_domains(tenant)
-        tenant.delete()
-
-    except Exception as exc:
-        raise TenantDeletionError("Local tenant deletion failed") from exc
-
-
-def reverse_init_tenants():
-    """
-    Reverse function for RunPython migration.
-    Reverse order matters:
-    local tenant first -> public tenant second
-    """
-
-    if settings.DEBUG:
-        delete_local_tenant()
-
-    delete_public_tenant()
+        return tenant, domains

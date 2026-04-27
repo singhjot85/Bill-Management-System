@@ -1,3 +1,7 @@
+###################################
+## Make Targets for normal shell ##
+###################################
+
 poetry-run:
 	poetry run python manage.py runserver
 
@@ -23,41 +27,64 @@ setup-python:
 
 setup: setup-system setup-python
 
-COMPOSE_NAME:=compose/local/compose.yaml
+##################################### 
+## Make target for docker commands ##
+#####################################
 
+COMPOSE_NAME:=compose/local/compose.yaml
 BASE_COMPOSE_CMD:=docker compose -f ${COMPOSE_NAME}
+BASE_DJANGO_CONTAINER:=${BASE_COMPOSE_CMD} run --rm django
+
+app:=setup
+mig_name:=default_empty_migration
 
 docker-build:
+	@echo "⌛ Starting build process..."
+	@echo "⚠️ This stage might pull images make sure you are connected"
 	${BASE_COMPOSE_CMD} build
 build: docker-build
 
 docker-run:
+	@echo "⌛ Starting containers..."
 	${BASE_COMPOSE_CMD} up
 run: docker-run
 
-BASE_DJANGO_CONTAINER:=${BASE_COMPOSE_CMD} run --rm django
-
 docker-bash:
+	@echo "⌛ Starting bash in containers..."
 	${BASE_DJANGO_CONTAINER} bash
 bash: docker-bash
 
-app:=setup
-mig_name:=default_empty_migration
 docker-django-makemigrations-empty:
+	@echo "⌛ Making an empty migration in App: ➡️[${app}] with Name: ➡️[${mig_name}]..."
+	@echo "⚠️ If this was not intended use command with app= or mig_name= flags"
 	${BASE_DJANGO_CONTAINER} python manage.py makemigrations --empty ${app} --name ${mig_name}
 mme: docker-django-mme
 
 docker-django-makemigrations:
+	@echo "⌛ Making migrations in App: ➡️[${app}]..."
+	@echo "⚠️ If this was not intended use command with app= flag"
 	${BASE_DJANGO_CONTAINER} python manage.py makemigrations ${app}
 mm: docker-django-makemigrations
 
 docker-django-migrate:
+	@echo "⌛ Migrating Schema's now..."
 	${BASE_DJANGO_CONTAINER} python manage.py migrate
 m: docker-django-migrate
 
 docker-django-shell:
+	@echo "⌛ Launching Django shell..."
 	${BASE_DJANGO_CONTAINER} python manage.py shell
-
 s: docker-django-shell
 
-.PHONY: build run setup setup-system setup-python bash mme mm m s
+docker-clean-project:
+	@echo "☣️ Cleaning entire project: Containers, Volumes, Compose Images, Orphan containers"
+	${BASE_COMPOSE_CMD} down --volumes --rmi all --remove-orphans
+clean: docker-clean-project
+
+docker-clean-build-run:
+	make docker-clean-project
+	make build
+	make run
+cbr: docker-clean-build-run
+
+.PHONY: build run setup setup-system setup-python bash mme mm m s clean cbr
