@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from django.conf import settings
-from django_tenants.utils import get_public_schema_name
 from django.apps import apps
+from django.conf import settings
+from django.db import transaction
+from django_tenants.utils import get_public_schema_name
 
 from .constants import TenantTypes
 
@@ -20,81 +21,85 @@ class DomainCreationError(Exception):
     pass
 
 
-class TenantDeletionError(Exception):
-    pass
-
-
-class DomainDeletionError(Exception):
-    pass
-
-
 class DomainConfig:
+    """
+    Responsible only for:
+    - validating domain prefixes
+    - resolving final full domain names
+    """
 
-    def __init__(self, domain_names: list[str], is_public: bool= False):
-        """
-        Args:
-            domain_names (list[str]): List of strings containing domain names to be created
-            is_public (bool): Is it a public tenant.
-                defaults to False.
-        """
-        # if not (clean_domain_names := self.clean_domain_names(domain_names)):
-        #     raise DomainDeletionError("Please pass the list of domains to be created")
+    def __init__(
+        self,
+        domain_names: list[str] | None = None,
+        is_public: bool = False,
+    ):
+        self.is_public = is_public
+        self.domain_names = domain_names or []
 
-        self._domain_names = self.clean_domain_names(domain_names)
-        self._is_public = is_public
+        self._validate()
 
     @property
-    def resolved_domain(self):
-        """Resolved domain name for current app setting"""
-        if hasattr(self, "_resolved_domain"):
-            return self._resolved_domain
-        return self._get_resolved_domain()
-
-    def _get_resolved_domain(self):
-        """Resolved domain for current app execution."""
+    def resolved_domain(self) -> str:
+        """
+        Example:
+            DEBUG=True  -> localhost
+            DEBUG=False -> example.com
+        """
         if settings.DEBUG:
-            self._resolved_domain = "localhost"
-        else:
-            self._resolved_domain = settings.RESOLVED_DOMAIN
-        return self._resolved_domain
+            return "localhost"
 
-    def clean_domain_names(self, domain_names: list[str]) -> list[str]:
-        cleaned: list[str] = []
-        for domain_name in domain_names:
-            if (
-                not isinstance(domain_name, str) 
-                or (
-                    not domain_name.isalnum()
-                    or self._is_public
+        return settings.RESOLVED_DOMAIN
+
+    def _validate(self):
+        """
+        Validation rules:
+        - Public tenant can have empty domain list
+        - Private tenant must have valid subdomain names
+        """
+
+        if self.is_public:
+            return
+
+        if not self.domain_names:
+            raise DomainCreationError(
+                "Private tenant requires at least one domain."
+            )
+
+        for domain in self.domain_names:
+            if not isinstance(domain, str):
+                raise DomainCreationError(
+                    f"Invalid domain: {domain}"
                 )
-            ):
-                raise DomainCreationError(f"Domain name [{domain_name}] is not allowed.")
-            cleaned.append(domain_name)
-        return cleaned
 
-    def get_domain_names(self) -> list[str]:
-        """Returns list of domain names to be used for the app."""
-        resolved_names = []
-        for domain_name in self._domain_names:
-            resolved_names.append(f"{domain_name}.{self.resolved_domain}")
+            if not domain.strip():
+                raise DomainCreationError(
+                    "Empty domain name is not allowed."
+                )
 
-    def set_tenant(self, tenant: "OrganizationTenant"):
-        self._tenant = tenant
+            if not domain.replace("-", "").isalnum():
+                raise DomainCreationError(
+                    f"Invalid domain name: {domain}"
+                )
 
-    def get_domain_data(self) -> list[dict] | list:
-        data = []
-        is_primary = False
-        for domain_name in self.get_domain_names():
-            config = {
-                "tenant": self._tenant,
-                "is_primary": is_primary,
-            }
-            config["domain"] = domain_name
-            is_primary = False
-            data.append(config)
+    def build_domains(self) -> list[str]:
+        """
+        Returns final domain names
 
-        return data
+        Public:
+            example.com
 
+        Private:
+            org1.example.com
+            org2.example.com
+        """
+
+        if self.is_public:
+            return [self.resolved_domain]
+
+        return [
+            f"{domain}.{self.resolved_domain}"
+            for domain in self.domain_names
+        ]
 
 class TenantCreationUtils:
 
@@ -105,41 +110,29 @@ class TenantCreationUtils:
         return return_kwargs
 
     @staticmethod
-    def _create_domain(tenant: "OrganizationTenant", *args, **kwargs) -> "OrganizationDomain":
-        try:
-            defaults: dict = TenantCreationUtils.get_attrs(OrganizationDomain, **kwargs)
-            tenant = defaults.pop("tenant", None)
-            if tenant:
-                return OrganizationDomain.objects.get_or_create(tenant=tenant, defaults=defaults)
-            else:
-                raise DomainCreationError("Tenant not passed for domain creation.")
-        except Exception as e:
-            raise DomainCreationError(f"Error Creating Domain for tenant: [{kwargs.get("tenant")}]") from e
+    def create_domains(
+        tenant: "OrganizationTenant",
+        domain_config: DomainConfig,
+    ) -> list["OrganizationDomain"]:
 
-    @staticmethod
-    def create_domains(tenant: "OrganizationTenant", domain_config: DomainConfig) -> list["OrganizationDomain"]:
-        """
-        Create a list of domains for the given tenant
-        Args:
-            tenant (OrganizationTenant): Tennat to be created
-            domain_config (DomainConfig): List of domain strings.
-        Raises:
-            DomainCreationError
-        """
-        domain_config.set_tenant(tenant)
-        domain_settings = domain_config.get_domain_data()
-        domains = []
-        for settings in domain_settings:
-            domains.append(TenantCreationUtils._create_domain(**settings))
-        return domains
+        created_domains = []
+
+        for domain_name in domain_config.build_domains():
+            domain, _ = OrganizationDomain.objects.get_or_create(
+                tenant=tenant,
+                domain=domain_name
+            )
+            created_domains.append(domain)
+
+        return created_domains
 
     @staticmethod
     def _create_tenant(**kwargs) -> "OrganizationTenant":
         defaults = TenantCreationUtils.get_attrs(OrganizationTenant, **kwargs)
         schema_name = defaults.pop("schema_name", None)
         if schema_name:
-            if not (org := OrganizationTenant.objects.filter(schema_name=schema_name)):
-                org = OrganizationTenant.objects.get_or_create(schema_name=schema_name, defaults=defaults)
+            if not (org := OrganizationTenant.objects.filter(schema_name=schema_name).first()):
+                org, _ = OrganizationTenant.objects.get_or_create(schema_name=schema_name, defaults=defaults)
             return org
         raise TenantCreationError("Error occurred Creating tenant, did you provide a schema_name ??")
 
@@ -177,10 +170,12 @@ class TenantCreationUtils:
             schema_name = get_public_schema_name()
 
         tenant, domains = (None, [])
-        tenant = TenantCreationUtils._create_tenant(schema_name=schema_name, name=tenant_name)
-        if create_domain:
-            if not domain_config:
-                raise TenantCreationError("Domain info also needed to create a tenant.")
-            domains = TenantCreationUtils.create_domains(tenant, domain_config)
+        
+        with transaction.atomic(): # If anything fails revert all db changes
+            tenant = TenantCreationUtils._create_tenant(schema_name=schema_name, name=tenant_name)
+            if create_domain:
+                if not domain_config and schema_name != get_public_schema_name():
+                    raise TenantCreationError("Domain info also needed to create a tenant.")
+                domains = TenantCreationUtils.create_domains(tenant, domain_config)
 
         return tenant, domains

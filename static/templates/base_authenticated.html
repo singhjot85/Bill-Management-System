@@ -43,7 +43,7 @@
             class="btn btn-outline-secondary"
             id="toggle-password-btn"
           >
-            👁
+            -
           </button>
         </div>
 
@@ -56,8 +56,8 @@
 </div>
 {% endblock %} {% block script %}
 <script>
-  const GET_LOGIN_URL = "{% url 'login' %}";
-  const POST_LOGIN_URL = "{% url 'login' %}";
+  const GET_LOGIN_URL = "{% url '' %}";
+  const POST_LOGIN_URL = "{% url '' %}";
   const LOGOUT_URL = "{% url 'logout' %}";
 
   function pageResets() {
@@ -88,7 +88,7 @@
       toggleBtn.innerText = "X";
     } else {
       passwordInput.type = "password";
-      toggleBtn.innerText = "👁";
+      toggleBtn.innerText = "-";
     }
   }
 

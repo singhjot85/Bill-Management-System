@@ -18,15 +18,17 @@ class Command(BaseCommand):
             public_tenant, _ = TenantCreationUtils.create_tenant(
                 tenant_type=TenantTypes.PUBLIC.value,
                 schema_name="",
+                create_domain=True,
                 domain_config=DomainConfig([], is_public=True)
             )       
         except Exception as e:
             self.stdout.write(
                 self.style.ERROR(str(e))
             )
-            return 
+            return
+
         self.stdout.write(
-            self.style.SUCCESS(f"[{public_tenant}] Tenant Created Successfully...")
+            self.style.SUCCESS(f"Public Tenant Created Successfully...")
         )
 
         if private_schema := options["schema_name"]:
@@ -34,22 +36,33 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"Creating Private Tenant: [{private_schema}]...")
             )
             try:
-                private_tenant, _ = TenantCreationUtils.create_tenant(
+                create_domain, domain_config = (False, None)
+                if domain := options["domain_name"]:
+                    create_domain = True
+                    domain_config = DomainConfig([domain], False)
+                    
+                TenantCreationUtils.create_tenant(
                     tenant_type=TenantTypes.PRIVATE.value, 
                     schema_name=private_schema,
-                    create_domain=False
+                    create_domain=create_domain,
+                    domain_config=domain_config
                 )
             except Exception as e:
                 self.stdout.write(
-                    self.style.ERROR(str(e))
+                    self.style.ERROR(f"Error creating private schema: {str(e)}")
                 )
             self.stdout.write(
-                self.style.SUCCESS(f"[{str(private_tenant)}]Tenant Created Successfully...")
+                self.style.SUCCESS(f"Tenant Created Successfully...")
             )
     
     def add_arguments(self, parser):
         parser.add_argument(
             "--schema_name",
             type=str,
-            help="Create a custom tenant with schema name"
+            help="Create a private tenant with schema name along with public tenant"
+        )
+        parser.add_argument(
+            "--domain_name",
+            type=str,
+            help="[Optional] Domain Name for the private tenant."
         )

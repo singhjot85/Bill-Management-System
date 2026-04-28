@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.db import transaction
 from django_tenants.utils import get_public_schema_name, schema_context
 
@@ -26,7 +26,7 @@ class UserCreationUtils():
         return OrganizationTenant.objects.filter(schema_name=schema_name).exists()
 
     @staticmethod
-    def _create_user(username: str, password: str):
+    def _create_user(username: str, password: str) -> "User":
         """
         Create a user in current schema,
         The transaction is atomic, so if any exception occurs just rollback
@@ -35,24 +35,21 @@ class UserCreationUtils():
             password (str): Raw password string
         """
         with transaction.atomic():
-            user, _ = User.objects.get_or_create(username=username)
-            if user:
-                user.set_password(password)
-                user.first_name = username
-                user.save(update_fields=["first_name", "password"])
+            user = User.objects.create_user(username=username, password=password)
+            return user
 
     @staticmethod
-    def public_user_creation(username: str, password: str):
+    def public_user_creation(username: str, password: str) -> "User":
         schema = get_public_schema_name()
 
         if not UserCreationUtils.is_schema_avl(schema):
             raise PublicUserCreationError("Schema not available")
 
         with schema_context(schema):
-            UserCreationUtils._create_user(username, password)
+            return UserCreationUtils._create_user(username, password)
     
     @staticmethod
-    def private_user_creation(username: str, password: str, schema: str):
+    def private_user_creation(username: str, password: str, schema: str) -> "User":
         if not schema:
             raise PrivateUserCreation("Schema Name is required")
 
@@ -60,7 +57,7 @@ class UserCreationUtils():
             raise PrivateUserCreation("Schema not available")
         
         with schema_context(schema):
-            UserCreationUtils._create_user(username, password)
+            return UserCreationUtils._create_user(username, password)
 
     @staticmethod
     def bootstrap_users():

@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 
 LOGIN_TEMPLATE = "base_authenticated.html"
-LOGIN_REDIRECT_URL = ""
+LOGIN_REDIRECT_URL = "/admin"
 
 
 class LoginView(View):
@@ -44,17 +44,12 @@ class LoginView(View):
         data = {"errors": None}
 
         request_data = json.loads(request.body.decode())
-
-        print("request data >>> ", request_data)
-
         username = request_data.get("username")
-        try:
-            password = self.validate_password(request_data.get("password"))
-        except AssertionError as e:
-            data["errors"] = str(e)
-            data = json.dumps(data).encode()
-            # 406 -> Not acceptable
-            return HttpResponse(data, status=HTTPStatus.NOT_ACCEPTABLE._value_)
+        password = request_data.get("password")
+
+        from django.db import connection
+        print("Current DB connection >>> ", connection.schema_name)
+        print("Request data >>> ", request_data)
 
         if user := authenticate(request, username=username, password=password):
             login(request, user)
@@ -62,8 +57,7 @@ class LoginView(View):
 
         data["errors"] = "User Not found"
         data = json.dumps(data).encode()
-        # 404 -> Not Found
-        return HttpResponse(data, status=HTTPStatus.NOT_FOUND._value_)
+        return HttpResponse(data, status=HTTPStatus.NOT_FOUND._value_) # 404 -> Not Found
 
     def _is_strong_password(self, password: str) -> bool:
         return (
@@ -73,6 +67,15 @@ class LoginView(View):
         )
 
     def validate_password(self, password: str):
+        """Reuse in Register, but don't use during login
+        # try:
+        #     password = self.validate_password(request_data.get("password"))
+        # except AssertionError as e:
+        #     data["errors"] = str(e)
+        #     data = json.dumps(data).encode()
+        #     # 406 -> Not acceptable
+        #     return HttpResponse(data, status=HTTPStatus.NOT_ACCEPTABLE._value_)
+        """
         _password = password.strip()
 
         assert _password.__len__() >= 8, "Password is too short, make it atleast 8 digits."
