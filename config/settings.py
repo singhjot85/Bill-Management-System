@@ -91,6 +91,7 @@ USE_I18N = True
 TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en-us"
 
+BOOTSRAP_SCHEMA_NAME = "localclient"
 
 CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")
 LOCAL_ENVS = ["local", "dev", "devlopment"]

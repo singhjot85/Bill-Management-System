@@ -37,6 +37,7 @@ BASE_DJANGO_CONTAINER:=${BASE_COMPOSE_CMD} run --rm django
 
 app:=setup
 mig_name:=default_empty_migration
+schem_name:=localclient
 
 docker-build:
 	@echo "⌛ Starting build process..."
@@ -87,4 +88,19 @@ docker-clean-build-run:
 	make run
 cbr: docker-clean-build-run
 
-.PHONY: build run setup setup-system setup-python bash mme mm m s clean cbr
+docker-clean-local-setup:
+	make clean
+	make build
+	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_tenants --schema_name localclient
+	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_users 
+	make run
+clean-setup: docker-clean-local-setup
+
+.PHONY: 
+	build 
+	run 
+	setup setup-system setup-python 
+	bash s
+	mme mm m 
+	clean cbr
+	clean-setup
