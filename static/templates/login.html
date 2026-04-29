@@ -1,0 +1,83 @@
+{% extends "base_template.html" %} {% block title %} Login {% endblock %}
+{%block body %}
+<div
+  class="container d-flex justify-content-center align-items-center min-vh-100"
+>
+  <div class="card shadow p-4" style="width: 100%; max-width: 420px">
+    <h3 class="text-center mb-4">{{ data.org.name|default:"Login" }}</h3>
+
+    {% if errors %}
+    <div class="alert alert-danger">{{ errors }}</div>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="username-input" class="form-label">
+          Username <span class="text-danger">*</span>
+        </label>
+
+        <input
+          id="username-input"
+          name="username"
+          class="form-control"
+          placeholder="Enter Username"
+          type="text"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="password-input" class="form-label">
+          Password <span class="text-danger">*</span>
+        </label>
+
+        <div class="input-group">
+          <input
+            id="password-input"
+            name="password"
+            class="form-control"
+            placeholder="Enter Password"
+            type="password"
+            required
+          />
+
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            id="toggle-password-btn"
+          >
+            Show
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block script %}
+<script>
+  function togglePasswordVisibility() {
+    const passwordInput = document.getElementById("password-input");
+    const toggleBtn = document.getElementById("toggle-password-btn");
+
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      toggleBtn.innerText = "Hide";
+    } else {
+      passwordInput.type = "password";
+      toggleBtn.innerText = "Show";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("toggle-password-btn");
+
+    toggleBtn.addEventListener("click", function () {
+      togglePasswordVisibility();
+    });
+  });
+</script>
+{% endblock %}

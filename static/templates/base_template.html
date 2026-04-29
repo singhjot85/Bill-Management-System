@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>
-      {% block title %} {{ page_title|default:"Public Site" }} {% endblock %}
+      {% block title %} {{ page_title|default:"Application" }} {% endblock %}
     </title>
 
     {% if favicon_url %}
@@ -25,7 +25,7 @@
   <body>
     {% block body %} {% endblock %}
 
-    <!-- Global API Error Snackbar -->
+    <!-- Global API Error Toast -->
     <div
       id="api-error-snack"
       class="toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3"
@@ -48,22 +48,12 @@
     </div>
 
     <script>
-      function getCSRFToken() {
-        return document.querySelector("[name=csrfmiddlewaretoken]").value;
-      }
-      /**
-       * Global API call helper
-       * - Supports GET / POST / PUT / PATCH / DELETE
-       * - Automatically handles JSON
-       * - Shows Bootstrap toast on failure
-       */
       async function makeApiCall(url, method = "GET", data = null) {
         try {
           const options = {
             method: method,
             headers: {
               "Content-Type": "application/json",
-              "X-Csrftoken": getCSRFToken(),
             },
           };
 
@@ -77,42 +67,31 @@
           try {
             responseData = await response.json();
           } catch {
-            try {
-              responseData = await response.text();
-            } catch {
-              responseData = {};
-            }
+            responseData = {};
           }
-
-          /* Let the base component decide
-           *  what do on the given error code
-           */
-          // if (!response.ok) {
-          //   throw new Error(
-          //     responseData.message ||
-          //       responseData.detail ||
-          //       responseData.errors ||
-          //       `Request failed with status ${response.status}`,
-          //   );
-          // }
+          if (!response.ok) {
+            throw new Error(
+              responseData.message ||
+                responseData.detail ||
+                `Request failed (${response.status})`,
+            );
+          }
 
           return {
             status: response.status,
             response: responseData,
+            ok: true,
           };
         } catch (error) {
           showApiError(error.message || "Unexpected API error");
           return {
             status: 500,
             response: null,
-            error: error.message,
+            ok: false,
           };
         }
       }
 
-      /**
-       * Show global error toast
-       */
       function showApiError(message) {
         const errorMessage = document.getElementById("api-error-message");
         errorMessage.textContent = message;
@@ -120,6 +99,12 @@
         const toastElement = document.getElementById("api-error-snack");
         const toast = new bootstrap.Toast(toastElement);
         toast.show();
+      }
+
+      async function logoutUser() {
+        await makeApiCall("{% url 'logout' %}", "GET");
+
+        window.location.href = "{% url 'login' %}";
       }
     </script>
 

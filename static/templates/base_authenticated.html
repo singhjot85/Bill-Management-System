@@ -1,176 +1,27 @@
-{% extends "base_template.html" %} {% block body %}
-<div
-  class="container d-flex justify-content-center align-items-center min-vh-100"
->
-  <div class="card shadow p-4" style="width: 100%; max-width: 420px">
-    <h3 class="text-center mb-4">{{ data.org.name|default:"Login" }}</h3>
+{% extends "base_template.html" %}
 
-    <form id="login-form">
-      {% csrf_token %}
+{% block body %}
+<div class="container-fluid">
 
-      <div class="mb-3">
-        <label for="username-input" class="form-label">
-          Username <span class="text-danger">*</span>
-        </label>
+    <!-- Navbar -->
+    <nav class="navbar navbar-light bg-light px-4 py-3 shadow-sm">
+        <span class="navbar-brand mb-0 h4">
+            {{ data.org.name|default:"Application" }}
+        </span>
 
-        <input
-          id="username-input"
-          name="username"
-          class="form-control"
-          placeholder="Enter Username"
-          type="text"
-          required
-        />
-      </div>
+        <button
+            class="btn btn-outline-danger"
+            onclick="logoutUser()"
+        >
+            Logout
+        </button>
+    </nav>
 
-      <div class="mb-3">
-        <label for="password-input" class="form-label">
-          Password <span class="text-danger">*</span>
-        </label>
+    <!-- Protected Content -->
+    <main class="container mt-5">
+        {% block authenticated_body %}
+        {% endblock %}
+    </main>
 
-        <div class="input-group">
-          <input
-            id="password-input"
-            name="password"
-            class="form-control"
-            placeholder="Enter Password"
-            type="password"
-            required
-          />
-
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            id="toggle-password-btn"
-          >
-            -
-          </button>
-        </div>
-
-        <span class="text-danger small" id="password-validation-check"></span>
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-  </div>
 </div>
-{% endblock %} {% block script %}
-<script>
-  const GET_LOGIN_URL = "{% url '' %}";
-  const POST_LOGIN_URL = "{% url '' %}";
-  const LOGOUT_URL = "{% url 'logout' %}";
-
-  function pageResets() {
-    /*
-     * Clear toast/global API error
-     */
-    const errorMessage = document.getElementById("api-error-message");
-    if (errorMessage) {
-      errorMessage.textContent = "";
-    }
-
-    /*
-     * Clear password validation error
-     */
-    const passValCheck = document.getElementById("password-validation-check");
-
-    if (passValCheck) {
-      passValCheck.innerText = "";
-    }
-  }
-
-  function togglePasswordVisibility() {
-    const passwordInput = document.getElementById("password-input");
-    const toggleBtn = document.getElementById("toggle-password-btn");
-
-    if (passwordInput.type === "password") {
-      passwordInput.type = "text";
-      toggleBtn.innerText = "X";
-    } else {
-      passwordInput.type = "password";
-      toggleBtn.innerText = "-";
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", function () {
-    pageResets();
-
-    /*
-     * If already authenticated,
-     * backend GET will redirect automatically.
-     */
-    makeApiCall(GET_LOGIN_URL);
-
-    /*
-     * Login submit
-     */
-    const loginForm = document.getElementById("login-form");
-
-    loginForm.addEventListener("submit", async function (event) {
-      event.preventDefault();
-      await loginUser();
-    });
-
-    /*
-     * Password show/hide toggle
-     */
-    const toggleBtn = document.getElementById("toggle-password-btn");
-
-    toggleBtn.addEventListener("click", function () {
-      togglePasswordVisibility();
-    });
-  });
-
-  async function loginUser() {
-    pageResets();
-
-    const payload = {
-      username: document.getElementById("username-input").value.trim(),
-      password: document.getElementById("password-input").value,
-    };
-
-    const response = await makeApiCall(POST_LOGIN_URL, "POST", payload);
-
-    /*
-     * 404 -> User not found
-     */
-    if (response.status === 404) {
-      showApiError(response.response?.errors || "User not found");
-      return;
-    }
-
-    /*
-     * 406 -> Password validation failed
-     */
-    if (response.status === 406) {
-      const passValCheck = document.getElementById("password-validation-check");
-
-      passValCheck.innerText = response.response?.errors || "Invalid Password";
-
-      return;
-    }
-
-    /*
-     * Generic API failure
-     */
-    if (!response.ok) {
-      showApiError(response.response?.errors || "Unknown error occurred");
-      return;
-    }
-
-    /*
-     * Success
-     */
-    if (response.status === 200 || response.status === 302) {
-      window.location.reload();
-    }
-  }
-
-  async function logoutUser() {
-    pageResets();
-
-    await makeApiCall(LOGOUT_URL, "GET");
-    window.location.href = GET_LOGIN_URL;
-  }
-</script>
 {% endblock %}

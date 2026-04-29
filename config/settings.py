@@ -96,8 +96,6 @@ BOOTSRAP_SCHEMA_NAME = "localclient"
 CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")
 LOCAL_ENVS = ["local", "dev", "devlopment"]
 
-APPEND_SLASH = False
-
 if CURRENT_ENV in LOCAL_ENVS:
     DEBUG = True
     ALLOWED_HOSTS = []
