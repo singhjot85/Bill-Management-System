@@ -1,5 +1,8 @@
-{% extends "base_template.html" %}
+{% extends "base/base.html" %}
+{% load static %}
+
 {% block title %} Login {% endblock %}
+{% block extra_head %} <link rel="stylesheet" href="{% static 'css/auth.css' %}" /> {% endblock %}
 
 {% block body %}
 <div class="app-page-center">
@@ -18,54 +21,12 @@
         <form method="POST">
             {% csrf_token %}
 
-            <div class="app-form-group">
-                <label for="username-input" class="app-form-label">
-                    Username
-                    <span class="app-required">*</span>
-                </label>
+            {% include "components/form_field.html" with name="username" label="Username" placeholder="Enter username" required=1 %}
 
-                <input
-                    id="username-input"
-                    name="username"
-                    class="app-form-input"
-                    placeholder="Enter Username"
-                    type="text"
-                    required
-                />
-            </div>
+            {% include "components/form_field.html" with name="password" label="Password" placeholder="Enter Password" required=1 type="password" toggle=True toggle_text="Show" %}
 
-            <div class="app-form-group">
-                <label for="password-input" class="app-form-label">
-                    Password
-                    <span class="app-required">*</span>
-                </label>
+            {% include "components/button.html" with button_id="loginSubmit" button_type="submit" full_width=True %}
 
-                <div class="app-input-group">
-                    <input
-                        id="password-input"
-                        name="password"
-                        class="app-form-input"
-                        placeholder="Enter Password"
-                        type="password"
-                        required
-                    />
-
-                    <button
-                        type="button"
-                        class="app-secondary-button"
-                        id="toggle-password-btn"
-                    >
-                        Show
-                    </button>
-                </div>
-            </div>
-
-            <button
-                type="submit"
-                class="app-primary-button app-full-width"
-            >
-                Login
-            </button>
         </form>
 
     </div>

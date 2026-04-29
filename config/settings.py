@@ -1,8 +1,16 @@
+"""
+Infra specific varibles will stay in this files
+Variables required to construct them or extra varibles used by project will be imported.
+This is done so that project settings do not bloat over.
+"""
+
 import os
 
 from .apps import *
 from .variables import *
 
+
+STATICFILES_DIRS = [PROJECT_STATIC_PATH]
 STATIC_URL = "static/"
 
 ROOT_URLCONF = "config.routers"
@@ -22,7 +30,7 @@ TENANT_APPS = DJANGO_TENANT_PRIVATE_APPS
 TENANT_SYNC_ROUTER = "django_tenants.routers.TenantSyncRouter"
 
 DATABASE_ROUTERS = [
-    # This is what figure's out what will go in INSTALLED_APPS, when running 
+    # This is what figure's out what will go in INSTALLED_APPS, when running
     TENANT_SYNC_ROUTER
 ]
 
@@ -105,7 +113,9 @@ else:
     DEBUG = False
     ALLOWED_HOSTS = []
     WSGI_APPLICATION = ""
+
     # Kept here, so we don't foget to build this logic
     def get_resolved_domains():
         pass
+
     RESOLVED_DOMAINS = get_resolved_domains()

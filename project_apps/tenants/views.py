@@ -8,7 +8,7 @@ from project_apps.utils.view_utils import AuthenticatedViewMixin
 
 
 class DashboardView(AuthenticatedViewMixin, TemplateView):
-    template_name = "public_dashboard.html"
+    template_name = "views/dashboard/public_dashboard.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -19,7 +19,7 @@ class DashboardView(AuthenticatedViewMixin, TemplateView):
 
 
 class LoginView(View):
-    template_name = "login.html"
+    template_name = "views/auth/login.html"
     redirect_url = "dashboard"
 
     def get(self, request: HttpRequest, *args, **kwargs):

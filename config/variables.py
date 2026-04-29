@@ -5,15 +5,13 @@ APP_NAME = "project_apps"
 BASE_DIR = Path(__file__).resolve().parent.parent
 APP_DIR = os.path.join(BASE_DIR, APP_NAME)
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR / "static"),
-]
+PROJECT_STATIC_PATH = os.path.join(BASE_DIR, "project_templating", "static")
 
 TENANT_APP_NAME = "tenants"
 TENANT_MODEL_NAME = "OrganizationTenant"
 DOMAIN_MODEL_NAME = "OrganizationDomain"
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, "static", "templates")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "project_templating", "templates")
 # AUTH_TEMPLATE_DIR = os.path.join(APP_DIR, "project_apps", "customer_management", "templates")
 # PAYMENTS_TEMPLATE_DIR = os.path.join(APP_DIR, "project_apps", "payments_management", "templates")
 # REQUESTS_TEMPLATE_DIR = os.path.join(APP_DIR, "project_apps", "setup", "templates")

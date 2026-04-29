@@ -41,4 +41,35 @@
 
     /* Heights */
     --min-page-height: 100vh;
+
+    /* Z Index */
+    --z-index-toast: 9999;
+
+    /* Toast */
+    --toast-width: 380px;
+    --toast-position-bottom: 24px;
+    --toast-position-right: 24px;
+
+    /* Layout */
+    --body-min-height: 100vh;
+
+    /* Typography */
+    --font-family-base: Arial, sans-serif;
+
+    /* Danger Theme */
+    --color-danger-text: #842029;
+    --color-danger-border: #f5c2c7;
+
+    /* Navbar */
+    --navbar-padding-x: 24px;
+    --navbar-padding-y: 16px;
+    --navbar-brand-font-size: 1.5rem;
+
+    /* Content */
+    --content-margin-top: 40px;
+    --content-max-width: 1320px;
+
+    /* Outline Danger Button */
+    --button-outline-danger-hover-bg: #dc3545;
+    --button-outline-danger-hover-text: #ffffff;
 }

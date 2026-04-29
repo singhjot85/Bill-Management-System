@@ -1,27 +1,27 @@
-{% extends "base_template.html" %}
+{% extends "base/base.html" %} 
+{% load static %}
+{% block extra_head %} <link rel="stylesheet" href="{% static 'css/authenticated.css' %}" /> {% endblock %} 
 
 {% block body %}
-<div class="container-fluid">
+<div class="app-layout">
+  <!-- Navbar -->
+  <nav class="app-navbar">
+    <div class="app-navbar-brand">
+      {{ data.org.name|default:"Application" }}
+    </div>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-light bg-light px-4 py-3 shadow-sm">
-        <span class="navbar-brand mb-0 h4">
-            {{ data.org.name|default:"Application" }}
-        </span>
+    <button
+      type="button"
+      class="app-danger-outline-button"
+      onclick="logoutUser()"
+    >
+      Logout
+    </button>
+  </nav>
 
-        <button
-            class="btn btn-outline-danger"
-            onclick="logoutUser()"
-        >
-            Logout
-        </button>
-    </nav>
-
-    <!-- Protected Content -->
-    <main class="container mt-5">
-        {% block authenticated_body %}
-        {% endblock %}
-    </main>
-
+  <!-- Protected Content -->
+  <main class="app-content-container">
+    {% block authenticated_body %} {% endblock %}
+  </main>
 </div>
 {% endblock %}

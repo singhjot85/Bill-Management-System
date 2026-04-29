@@ -1,0 +1,199 @@
+<!-- {#
+Component: Button
+
+Description:
+Reusable button component with configurable styles, sizes, shapes, and optional JS handler.
+
+Props:
+
+- button_id (string, optional)
+    Unique id for JS binding.
+
+- button_type (string, default: "button")
+    Button type: button | submit | reset.
+
+- button_text (string, default: "Submit")
+    Text displayed inside button.
+
+- variant (string, default: "primary")
+    Style variant: primary | secondary | danger | danger-outline.
+
+- size (string, default: "medium")
+    Button size: small | medium | large.
+
+- shape (string, default: "default")
+    Shape style: default | rounded | pill.
+
+- full_width (bool/int, default: False)
+    Expands button to full width.
+
+- disabled (bool/int, default: False)
+    Disables button interaction.
+
+- button_class (string, optional)
+    Additional custom CSS classes.
+
+- icon (string/HTML, optional)
+    Icon content rendered before text.
+
+- onclick (string, optional)
+    Inline JS click handler.
+
+- js_handler (string, optional, requires button_id)
+    JS function name for click handling (auto-bound via script).
+#} -->
+<style>
+    .app-button {
+        border: none;
+        cursor: pointer;
+        font-size: var(--font-size-base);
+        font-weight: 500;
+        border-radius: var(--radius-sm);
+        transition: 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        text-decoration: none;
+    }
+
+    /* ---------------- */
+    /* Sizes */
+    /* ---------------- */
+
+    .app-button--small {
+        padding: 6px 12px;
+        font-size: var(--font-size-sm);
+    }
+
+    .app-button--medium {
+        padding: 10px 16px;
+    }
+
+    .app-button--large {
+        padding: 14px 24px;
+        font-size: 1.05rem;
+    }
+
+    /* ---------------- */
+    /* Shapes */
+    /* ---------------- */
+
+    .app-button--default {
+        border-radius: var(--radius-sm);
+    }
+
+    .app-button--rounded {
+        border-radius: var(--radius-lg);
+    }
+
+    .app-button--pill {
+        border-radius: 999px;
+    }
+
+    /* ---------------- */
+    /* Variants */
+    /* ---------------- */
+
+    .app-button--primary {
+        background: var(--color-primary);
+        color: var(--color-white);
+    }
+
+    .app-button--primary:hover {
+        background: var(--color-primary-hover);
+    }
+
+    .app-button--secondary {
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-primary);
+    }
+
+    .app-button--danger {
+        background: var(--color-danger);
+        color: var(--color-white);
+    }
+
+    .app-button--danger-outline {
+        background: transparent;
+        border: 1px solid var(--color-danger);
+        color: var(--color-danger);
+    }
+
+    .app-button--danger-outline:hover {
+        background: var(--color-danger);
+        color: var(--color-white);
+    }
+
+    /* ---------------- */
+    /* Utilities */
+    /* ---------------- */
+
+    .app-button--full {
+        width: 100%;
+    }
+
+    .app-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .app-button__icon {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .app-button__text {
+        display: inline-block;
+    }
+</style>
+<button
+    id="{{ button_id|default:'' }}"
+    type="{{ button_type|default:'button' }}"
+    class="
+        app-button
+        app-button--{{ variant|default:'primary' }}
+        app-button--{{ size|default:'medium' }}
+        app-button--{{ shape|default:'default' }}
+        {% if full_width %}app-button--full{% endif %}
+        {{ button_class|default:'' }}
+    "
+
+    {% if disabled %}
+        disabled
+    {% endif %}
+
+    {% if onclick %}
+        onclick="{{ onclick }}"
+    {% endif %}
+>
+    {% if icon %}
+        <span class="app-button__icon">
+            {{ icon }}
+        </span>
+    {% endif %}
+
+    <span class="app-button__text">
+        {{ button_text|default:"Submit" }}
+    </span>
+</button>
+
+{% if button_id and js_handler %}
+<script>
+    /*
+    Lazy JS wrapper
+    Avoid repeating document.getElementById everywhere
+    */
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const button = document.getElementById("{{ button_id }}");
+
+        if (!button) return;
+
+        button.addEventListener("click", function (event) {
+            {{ js_handler }}(event, button);
+        });
+    });
+</script>
+{% endif %}
