@@ -1,0 +1,98 @@
+{% extends "base_template.html" %}
+{% block title %} Login {% endblock %}
+
+{% block body %}
+<div class="app-page-center">
+    <div class="app-auth-card">
+
+        <h3 class="app-page-title">
+            {{ data.org.name|default:"Login" }}
+        </h3>
+
+        {% if errors %}
+        <div class="app-alert app-alert-danger">
+            {{ errors }}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="app-form-group">
+                <label for="username-input" class="app-form-label">
+                    Username
+                    <span class="app-required">*</span>
+                </label>
+
+                <input
+                    id="username-input"
+                    name="username"
+                    class="app-form-input"
+                    placeholder="Enter Username"
+                    type="text"
+                    required
+                />
+            </div>
+
+            <div class="app-form-group">
+                <label for="password-input" class="app-form-label">
+                    Password
+                    <span class="app-required">*</span>
+                </label>
+
+                <div class="app-input-group">
+                    <input
+                        id="password-input"
+                        name="password"
+                        class="app-form-input"
+                        placeholder="Enter Password"
+                        type="password"
+                        required
+                    />
+
+                    <button
+                        type="button"
+                        class="app-secondary-button"
+                        id="toggle-password-btn"
+                    >
+                        Show
+                    </button>
+                </div>
+            </div>
+
+            <button
+                type="submit"
+                class="app-primary-button app-full-width"
+            >
+                Login
+            </button>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById("password-input");
+        const toggleBtn = document.getElementById("toggle-password-btn");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            toggleBtn.innerText = "Hide";
+        } else {
+            passwordInput.type = "password";
+            toggleBtn.innerText = "Show";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("toggle-password-btn");
+
+        toggleBtn.addEventListener("click", function () {
+            togglePasswordVisibility();
+        });
+    });
+</script>
+{% endblock %}

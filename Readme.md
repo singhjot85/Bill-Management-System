@@ -17,3 +17,21 @@
 Addditional System dependencies:
 - dependencies for weasyprint: `brew install cairo pango gdk-pixbuf libffi`
 - dependencies for xhtml2pdf: `brew install cairo pkg-config`
+
+
+## UI Infra
+UI is currently rendered through django templates, a brief on the infra
+```
+project_templating/
+    static/
+        css/
+        js/
+        images/
+        vendor/
+    templates/
+        base/
+        components/
+        views/
+        partials/
+        include/
+```
