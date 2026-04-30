@@ -49,7 +49,6 @@ class InvalidVersionException(Exception):
 
 
 class SimpleVersionModelMixin(models.Model):
-
     DEFAULT_ORDERING = ("-version_major", "-version_minor", "-version_patch")
     DEFAULT_VERSION = (1, 0, 0)
 
@@ -61,41 +60,29 @@ class SimpleVersionModelMixin(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, force_insert=..., force_update=..., using=..., update_fields=...):
+    def save(self, *args, **kwargs):
         self.resolve_version()
-        return super().save(force_insert, force_update, using, update_fields)
+        super().save(*args, **kwargs)
 
-    def validate_version(self) -> tuple[int, int, int]:
-        major, minor, patch = self.DEFAULT_VERSION
+    def validate_version(self):
         if not self.version:
-            return major, minor, patch
+            return self.DEFAULT_VERSION
 
         try:
-            splitted_version = self.version.split(".")
-            major = int(splitted_version[0])
-            minor = int(splitted_version[1])
-            patch = int(splitted_version[2])
+            major, minor, patch = map(int, self.version.split("."))
+            return major, minor, patch
         except Exception as e:
             raise InvalidVersionException from e
 
-        return major, minor, patch
-
-    def resolve_version(self, save: bool = False):
-        """Resolve version fields"""
-        update_fields = ["version_major", "version_minor", "version_patch", "version"]
+    def resolve_version(self):
         if self.version:
-            self.major, self.minor, self.patch = self.validate_version()
+            (
+                self.version_major,
+                self.version_minor,
+                self.version_patch,
+            ) = self.validate_version()
         else:
             self.version = f"{self.version_major}.{self.version_minor}.{self.version_patch}"
-
-        if save:
-            super().save(update_fields=update_fields)
-
-    def get_ordered_queryset(self, queryset: models.QuerySet):
-        try:
-            return queryset.order_by(*self.DEFAULT_ORDERING)
-        except Exception as e:
-            raise InvalidVersionException from e
 
 
 class SafeModelMixin(SoftDeletableModel, TimeStampedModel):

@@ -25,7 +25,6 @@ PROJECT_APPS = [
 ]
 
 DJANGO_TENANT_PUBLIC_APPS = [
-    # *DEFAULT_DJANGO_APPS,
     *DEFAULT_DJANGO_APPS,
     "project_apps.tenants",
     "project_apps.setup"
