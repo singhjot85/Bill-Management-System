@@ -11,6 +11,44 @@
     transition: 0.3s ease;
 }
 
+/* Alignment Utilities */
+
+.app-nav-left {
+    margin-right: auto;
+}
+
+.app-nav-center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.app-nav-right {
+    margin-left: auto;
+}
+
+/* ---------------- */
+/* Navbar Assets */
+/* ---------------- */
+
+.app-navbar img {
+    height: var(--navbar-logo-height, 40px);
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.app-navbar img.app-logo-small {
+    height: 28px;
+}
+
+.app-navbar img.app-logo-medium {
+    height: 40px;
+}
+
+.app-navbar img.app-logo-large {
+    height: 56px;
+}
+
 /* Orientation */
 .app-navbar--horizontal {
     flex-direction: row;

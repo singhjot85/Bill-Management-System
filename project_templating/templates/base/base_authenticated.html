@@ -5,20 +5,6 @@
 
 {% block body %}
 <div class="app-layout">
-  <!-- Navbar -->
-  <!-- <nav class="app-navbar">
-    <div class="app-navbar-brand">
-      {{ data.org.name|default:"Application" }}
-    </div>
-
-    <button
-      type="button"
-      class="app-danger-outline-button"
-      onclick="logoutUser()"
-    >
-      Logout
-    </button>
-  </nav> -->
   {% include "components/active/navbar.html" with navbar=navbar_config %}
 
   <!-- Protected Content -->

@@ -7,6 +7,63 @@ from django.contrib.auth import authenticate, login, logout
 from project_apps.utils.view_utils import AuthenticatedViewMixin
 
 
+def get_dummy_data():
+    import json
+
+    return json.loads("""
+{
+    "position": "top",
+    "orientation": "horizontal",
+    "fixed": true,
+    "hidden": false,
+    "toggle": true,
+    "fields": [
+        {
+            "type": "asset",
+            "metadata": {
+                "url": "images/sample.png"
+            },
+            "class": "",
+            "parent_class": ""
+        },
+        {
+            "type": "text",
+            "metadata": {
+                "text": "Bill Mangement",
+                "icon": ""
+            },
+            "class": "app-title",
+            "parent_class": "app-nav-left"
+        },
+        {
+            "type": "button",
+            "metadata": {
+                "button_text": "Admin",
+                "variant": "secondary",
+                "size": "medium",
+                "shape": "pill",
+                "onclick": "openDjangoAdmin()"
+            },
+            "class": "",
+            "parent_class": ""
+        },
+        {
+            "type": "button",
+            "metadata": {
+                "button_text": "Logout",
+                "variant": "danger-outline",
+                "size": "medium",
+                "shape": "pill",
+                "onclick": "logoutUser()"
+            },
+            "class": "",
+            "parent_class": ""
+        }
+    ]
+}
+""")
+
+
 class DashboardView(AuthenticatedViewMixin, TemplateView):
     template_name = "views/dashboard/public_dashboard.html"
 
@@ -14,6 +71,7 @@ class DashboardView(AuthenticatedViewMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         context["data"] = {"org": {"name": "BMA Dashboard"}}
+        context["navbar_config"] = get_dummy_data()
 
         return context
 
@@ -45,3 +103,11 @@ class LogoutView(TemplateView):
     def get(self, request, *args, **kwargs):
         logout(request)
         return redirect("login")
+
+
+class TestUI(View):
+
+    def get(self, request: HttpRequest, *args, **kwargs):
+        from django.http.response import HttpResponse
+
+        return HttpResponse(y)

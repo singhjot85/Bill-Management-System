@@ -1,4 +1,4 @@
-export async function makeApiCall(url, method = "GET", data = null) {
+async function makeApiCall(url, method = "GET", data = null) {
   try {
     const options = {
       method: method,
@@ -43,6 +43,6 @@ export async function makeApiCall(url, method = "GET", data = null) {
 }
 
 window.logoutUser = async function logoutUser() {
-    await makeApiCall("logout/", "GET");
-    window.location.href = "/";
+  await makeApiCall("logout/", "GET");
+  window.location.href = "/";
 }
