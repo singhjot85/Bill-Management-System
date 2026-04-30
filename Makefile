@@ -59,7 +59,7 @@ docker-django-makemigrations-empty:
 	@echo "⌛ Making an empty migration in App: ➡️[${app}] with Name: ➡️[${mig_name}]..."
 	@echo "⚠️ If this was not intended use command with app= or mig_name= flags"
 	${BASE_DJANGO_CONTAINER} python manage.py makemigrations --empty ${app} --name ${mig_name}
-mme: docker-django-mme
+mme: docker-django-makemigrations-empty
 
 docker-django-makemigrations:
 	@echo "⌛ Making migrations in App: ➡️[${app}]..."

@@ -1,4 +1,4 @@
-async function makeApiCall(url, method = "GET", data = null) {
+export async function makeApiCall(url, method = "GET", data = null) {
   try {
     const options = {
       method: method,

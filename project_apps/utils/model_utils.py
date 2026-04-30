@@ -56,7 +56,7 @@ class SimpleVersionModelMixin(models.Model):
     version_major = models.IntegerField(default=DEFAULT_VERSION[0])
     version_minor = models.IntegerField(default=DEFAULT_VERSION[1])
     version_patch = models.IntegerField(default=DEFAULT_VERSION[2])
-    version = models.CharField()
+    version = models.CharField(null=True, blank=True)
 
     class Meta:
         abstract = True

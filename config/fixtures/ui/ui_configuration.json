@@ -1,0 +1,50 @@
+{
+    "position": "top",
+    "orientation": "horizontal",
+    "fixed": true,
+    "hidden": false,
+    "toggle": true,
+    "fields": [
+        {
+            "type": "asset",
+            "metadata": {
+                "url": "images/logo.png"
+            },
+            "class": "",
+            "parent_class": ""
+        },
+        {
+            "type": "text",
+            "metadata": {
+                "text": "My App",
+                "icon": "🚀"
+            },
+            "class": "app-title",
+            "parent_class": ""
+        },
+        {
+            "type": "button",
+            "metadata": {
+                "button_text": "Admin",
+                "variant": "secondary",
+                "size": "medium",
+                "shape": "pill",
+                "onclick": "openDjangoAdmin()"
+            },
+            "class": "",
+            "parent_class": ""
+        },
+        {
+            "type": "button",
+            "metadata": {
+                "button_text": "Logout",
+                "variant": "danger-outline",
+                "size": "medium",
+                "shape": "pill",
+                "onclick": "logoutUser()"
+            },
+            "class": "",
+            "parent_class": ""
+        }
+    ]
+}
