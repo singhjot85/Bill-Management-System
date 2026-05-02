@@ -1,5 +1,6 @@
-async function makeApiCall(url, method = "GET", data = null) {
+async function makeApiCall(base_url, method = "GET", data = null) {
   try {
+    let url = base_url;
     const options = {
       method: method,
       headers: {
@@ -7,8 +8,17 @@ async function makeApiCall(url, method = "GET", data = null) {
       },
     };
 
-    if (data && method !== "GET") {
-      options.body = JSON.stringify(data);
+    if (data) {
+      if (method !== "GET") {
+        options.body = JSON.stringify(data);
+      }
+      else {
+        const urlObj = new URL(base_url);
+        Object.entries(data).forEach(([key, value]) => {
+          urlObj.searchParams.append(key, value);
+        });
+        url = urlObj.toString();
+      }
     }
 
     const response = await fetch(url, options);
@@ -17,8 +27,14 @@ async function makeApiCall(url, method = "GET", data = null) {
     try {
       responseData = await response.json();
     } catch {
-      responseData = {};
+      try {
+        responseData = await response.text();
+      }
+      catch {
+        responseData = null;
+      }
     }
+
     if (!response.ok) {
       throw new Error(
         responseData.message ||

@@ -1,5 +1,8 @@
+import json
+
 from django.views.generic import TemplateView
 from django.http.request import HttpRequest
+from django.http.response import HttpResponse
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth import authenticate, login, logout
@@ -52,10 +55,19 @@ class LogoutView(TemplateView):
         logout(request)
         return redirect("login")
 
-
-class TestUI(View):
+class IsAllowed(AuthenticatedViewMixin, View):
 
     def get(self, request: HttpRequest, *args, **kwargs):
-        from django.http.response import HttpResponse
+        user = request.user
+        permissions = request.GET.get("permissions_to_check")
 
-        return HttpResponse(y)
+        data = {}
+        for permission in permissions:
+            data["permission"] = None
+            if hasattr(user, permission):
+                data["permission"] = user.permission
+            else:
+                data["permission"] = user.has_perm(permission)
+        
+        content = json.dumps(data).encode()
+        return HttpResponse(content)
