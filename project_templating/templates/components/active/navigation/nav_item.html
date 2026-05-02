@@ -1,0 +1,48 @@
+<!--
+Expected context:
+- type: "image" | "badge" | "button" | "dropdown"
+- align: "left" | "center" | "right"   (handled by parent mostly)
+- extra_classes: optional
+- data: payload specific to type
+-->
+<style>
+    .nav-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Let parent control spacing */
+    .nav-item + .nav-item {
+        margin-left: var(--nav-item-gap, 8px);
+    }
+
+    /* Image specific */
+    .nav-item-image {
+        height: 32px;
+        width: auto;
+        object-fit: contain;
+        cursor: pointer;
+    }
+</style>
+<div class="nav-item {{ extra_classes|default:'' }}" data-align="{{ align }}">
+    
+    {% if type == "image" %}
+        <img 
+            src="{{ data.src }}" 
+            alt="{{ data.alt|default:'nav-image' }}"
+            class="nav-item-image"
+        />
+
+    {% elif type == "badge" %}
+        {% include "components/nav_badge.html" with data=data %}
+
+    {% elif type == "button" %}
+        {% include "components/nav_button.html" with data=data %}
+
+    {% elif type == "dropdown" %}
+        {% include "components/nav_dropdown.html" with data=data %}
+
+    {% endif %}
+
+</div>
