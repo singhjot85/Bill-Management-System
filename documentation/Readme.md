@@ -24,13 +24,7 @@ A system that can be used to generate and manage bills/invoices.
 
 
 ## Tech Stack
-POC Scope:
-**Backend:** django, djangorestframework, django-tenats
-**Frontend:** django-templates, bootstrap(css)
-**Database:** PostgreSQL
-**CI/CD:** Docker,
-
-Final Delivery Scope:
-**Backend:** POC + django-celery, django-celery-beat, valkey
+**Backend:** django, djangorestframework, django-tenats + django-celery, django-celery-beat, valkey
 **Frontend:** Vue + Vite
-**CI/CD:** POC + Kubernetes, GHActions
+**Database:** PostgreSQL
+**Other Infra:** Docker, Compose, Poetry, PreCommit
