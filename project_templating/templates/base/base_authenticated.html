@@ -1,17 +1,12 @@
-{% extends "base/base.html" %} 
-{% load static %} 
-
-{% block extra_head %} <link rel="stylesheet" href="{% static 'css/authenticated.css' %}" /> {% endblock %} 
+{% extends "base/base.html" %}
 
 {% block body %}
 <div class="app-layout">
-  {% include "components/active/navbar.html" with navbar=navbar_config %}
 
   <!-- Protected Content -->
   <main class="app-content-container">
     {% block authenticated_body %} {% endblock %}
   </main>
 
-  <script src="{% static 'js/base_authenticated.js' %}"></script>
 </div>
 {% endblock %}
