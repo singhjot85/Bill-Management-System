@@ -23,14 +23,19 @@ class Command(BaseCommand):
     
     def add_arguments(self, parser):
         parser.add_argument(
-            "--user_name",
+            "--username",
             type=str,
-            help="Username of user"
+            help="Username of public user"
         )
         parser.add_argument(
             "--password",
             type=str,
-            help="Password of user"
+            help="Password of public user"
+        )
+        parser.add_argument(
+            "--super",
+            type=bool,
+            help="Is the user a superuser"
         )
 
     def _public_creation(self, **options):
@@ -38,9 +43,12 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS("Creating public user...")
             )
-            UserCreationUtils.public_user_creation(
-                options.get("user_name"),
-                options.get("password")
+            UserCreationUtils.user_creation(
+                UserCreationUtils.public_tenant_creds(
+                    username=options.get("username"),
+                    password=options.get("password"),
+                    create_super=options.get("super")
+                )
             )
         except Exception as e:
             self.stdout.write(
@@ -52,7 +60,10 @@ class Command(BaseCommand):
     
     def _bootstrapping(self):
         try:
-            UserCreationUtils.bootstrap_users()
+            UserCreationUtils.bootstrap_users(
+                private_creds=UserCreationUtils.private_tenant_creds(),
+                public_creds=UserCreationUtils.public_tenant_creds()
+            )
         except Exception as e:
             self.stdout.write(
                 self.style.ERROR(f"Error in user bootstrap: {str(e)}")

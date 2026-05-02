@@ -24,32 +24,18 @@ class UserCreationUtils():
     @staticmethod
     def is_schema_avl(schema_name: str) -> bool:
         return OrganizationTenant.objects.filter(schema_name=schema_name).exists()
-
+        
     @staticmethod
-    def _create_user(username: str, password: str) -> "User":
+    def user_creation(username: str, password: str, schema: str, create_super: bool = False) -> "User":
         """
         Create a user in current schema,
         The transaction is atomic, so if any exception occurs just rollback
         Args:
             username (str): Username of the user.
             password (str): Raw password string
+            create_super (bool, optional): Create Super User
+                defaults to False
         """
-        with transaction.atomic():
-            user = User.objects.create_user(username=username, password=password)
-            return user
-
-    @staticmethod
-    def public_user_creation(username: str, password: str) -> "User":
-        schema = get_public_schema_name()
-
-        if not UserCreationUtils.is_schema_avl(schema):
-            raise PublicUserCreationError("Schema not available")
-
-        with schema_context(schema):
-            return UserCreationUtils._create_user(username, password)
-    
-    @staticmethod
-    def private_user_creation(username: str, password: str, schema: str) -> "User":
         if not schema:
             raise PrivateUserCreation("Schema Name is required")
 
@@ -57,23 +43,63 @@ class UserCreationUtils():
             raise PrivateUserCreation("Schema not available")
         
         with schema_context(schema):
-            return UserCreationUtils._create_user(username, password)
+            with transaction.atomic():
+                user = None
+                if create_super:
+                    user = User.objects.create_superuser(username=username, password=password)
+                else:
+                    user = User.objects.create_user(username=username, password=password)
+                return user
 
     @staticmethod
-    def bootstrap_users():
+    def bootstrap_users(private_creds: dict, public_creds: dict):
         """Bootstrap initial tenant users"""
 
-        username = "admin"
-        raw_password = "qwerty123"
         try:
-            UserCreationUtils.public_user_creation(username, raw_password)
+            UserCreationUtils.user_creation(**public_creds)
         except Exception as e:
-            raise e
+            raise PublicUserCreationError(str(e)) from e
 
+        for creds in private_creds:
+            try:
+                UserCreationUtils.user_creation(**creds)
+            except Exception as e:
+                raise PrivateUserCreation(str(e)) from e
+    
+    @staticmethod
+    def private_tenant_creds():
+        """Private tenant creation creds
+        TODO: Currently this is very unsafe and not production safe.
+        This way plain text creds are always avl. in django settings
+        """
+        BOOTSTRAP_SCHEMA = settings.BOOTSRAP_SCHEMA_NAME
+        BOOTSRAP_PASSWORD_POSTFIX = settings.DEV_PASS
+        BOOTSTRAP_CREDS = [
+            {
+                "username": f"admin1@{BOOTSTRAP_SCHEMA}.com",
+                "password": f"{BOOTSTRAP_SCHEMA}{BOOTSRAP_PASSWORD_POSTFIX}",
+                "schema": BOOTSTRAP_SCHEMA,
+                "create_super": True
+            },
+            {
+                "username": f"client1@{BOOTSTRAP_SCHEMA}.com",
+                "password": f"{BOOTSTRAP_SCHEMA}{BOOTSRAP_PASSWORD_POSTFIX}",
+                "schema": BOOTSTRAP_SCHEMA,
+                "create_super": False
+            }
+        ]
+        return BOOTSTRAP_CREDS
 
-        schema = settings.BOOTSRAP_SCHEMA_NAME
-        username = f"admin1@{schema}.com"
-        try:
-            UserCreationUtils.private_user_creation(username, raw_password, schema)
-        except Exception as e:
-            raise e
+    @staticmethod
+    def public_tenant_creds(username: str = None, password: str = None, create_super: bool = True):
+        """Public Tenant Creation Creds
+        TODO: Currently this is very unsafe and not production safe.
+        This way plain text creds are always avl. in django settings
+        """
+
+        return {
+            "username": username or settings.PUBLIC_USERNAME,
+            "password": password or settings.PUBLIC_PASSWORD,
+            "schema": get_public_schema_name(),
+            "create_super": create_super
+        }
