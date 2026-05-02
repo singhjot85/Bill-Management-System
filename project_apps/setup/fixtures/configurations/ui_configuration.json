@@ -16,11 +16,11 @@
         {
             "type": "text",
             "metadata": {
-                "text": "My App",
-                "icon": "🚀"
+                "text": "Bill Mangement",
+                "icon": ""
             },
             "class": "app-title",
-            "parent_class": ""
+            "parent_class": "app-nav-left"
         },
         {
             "type": "button",
