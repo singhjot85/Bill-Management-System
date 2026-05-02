@@ -13,7 +13,7 @@ class OrganizationTenant(SafeModelMixin, TenantMixin):
         return self.name
 
 
-class OrganizationDomain(DomainMixin):
+class OrganizationDomain(SafeModelMixin, DomainMixin):
     """Domain Model required fot Django Tenants."""
 
     pass
