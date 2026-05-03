@@ -1,30 +1,80 @@
-# Bill Management Application
+# GEMINI Context: Bill Management System
 
-## Stack
-Django + DRF + django-tenants + Celery + Valkey | Vue 3 + Vite | PostgreSQL | Docker
+Comprehensive context for the Bill Management System (BMA), a multi-tenant Django application for invoice generation and payment management.
 
-## Architecture
-- `auth` → public schema only. `customer_management`, `payments_management` → tenant-scoped
-- All models MUST inherit SoftDelete + Timestamp mixins (not listed in specs, but required)
-- Payment → Invoice is one-directional (Invoice does NOT reference Payment)
-- Tenant invoice numbers: `INV-YYYY-NNNN`, sequential per tenant
-- Template keys: snake_case, unique per tenant
+## Project Overview
+The BMA allows vendors (tenants) to manage customers, generate invoices, and process payments via Razorpay. It supports public users (unauthenticated checkout), private users (authenticated customers), tenant admins, and platform admins.
 
-## API Rules
-- DRF serializers in `serializers.py`, viewsets in `views.py`, URLs in `urls.py` per app
-- Vue frontend consumes DRF endpoints only — no mixed template rendering for new features
+### Tech Stack
+- **Backend**: Django 5.2, Django REST Framework (DRF), `django-tenants` (Multi-tenancy), Celery + Valkey (Async tasks), `xhtml2pdf`/`weasyprint` (PDF Generation).
+- **Frontend**: Vue 3 + Vite (API-driven), Django Templates (Legacy/Server-side rendering).
+- **Database**: PostgreSQL (Schema-per-tenant architecture).
+- **Infrastructure**: Docker, Compose, Poetry (Dependency management).
 
-## Business Logic
-- Invoice status transitions: validate atomically
-- Payment verification sets `verified_on`, `verified_by`, `verified_flag` together
-- Store raw payment response in `raw_payment_responses`, parsed in `details`. Never log signatures
+---
 
-## Async & Files
-- PDF generation, emails, payment verification → always via Celery tasks
-- `document_url` on Invoice → tenant-scoped storage
-- Templates cached in Valkey (1hr), PDFs cached by content hash (24hr)
+## Architecture & Conventions
 
-## Dev Workflow
-- `poetry lock` before committing dependency changes
-- Pre-commit: linting, formatting, import sorting
-- Test target: 80%+ coverage. Multi-tenant isolation tests required
+### Multi-Tenancy (`django-tenants`)
+- **Public Schema**: Contains `auth`, `tenants`, and platform-wide configurations.
+- **Tenant Schema**: Contains `customer_management`, `payments_management`.
+- All tenant-specific models must support multi-tenant isolation.
+- **Models**: Use `BetterModelMixin` (UUID keys + Soft Delete + Timestamps).
+
+### Service Layer (`project_apps/services`)
+To avoid direct API calls and maintain separation of concerns, the project uses a three-tier service architecture:
+1. **Base HTTP Service (`base.py`)**: A generalized wrapper around `requests.Session` for all external API calls.
+2. **Specific Services (`razorpay_service.py`)**: Encapsulates external provider logic (e.g., Razorpay signature verification, order creation).
+3. **Orchestration Layer (`payment_orchestrator.py`)**: Coordinates between services and Django models using atomic transactions (`@transaction.atomic`) and race-condition protection (`select_for_update()`).
+
+### Payment Verification Rules
+- **Atomicity**: `Payment` and `Invoice` status updates must happen in a single transaction.
+- **Verification**: Must include `verified_on`, `verified_by`, and `is_verified` together.
+- **Signatures**: Never store or log raw API secrets; use HMAC-SHA256 for local signature verification.
+
+---
+
+## Building and Running
+
+### System Dependencies
+Requires `brew install cairo pango gdk-pixbuf libffi pkg-config cmake`.
+
+### Local Development (Poetry)
+- **Install**: `make setup` (runs `poetry lock` and `poetry install`).
+- **Run Server**: `make poetry-run` (`python manage.py runserver`).
+- **Migrations**: `make poetry-mm app_name=<app>` and `make poetry-m`.
+- **Tests**: `poetry run pytest`.
+
+### Docker Environment
+- **Build**: `make build`.
+- **Run**: `make run`.
+- **Clean Setup**: `make clean-setup` (Builds, bootstraps tenants/users, and runs).
+- **Shell**: `make bash`.
+
+---
+
+## Development Conventions
+
+### Coding Standards
+- **Linting/Formatting**: Uses `black` and `isort`. Pre-commit hooks are configured (`.pre-commit-config.yaml`).
+- **Imports**: Follows `isort` profile `black`.
+- **Models**: Inherit from `project_apps.utils.BetterModelMixin` for standard fields (UUID, created, modified, deleted).
+
+### Testing
+- **Suite**: `pytest` with `pytest-django`.
+- **Isolation**: Multi-tenant isolation tests are required for new features.
+- **Mocking**: Use `unittest.mock` to avoid external API calls during tests.
+
+### API Rules
+- Serializers in `serializers.py`, ViewSets in `views.py`.
+- Prefer `Action` decorators for custom workflows in ViewSets.
+- ViewSets should consume Service Layers for complex business logic.
+
+---
+
+## Key Files & Directories
+- `config/`: Project configuration, routers, and environment variables.
+- `project_apps/services/`: Central logic for external integrations and orchestration.
+- `project_apps/utils/`: Common mixins and utility functions.
+- `documentation/`: Detailed architecture specs (e.g., `Razorpay_Integration_Spec.md`).
+- `compose/`: Docker configuration files.
