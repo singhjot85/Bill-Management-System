@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "razorpay": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env-file",
+        ".env",
+        "razorpay-mcp-server:latest"
+      ]
+    }
+  }
+}
