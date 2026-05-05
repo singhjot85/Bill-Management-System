@@ -62,13 +62,13 @@
 <script setup>
 import { computed } from 'vue';
 import { useBrandingStore } from '@/stores/brandingStore';
-import { defaultNavbarConfig } from '@/config/navbarConfig';
+import { defaultTenantConfig } from '@/config/tenantConfig';
 
 const props = defineProps({
   branding: Object,
   config: {
     type: Object,
-    default: () => defaultNavbarConfig
+    default: () => defaultTenantConfig.navbar
   },
   flat: { type: Boolean, default: true },
   border: { type: Boolean, default: true },

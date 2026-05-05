@@ -2,42 +2,16 @@
   <v-app>
     <Navbar 
       :branding="brandingStore" 
-      :config="navbarConfig"
+      :config="tenantConfig.navbar"
       fixed
       @action="handleAction"
       @navigate="handleNavigate"
     />
 
-    <v-main class="bg-light">
-      <v-container class="py-16">
-        <!-- Hero / Top Section -->
-        <v-row justify="center" align="center" class="text-center mb-16">
-          <v-col cols="12" md="8">
-            <h1 class="text-h2 font-weight-black mb-6">
-              Empowering Your <span class="text-primary">Financial Impact</span>
-            </h1>
-            <p class="text-h6 text-muted mb-10">
-              Seamlessly manage your bills and support causes you care about, all in one modern platform.
-            </p>
-          </v-col>
-        </v-row>
-
-        <!-- PR Content Stub 1 -->
-        <PRStub />
-
-        <!-- Big Bulk Donate Button -->
-        <v-row justify="center" class="my-16">
-          <v-col cols="auto">
-            <v-btn class="big-donate-btn" height="72" elevation="8" to="/donate">
-              Donate Now
-            </v-btn>
-          </v-col>
-        </v-row>
-
-        <!-- PR Content Stub 2 -->
-        <PRStub />
-
-      </v-container>
+    <v-main class="bg-light main-content-wrapper">
+      <router-view v-slot="{ Component }">
+        <component :is="Component" :config="viewConfig" />
+      </router-view>
     </v-main>
 
     <Footer :branding="brandingStore" />
@@ -45,17 +19,31 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import Navbar from '@/components/Navbar.vue';
-import Footer from '@/components/Footer.vue';
-import PRStub from '@/components/PRStub.vue';
+import { onMounted, ref, computed } from 'vue';
+import Navbar from '@/components/dumb/Navbar.vue';
+import Footer from '@/components/dumb/Footer.vue';
 import { useBrandingStore } from '@/stores/brandingStore';
-import { useRouter } from 'vue-router';
-import { defaultNavbarConfig } from '@/config/navbarConfig';
+import { useRouter, useRoute } from 'vue-router';
+import { defaultTenantConfig } from '@/config/tenantConfig';
 
 const brandingStore = useBrandingStore();
 const router = useRouter();
-const navbarConfig = ref(defaultNavbarConfig);
+const route = useRoute();
+
+const tenantConfig = ref(defaultTenantConfig);
+
+const viewConfig = computed(() => {
+  if (route.path === '/' || route.name === 'PublicHome') {
+    return tenantConfig.value.home;
+  }
+  if (route.path.includes('login') || route.path.includes('signup')) {
+    return tenantConfig.value.auth;
+  }
+  if (route.path.includes('donate')) {
+    return tenantConfig.value.donate;
+  }
+  return {};
+});
 
 const handleAction = (action, item) => {
   if (action === 'toggleTheme') {
@@ -75,5 +63,10 @@ onMounted(async () => {
 <style scoped>
 .bg-light {
   background-color: var(--bg-light) !important;
+}
+.main-content-wrapper {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  min-height: calc(100vh - 128px); /* Adjust based on navbar/footer height */
 }
 </style>
