@@ -43,6 +43,22 @@ services:
       timeout: 30s
       retries: 5
 
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: ../compose/local/vue/Dockerfile
+    container_name: bma_frontend
+    restart: unless-stopped
+    depends_on:
+      - django
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=/api
+
 
 secrets:
   global-env:

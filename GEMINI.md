@@ -78,3 +78,11 @@ Requires `brew install cairo pango gdk-pixbuf libffi pkg-config cmake`.
 - `project_apps/utils/`: Common mixins and utility functions.
 - `documentation/`: Detailed architecture specs (e.g., `Razorpay_Integration_Spec.md`).
 - `compose/`: Docker configuration files.
+
+---
+
+## Documentation Conventions
+- ALWAYS document any new enhancement and infra change.
+- Documentation lies in `documentation/`
+- For Infra Setups also include simple and crisp mermaids.
+- Mermaid diagrams should be simple, if the functionality is complex, split the diawgram.
