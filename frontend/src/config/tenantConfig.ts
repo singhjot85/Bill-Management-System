@@ -176,7 +176,8 @@ export const defaultTenantConfig: TenantViewConfig = {
     topHtml: '<div class="text-center mb-12"><h1 class="text-h2 font-weight-black mb-4">Support Our Cause</h1><p class="text-h6 text-muted">Your contribution helps us continue our mission.</p></div>',
     formTitle: 'Make a Donation',
     formSubtitle: 'Enter the amount you wish to contribute.',
-    leftImage: 'https://illustrations.popsy.co/amber/shining-a-light.svg',
+    leftImage: 'https://www.shutterstock.com/image-photo/charity-financial-support-saving-concept-600nw-2136440783.jpg',
     bottomHtml: '<div class="text-center mt-12"><p class="text-caption text-muted">All donations are tax-deductible.</p></div>',
+    // rightImage: 'https://drools.com/wp-content/uploads/2024/11/image-227.png',
   },
 };
