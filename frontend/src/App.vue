@@ -12,7 +12,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useBrandingStore } from '@/stores/brandingStore';
 import { useTheme } from 'vuetify';
-import LoadingOverlay from '@/components/dumb/LoadingOverlay.vue';
+import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 
 const brandingStore = useBrandingStore();
 const vuetifyTheme = useTheme();

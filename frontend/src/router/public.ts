@@ -3,27 +3,27 @@ import { type RouteRecordRaw } from 'vue-router';
 export const publicRoutes: RouteRecordRaw[] = [
   {
     path: '/',
-    component: () => import('@/views/TenantHomePage.vue'),
+    component: () => import('@/layouts/TenantLayout.vue'),
     children: [
       {
         path: '',
         name: 'PublicHome',
-        component: () => import('@/components/smart/HomePage.vue'),
+        component: () => import('@/views/HomeView.vue'),
       },
       {
         path: 'login',
         name: 'Login',
-        component: () => import('@/views/AuthPage.vue'),
+        component: () => import('@/views/AuthView.vue'),
       },
       {
         path: 'signup',
         name: 'Signup',
-        component: () => import('@/views/AuthPage.vue'),
+        component: () => import('@/views/AuthView.vue'),
       },
       {
         path: 'donate',
         name: 'Donate',
-        component: () => import('@/components/smart/DonatePage.vue'),
+        component: () => import('@/views/DonateView.vue'),
       },
     ],
   },

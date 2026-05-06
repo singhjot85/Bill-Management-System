@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import PRStub from '../dumb/PRStub.vue';
+import PRStub from '@/components/ui/PRStub.vue';
 import { defaultTenantConfig } from '@/config/tenantConfig';
 
 defineProps({

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { brandingService } from '@/services/brandingService';
-import defaultLogo from '@/assets/defaultAssets/bill-invoice.svg';
+import defaultLogo from '@/assets/img/bill-invoice.svg';
 
 export const useBrandingStore = defineStore('branding', {
   state: () => ({

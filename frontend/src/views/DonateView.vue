@@ -16,7 +16,7 @@
           <DonateForm 
             :title="config.formTitle" 
             :subtitle="config.formSubtitle" 
-          />
+        />
         </v-col>
 
         <!-- Right Image -->
@@ -34,7 +34,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { defaultTenantConfig } from '@/config/tenantConfig';
-import DonateForm from '@/components/smart/DonateForm.vue';
+import DonateForm from '@/components/donate/DonateForm.vue';
 
 const props = defineProps({
   config: {

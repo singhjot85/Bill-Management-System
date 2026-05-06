@@ -1,5 +1,5 @@
 import api from './api';
-import defaultLogo from '@/assets/defaultAssets/bill-invoice.svg';
+import defaultLogo from '@/assets/img/bill-invoice.svg';
 
 export const brandingService = {
   async getBranding() {

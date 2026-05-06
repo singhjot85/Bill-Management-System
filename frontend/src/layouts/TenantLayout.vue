@@ -20,8 +20,8 @@
 
 <script setup>
 import { onMounted, ref, computed } from 'vue';
-import Navbar from '@/components/dumb/Navbar.vue';
-import Footer from '@/components/dumb/Footer.vue';
+import Navbar from '@/components/common/Navbar.vue';
+import Footer from '@/components/common/Footer.vue';
 import { useBrandingStore } from '@/stores/brandingStore';
 import { useRouter, useRoute } from 'vue-router';
 import { defaultTenantConfig } from '@/config/tenantConfig';
@@ -67,6 +67,6 @@ onMounted(async () => {
 .main-content-wrapper {
   margin-top: 24px;
   margin-bottom: 24px;
-  min-height: calc(100vh - 128px); /* Adjust based on navbar/footer height */
+  min-height: calc(100vh - 128px);
 }
 </style>
