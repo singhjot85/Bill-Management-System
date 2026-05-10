@@ -62,7 +62,7 @@ onMounted(async () => {
 
 <style scoped>
 .bg-light {
-  background-color: var(--bg-light) !important;
+  background-color: var(--background-color) !important;
 }
 .main-content-wrapper {
   margin-top: 24px;

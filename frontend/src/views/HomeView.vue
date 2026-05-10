@@ -1,67 +1,36 @@
 <template>
-  <v-row 
-    v-for="(row, rIdx) in config.rows" 
-    :key="'row-' + rIdx"
-    justify="center" 
-    align="center" 
-    :class="row.class"
-  >
-    <v-col 
-      v-for="(col, cIdx) in row.cols" 
-      :key="'col-' + cIdx"
-      :cols="col.cols || 12"
-      :md="col.md"
-      :class="col.class"
-    >
-      <div v-html="col.html"></div>
-    </v-col>
-  </v-row>
-
-  <PRStub 
-    v-for="(stub, sIdx) in config.topPRStubs" 
-    :key="'top-stub-' + sIdx"
-    :stubConfig="stub" 
-  />
-
-  <!-- Big Bulk Donate Button -->
-  <v-row justify="center" class="my-16">
-    <v-col cols="auto">
-      <v-btn 
-        class="big-donate-btn" 
-        height="72" 
-        elevation="8" 
-        to="/donate"
-        color="primary"
-      >
-        Donate Now
-      </v-btn>
-    </v-col>
-  </v-row>
-
-  <PRStub 
-    v-for="(stub, sIdx) in config.bottomPRStubs" 
-    :key="'bottom-stub-' + sIdx"
-    :stubConfig="stub" 
-  />
+  <div class="home-view">
+    <HeroSection :config="config.hero" />
+    <ProblemSolution :config="config.problemSolution" />
+    <FeaturesGrid :config="config.featuresGrid" />
+    <UseCases :config="config.useCases" />
+    <DashboardPeek :config="config.dashboardPeek" />
+    <Testimonials :config="config.testimonials" />
+    <PricingSection :config="config.pricing" />
+    <FinalCTA :config="config.finalCTA" />
+  </div>
 </template>
 
-<script setup>
-import PRStub from '@/components/ui/PRStub.vue';
+<script setup lang="ts">
+import HeroSection from '@/components/landing/HeroSection.vue';
+import ProblemSolution from '@/components/landing/ProblemSolution.vue';
+import FeaturesGrid from '@/components/landing/FeaturesGrid.vue';
+import UseCases from '@/components/landing/UseCases.vue';
+import DashboardPeek from '@/components/landing/DashboardPeek.vue';
+import Testimonials from '@/components/landing/Testimonials.vue';
+import PricingSection from '@/components/landing/PricingSection.vue';
+import FinalCTA from '@/components/landing/FinalCTA.vue';
 import { defaultTenantConfig } from '@/config/tenantConfig';
+import type { HomePageConfig } from '@/config/tenantConfig';
 
-defineProps({
-  config: {
-    type: Object,
-    default: () => defaultTenantConfig.home
-  }
-});
+defineProps<{
+  config: HomePageConfig;
+}>();
 </script>
 
 <style scoped>
-.big-donate-btn {
-  font-size: 1.5rem;
-  font-weight: bold;
-  padding: 0 3rem;
-  border-radius: 12px;
+.home-view {
+  background-color: var(--background-color);
+  color: var(--text-primary);
 }
 </style>

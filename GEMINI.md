@@ -78,11 +78,12 @@ To support multi-tenancy and highly customizable vendor branding, the frontend f
 - **Smart Components** (e.g., `HomePage.vue`, `AuthPage.vue`, `DonatePage.vue`): High-level views that consume sections of the configuration to build complex, dynamic layouts.
 - **Dumb Components** (e.g., `Navbar.vue`, `PRStub.vue`): Atomic, reusable UI elements. They are logic-agnostic, configurable via props, and communicate with parents via events.
 
-#### 2. Configuration Standards (`tenantConfig.ts`)
+#### 2. Configuration & Styling Standards (`tenantConfig.ts`)
 - **Centralized Source**: All view-related configurations reside in `frontend/src/config/tenantConfig.ts`.
 - **Order-Based Layouts**: Use `order` arrays (e.g., `order: ['image', 'title', 'text']`) to allow vendors to reposition elements without code changes.
 - **Resolver Pattern**: For dynamic content (e.g., theme-toggle icons or tenant names), use a string-to-function mapping. Components reference a "resolver" name in their config, and the component resolves it at runtime.
 - **Generic View Props**: Layouts pass configurations to children via `<router-view v-slot="{ Component }"> <component :is="Component" :config="viewConfig" /> </router-view>`.
+- **Styling Mandate**: **ALWAYS use CSS variables** for all styling (colors, spacing, typography, effects). Avoid hardcoded values in components. Use existing variables from `variables.css` and extend it as needed. Prefer Vanilla CSS over TailwindCSS.
 
 #### 3. Event-Driven Decoupling
 - Components must **EMIT** actions (`@action`, `@navigate`) rather than handling routing or state mutations internally.
