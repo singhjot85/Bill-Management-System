@@ -1,87 +1,96 @@
 <template>
-  <div :style="pageStyle" class="donate-page-wrapper">
-    <v-container fluid class="pa-0">
-        <!-- Top HTML Content -->
-        <div v-if="config.topHtml" v-html="config.topHtml"></div>
+  <div class="donate-view">
+    <DonateHero :config="config.hero" @action="handleHeroAction" />
+    <ProblemImpact :config="config.problem" />
+    <DonationTiers :config="config.tiers" @select-tier="handleTierSelect" />
+    <RecurringDonation :config="config.recurringBlock" />
+    <TransparencySteps :config="config.transparency" />
+    
+    <v-container id="donation-form-section" class="py-16">
+      <v-row justify="center">
+        <v-col cols="12" md="8" lg="6">
+          <DonateForm 
+            ref="donateFormRef"
+            :title="config.formTitle" 
+            :subtitle="config.formSubtitle" 
+            :initialAmount="selectedAmount"
+          />
+        </v-col>
+      </v-row>
+    </v-container>
 
-        <v-row align="stretch" justify="center" no-gutters class="mx-auto" style="max-width: 1600px">
-          <!-- Left Image -->
-          <v-col 
-            v-if="config.leftImage" 
-            cols="12" 
-            :md="config.rightImage ? 3 : 4" 
-            class="d-none d-md-flex px-0"
-          >
-            <v-img 
-              :src="config.leftImage" 
-              class="rounded-xl shadow-lg" 
-              cover 
-              height="100%"
-            ></v-img>
-          </v-col>
-
-          <!-- Main Form Component -->
-          <v-col 
-            cols="12" 
-            :md="config.leftImage && config.rightImage ? 6 : (config.leftImage || config.rightImage ? 8 : 8)"
-            :lg="config.leftImage && config.rightImage ? 5 : (config.leftImage || config.rightImage ? 7 : 6)"
-            class="px-md-10 px-4 py-4"
-          >
-            <DonateForm 
-              :title="config.formTitle" 
-              :subtitle="config.formSubtitle" 
-            />
-          </v-col>
-
-          <!-- Right Image -->
-          <v-col 
-            v-if="config.rightImage" 
-            cols="12" 
-            :md="config.leftImage ? 3 : 4" 
-            class="d-none d-md-flex px-0"
-          >
-            <v-img 
-              :src="config.rightImage" 
-              class="rounded-xl shadow-lg" 
-              cover 
-              height="100%"
-            ></v-img>
-          </v-col>
-        </v-row>
-
-        <!-- Bottom HTML Content -->
-        <div v-if="config.bottomHtml" v-html="config.bottomHtml" class="mt-8"></div>
+    <Testimonials :config="config.socialProof" />
+    <RealTimeCounter :config="config.counter" @donate-click="handleTierSelect({ amount: $event })" />
+    <FAQSection :config="config.faq" />
+    
+    <!-- Final CTA -->
+    <v-container fluid class="py-16 bg-primary-dark">
+      <v-row justify="center" class="text-center">
+        <v-col cols="12" md="8">
+          <h2 class="text-h2 font-weight-black text-white mb-4">{{ config.finalCTA.headline }}</h2>
+          <p class="text-h5 text-white opacity-80 mb-10">{{ config.finalCTA.subheadline }}</p>
+          <div class="d-flex flex-wrap justify-center gap-4">
+            <v-btn color="white" size="x-large" class="rounded-lg font-weight-black" style="color: var(--primary-color) !important;" @click="scrollToForm">
+              {{ config.finalCTA.primaryCTA }}
+            </v-btn>
+            <v-btn variant="outlined" color="white" size="x-large" class="rounded-lg font-weight-black">
+              {{ config.finalCTA.secondaryCTA }}
+            </v-btn>
+          </div>
+        </v-col>
+      </v-row>
     </v-container>
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue';
-import { defaultTenantConfig } from '@/config/tenantConfig';
+<script setup lang="ts">
+import { ref } from 'vue';
+import DonateHero from '@/components/donate/sections/DonateHero.vue';
+import ProblemImpact from '@/components/donate/sections/ProblemImpact.vue';
+import DonationTiers from '@/components/donate/sections/DonationTiers.vue';
+import RecurringDonation from '@/components/donate/sections/RecurringDonation.vue';
+import TransparencySteps from '@/components/donate/sections/TransparencySteps.vue';
+import RealTimeCounter from '@/components/donate/sections/RealTimeCounter.vue';
+import FAQSection from '@/components/donate/sections/FAQSection.vue';
 import DonateForm from '@/components/donate/DonateForm.vue';
+import Testimonials from '@/components/landing/Testimonials.vue';
+import type { DonatePageConfig } from '@/config/tenantConfig';
 
-const props = defineProps({
-  config: {
-    type: Object,
-    default: () => defaultTenantConfig.donate
-  }
-});
+const props = defineProps<{
+  config: DonatePageConfig;
+}>();
 
-const pageStyle = computed(() => {
-  if (props.config.backgroundImage) {
-    return {
-      backgroundImage: `url(${props.config.backgroundImage})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      minHeight: '100%'
-    };
+const selectedAmount = ref<number | null>(null);
+const donateFormRef = ref(null);
+
+const scrollToForm = () => {
+  const el = document.getElementById('donation-form-section');
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
   }
-  return {};
-});
+};
+
+const handleHeroAction = (action: string) => {
+  if (action === 'scrollToForm') {
+    scrollToForm();
+  }
+};
+
+const handleTierSelect = (tier: { amount: number }) => {
+  selectedAmount.value = tier.amount;
+  scrollToForm();
+};
 </script>
 
 <style scoped>
-.donate-page-wrapper {
-  transition: all 0.3s ease;
+.donate-view {
+  background-color: var(--background-color);
 }
+
+.bg-primary-dark {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%) !important;
+}
+
+.opacity-80 { opacity: 0.8; }
+.gap-4 { gap: var(--spacing-md); }
 </style>

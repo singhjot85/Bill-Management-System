@@ -133,6 +133,19 @@
 
         <!-- Section 2: Contribution Details -->
         <div class="form-section-label mb-4 mt-8">Contribution Details</div>
+        <v-text-field
+          v-model="formData.amount"
+          label="Donation Amount (₹)"
+          variant="filled"
+          flat
+          bg-color="grey-lighten-4"
+          prepend-inner-icon="mdi-currency-inr"
+          type="number"
+          class="mb-6 rounded-lg custom-input"
+          hide-details="auto"
+          required
+        ></v-text-field>
+
         <v-textarea
           v-model="formData.address"
           label="Billing Address"
@@ -197,7 +210,11 @@ import { ref, reactive, computed } from 'vue';
 
 const props = defineProps({
   title: String,
-  subtitle: String
+  subtitle: String,
+  initialAmount: {
+    type: Number,
+    default: null
+  }
 });
 
 const formData = reactive({
@@ -206,7 +223,14 @@ const formData = reactive({
   emailOtp: '',
   phone: '',
   phoneOtp: '',
-  address: ''
+  address: '',
+  amount: props.initialAmount
+});
+
+// Watch for prop changes to update amount
+import { watch } from 'vue';
+watch(() => props.initialAmount, (newVal) => {
+  if (newVal) formData.amount = newVal;
 });
 
 const emailLoading = ref(false);
@@ -221,7 +245,7 @@ const paymentStatus = ref('pending');
 const paymentId = ref('');
 
 const isFormValid = computed(() => {
-  return formData.name && emailVerified.value && phoneVerified.value && formData.address;
+  return formData.name && emailVerified.value && phoneVerified.value && formData.address && formData.amount > 0;
 });
 
 const sendOtp = (type) => {
@@ -275,7 +299,7 @@ const generateInvoice = () => {
 
 .gradient-accent {
   height: 10px;
-  background: linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--primary-hover) 100%);
 }
 
 .form-section-label {
@@ -283,28 +307,28 @@ const generateInvoice = () => {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 800;
-  color: var(--v-theme-primary);
+  color: var(--primary-color);
   opacity: 0.8;
 }
 
 .custom-input :deep(.v-field) {
-  border-radius: 12px !important;
+  border-radius: var(--radius-md) !important;
   transition: all 0.2s ease;
 }
 
 .custom-input :deep(.v-field--focused) {
-  background-color: white !important;
-  box-shadow: 0 0 0 2px var(--v-theme-primary) !important;
+  background-color: var(--surface-color) !important;
+  box-shadow: 0 0 0 2px var(--primary-color) !important;
 }
 
 .otp-box {
-  background-color: #f8fafc;
-  border: 1px dashed #cbd5e1 !important;
+  background-color: var(--background-color);
+  border: 1px dashed var(--text-muted) !important;
 }
 
 .pay-btn {
-  background: linear-gradient(135deg, var(--v-theme-primary) 0%, #4338ca 100%) !important;
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4) !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%) !important;
+  box-shadow: var(--shadow-md) !important;
   transition: transform 0.2s ease;
 }
 
@@ -315,18 +339,18 @@ const generateInvoice = () => {
 .success-icon-wrapper {
   width: 80px;
   height: 80px;
-  background: #22c55e;
+  background: var(--success-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.4);
+  box-shadow: 0 10px 15px -3px rgba(var(--success-color-rgb), 0.4);
 }
 
 .payment-id-card {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd !important;
+  background: rgba(var(--primary-color-rgb), 0.05);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.1) !important;
 }
 
 .subtitle-wrapper {
