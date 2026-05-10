@@ -88,7 +88,7 @@ export const defaultTenantConfig: TenantViewConfig = {
       {
         type: 'image',
         metadata: {
-          url: '',
+          url: 'src/assets/img/invoice-receipt-svgrepo-com.svg',
           width: 36,
           height: 36,
           class: 'mr-3',
@@ -136,10 +136,11 @@ export const defaultTenantConfig: TenantViewConfig = {
             md: 8,
             html: `
               <h1 class="text-h2 font-weight-black mb-6">
-                Empowering Your <span class="text-primary">Financial Impact</span>
+                <span class="text-primary">One Platform. Zero Chaos</span> Bills, Invoices, Donations
               </h1>
-              <p class="text-h6 text-muted mb-10">
-                Seamlessly manage your bills and support causes you care about, all in one modern platform.
+              <p class="text-h5 text-muted mb-10" >
+                Stop juggling between accounting software, spreadsheets, and donation trackers. 
+                <br/>Automate your financial workflow from a single dashboard whether you are billing a client, receipting a donor, or counting inventory.
               </p>
             `,
           },

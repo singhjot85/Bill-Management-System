@@ -1,7 +1,6 @@
 <template>
   <div :style="pageStyle" class="donate-page-wrapper">
     <v-container fluid class="pa-0">
-      <!-- <v-container class="py-16"> -->
         <!-- Top HTML Content -->
         <div v-if="config.topHtml" v-html="config.topHtml"></div>
 
@@ -52,7 +51,6 @@
 
         <!-- Bottom HTML Content -->
         <div v-if="config.bottomHtml" v-html="config.bottomHtml" class="mt-8"></div>
-      <!-- </v-container> -->
     </v-container>
   </div>
 </template>
