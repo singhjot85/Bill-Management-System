@@ -20,7 +20,6 @@ import DashboardPeek from '@/components/landing/DashboardPeek.vue';
 import Testimonials from '@/components/landing/Testimonials.vue';
 import PricingSection from '@/components/landing/PricingSection.vue';
 import FinalCTA from '@/components/landing/FinalCTA.vue';
-import { defaultTenantConfig } from '@/config/tenantConfig';
 import type { HomePageConfig } from '@/config/tenantConfig';
 
 defineProps<{

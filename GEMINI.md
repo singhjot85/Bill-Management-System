@@ -36,16 +36,7 @@ To avoid direct API calls and maintain separation of concerns, the project uses 
 
 ## Building and Running
 
-### System Dependencies
-Requires `brew install cairo pango gdk-pixbuf libffi pkg-config cmake`.
-
-### Local Development (Poetry)
-- **Install**: `make setup` (runs `poetry lock` and `poetry install`).
-- **Run Server**: `make poetry-run` (`python manage.py runserver`).
-- **Migrations**: `make poetry-mm app_name=<app>` and `make poetry-m`.
-- **Tests**: `poetry run pytest`.
-
-### Docker Environment
+### Local Development
 - **Build**: `make build`.
 - **Run**: `make run`.
 - **Clean Setup**: `make clean-setup` (Builds, bootstraps tenants/users, and runs).
@@ -67,7 +58,7 @@ Requires `brew install cairo pango gdk-pixbuf libffi pkg-config cmake`.
 
 ### API Rules
 - Serializers in `serializers.py`, ViewSets in `views.py`.
-- Prefer `Action` decorators for custom workflows in ViewSets.
+- Prefer `action` decorators for custom workflows in ViewSets.
 - ViewSets should consume Service Layers for complex business logic.
 
 ### Frontend Generalization & Configuration

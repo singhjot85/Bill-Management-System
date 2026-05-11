@@ -20,31 +20,51 @@ Strong emphasis on clean architecture, reusability, and maintainable styling.
 ## Folder Structure
 ```
 src/
-├── assets/ # Static assets (images, fonts, etc.)
-├── components/ # Reusable UI components
-│ ├── common/ # Generic, app-agnostic components (AppButton, AppCard)
-│ └── layout/ # Structural components (AppBar, AppFooter, Sidebar)
-├── composables/ # Reusable composition functions (business logic hooks)
-├── plugins/ # Plugin setup (vuetify, etc.)
-├── router/ # Vue Router configuration
-│ └── index.js
-├── services/ # API layer and external integrations
-│ └── api.js # Axios instance + interceptors
-├── stores/ # Pinia stores (global state management)
-├── styles/ # Global styles and design tokens
-│ ├── variables.css # CSS custom properties (colors, spacing, dark theme)
-│ ├── main.css # Global resets, utility classes, typography
-│ └── vuetify-overrides.scss # Vuetify SCSS variable overrides
-├── views/ # Page‑level components (routed)
-│ ├── HomeView.vue
-│ └── ...
-├── App.vue # Root component (layout shell)
-└── main.js # Application entry point
+|- assets/            # Static assets (images, fonts, etc.)
+|     |- css          # Project's global CSS files and Variables
+|     |- img          # Images to be shipped with code ( we'll remove these soon )
+|- components/        # Reusable UI components
+|     |- common/      # Generic, app-agnostic components (AppButton, AppCard, AppBar, AppFooter ...)
+|     |- layout/      # Structural components (HeroSection, TieredItems ...)
+|     |- view/        # View specific Components (These Components should be made in rare cases
+|         |- auth/    # only when layout components aren't Sufficient)
+|         |- donate/
+|- config/
+|     |- types/       # Config type(s) for typescript
+|     |- defaults/    # Default configs
+|- layouts/           # UI layout that can render multiple views
+|     |- TenantLayout.vue
+|     |- PublicAdmin.vue
+|     |- ...
+|- plugins/           # Plugin setup (vuetify, etc.)
+|- router/            # Vue Router configuration
+|     |- index.js
+|     |- public.ts    # Un-authenticated routes
+|     |- private.ts   # Authenticated routes
+|- services/          # API layer and external integrations
+|     |- api.js       # Axios instance + interceptors
+|     |- authService.ts
+|     |- brandingService.ts
+|     |- ...
+|- stores/            # Pinia stores (global state management)
+|     |- authStore.ts
+|     |- brandingStore.ts
+|     |- uiStore.ts
+|     |- ...
+|- views/             # Page‑level components (routed)
+|     |- HomeView.vue
+|     |- DonateView.vue
+|     |- ...
+|- App.vue            # Root component (layout shell)
+|- main.js            # Application entry point
 ```
 
 ---
 
 ## Core Conventions
+
+<!-- TODO: Update Conventions -->
+
 
 ### 1. Component Design
 - **Presentational vs. Container**  
