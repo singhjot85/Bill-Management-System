@@ -153,6 +153,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useBrandingStore } from "@/stores/brandingStore";
+import { useUIStore } from "@/stores/uiStore";
 import { useRoute, useRouter } from 'vue-router';
 import { defaultTenantConfig } from '@/config/tenantConfig';
 
@@ -162,6 +163,7 @@ const props = defineProps({
 
 
 const brandingStore = useBrandingStore();
+const uiStore = useUIStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -176,17 +178,21 @@ const signupPassword = ref("");
 watch(activeTab, (newVal) => router.replace(`/${newVal}`));
 
 const handleLogin = () => {
+  uiStore.startLoading();
   loading.value = true;
   setTimeout(() => {
     loading.value = false;
+    uiStore.stopLoading();
     alert("Logged in!");
   }, 1000);
 };
 
 const handleSignup = () => {
+  uiStore.startLoading();
   loading.value = true;
   setTimeout(() => {
     loading.value = false;
+    uiStore.stopLoading();
     alert("Account created!");
   }, 1000);
 };

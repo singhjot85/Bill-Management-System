@@ -90,6 +90,11 @@ To support multi-tenancy and highly customizable vendor branding, the frontend f
 - The parent Layout or Smart component is responsible for handling these emits (e.g., `router.push`, `store.toggleTheme`).
 - This keeps the UI components pure, testable, and reusable across different business contexts.
 
+#### 4. Global UI & Seamless Transitions
+- **Loading Overlay**: ALWAYS use the global `LoadingOverlay` during page transitions (routing) and synchronous API fetching. This ensures a seamless experience and prevents redundant user interactions during slow network states.
+- **Routing**: Show overlay on `beforeEach` and hide on `afterEach` router hooks.
+- **API Calls**: For critical, blocking API calls, wrap the execution in loading state toggles.
+
 ---
 
 ## Key Files & Directories

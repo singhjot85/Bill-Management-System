@@ -207,6 +207,9 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
+import { useUIStore } from '@/stores/uiStore';
+
+const uiStore = useUIStore();
 
 const props = defineProps({
   title: String,
@@ -269,6 +272,7 @@ const verifyOtp = (type) => {
 };
 
 const proceedToPayment = () => {
+  uiStore.startLoading();
   paymentLoading.value = true;
   setTimeout(() => {
     const success = Math.random() > 0.1;
@@ -279,12 +283,18 @@ const proceedToPayment = () => {
       paymentStatus.value = 'failure';
     }
     paymentLoading.value = false;
+    uiStore.stopLoading();
   }, 1800);
 };
 
 const generateInvoice = () => {
+  uiStore.startLoading();
   invoiceLoading.value = true;
-  setTimeout(() => { invoiceLoading.value = false; alert('Invoice generated!'); }, 1000);
+  setTimeout(() => { 
+    invoiceLoading.value = false; 
+    uiStore.stopLoading();
+    alert('Invoice generated!'); 
+  }, 1000);
 };
 </script>
 

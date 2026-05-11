@@ -1,25 +1,25 @@
 <template>
   <v-app>
     <!-- Modern Loading Overlay -->
-    <LoadingOverlay :active="isLoading" />
+    <LoadingOverlay :active="uiStore.isLoading" />
 
     <!-- Main Content -->
-    <router-view v-if="!isLoading" />
+    <router-view />
   </v-app>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useBrandingStore } from '@/stores/brandingStore';
+import { useUIStore } from '@/stores/uiStore';
 import { useTheme } from 'vuetify';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 
 const brandingStore = useBrandingStore();
+const uiStore = useUIStore();
 const vuetifyTheme = useTheme();
-const isLoading = ref(true);
 
 const applyTheme = (themeName) => {
-  // Try using the recommended approach if available, otherwise fallback to standard reactive assignment
   if (typeof vuetifyTheme.global.name.value !== 'undefined') {
     vuetifyTheme.global.name.value = themeName;
   }
@@ -33,13 +33,10 @@ watch(() => brandingStore.theme, (newTheme) => {
 
 onMounted(async () => {
   try {
-    // Turn on the overlay and wait for branding
+    uiStore.startLoading();
     await brandingStore.fetchBranding();
   } finally {
-    // Small delay for smooth transition
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 500);
+    uiStore.stopLoading();
   }
 });
 </script>
