@@ -227,20 +227,11 @@ export const defaultTenantConfig: TenantViewConfig = {
   navbar: {
     leftItems: [
       {
-        type: 'image',
+        type: 'button',
         metadata: {
-          url: 'src/assets/img/invoice-receipt-svgrepo-com.svg',
-          width: 36,
-          height: 36,
-          class: 'mr-3',
-          clickable: true,
-          to: '/',
-        },
-      },
-      {
-        type: 'text',
-        metadata: {
+          icon: 'mdi-heart-pulse',
           textResolver: 'getTenantName',
+          variant: 'text',
           class: 'text-h6 font-weight-bold flex-shrink-0',
           clickable: true,
           to: '/',

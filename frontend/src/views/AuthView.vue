@@ -1,209 +1,137 @@
 <template>
-  <v-container fluid class="pa-0 fill-height">
+  <v-container fluid class="pa-0 fill-height bg-surface">
     <v-row no-gutters class="fill-height">
-      <!-- Left Side -->
+      <!-- Left Panel: Brand Sidebar -->
       <v-col
         cols="12"
         md="6"
-        class="d-none d-md-flex align-center justify-center bg-primary-light"
+        lg="7"
+        class="d-none d-md-block"
       >
-        <v-container class="text-center">
-          <div v-for="item in config.left.order" :key="item">
-            <v-img
-              v-if="item === 'image'"
-              :src="config.left.image"
-              max-width="450"
-              class="mx-auto mb-8"
-              contain
-            ></v-img>
-            <h2
-              v-if="item === 'title'"
-              class="text-h3 font-weight-black text-primary mb-4"
-            >
-              {{ config.left.title }}
-            </h2>
-            <p
-              v-if="item === 'text'"
-              class="text-h6 text-muted mx-auto"
-              style="max-width: 400px"
-            >
-              {{ config.left.text }}
-            </p>
-          </div>
-        </v-container>
+        <BrandSidebar />
       </v-col>
 
-      <!-- Right Side -->
+      <!-- Right Panel: Auth Forms -->
       <v-col
         cols="12"
         md="6"
-        class="d-flex align-center justify-center bg-light"
+        lg="5"
+        class="d-flex align-center justify-center bg-white"
       >
-        <v-card width="100%" max-width="450" flat class="bg-transparent pa-6">
-          <!-- Header (Logo/Title) -->
-          <div class="text-center mb-10">
-            <div v-for="item in config.header.order" :key="item">
-              <v-img
-                v-if="item === 'logo'"
-                :src="brandingStore.logoUrl"
-                height="48"
-                class="mb-4"
-                contain
-              ></v-img>
-              <h1 v-if="item === 'title'" class="text-h5 font-weight-bold">
-                {{ brandingStore.tenantName }}
-              </h1>
-            </div>
+        <v-card width="100%" flat class="pa-6 pa-sm-10">
+          <!-- Mobile Logo (shown only on small screens) -->
+          <div class="d-md-none text-center mb-8">
+            <v-icon size="48" color="primary">mdi-heart-pulse</v-icon>
+            <h1 class="text-h5 font-weight-black">{{ brandingStore.tenantName }}</h1>
           </div>
 
-          <!-- Switcher -->
+          <!-- Tab Navigation -->
           <v-tabs
             v-model="activeTab"
-            grow
             color="primary"
-            class="mb-8 border rounded-lg"
-            bg-color="surface"
+            grow
+            class="mb-10 auth-tabs"
+            bg-color="transparent"
           >
-            <v-tab value="login" class="text-none font-weight-bold"
-              >Login</v-tab
-            >
-            <v-tab value="signup" class="text-none font-weight-bold"
-              >Signup</v-tab
-            >
+            <v-tab value="login" class="text-none font-weight-bold">
+              <v-icon start>mdi-login</v-icon> Sign In
+            </v-tab>
+            <v-tab value="register" class="text-none font-weight-bold">
+              <v-icon start>mdi-account-plus</v-icon> Sign Up
+            </v-tab>
           </v-tabs>
 
-          <!-- Auth Forms -->
+          <!-- Auth Windows -->
           <v-window v-model="activeTab">
             <v-window-item value="login">
-              <v-form @submit.prevent="handleLogin">
-                <v-text-field
-                  v-model="loginEmail"
-                  label="Email"
-                  prepend-inner-icon="mdi-email-outline"
-                  variant="outlined"
-                  class="mb-2"
-                  required
-                />
-                <v-text-field
-                  v-model="loginPassword"
-                  label="Password"
-                  prepend-inner-icon="mdi-lock-outline"
-                  type="password"
-                  variant="outlined"
-                  class="mb-4"
-                  required
-                />
-                <v-btn
-                  color="primary"
-                  block
-                  size="large"
-                  class="font-weight-bold py-4 h-auto rounded-lg"
-                  type="submit"
-                  :loading="loading"
-                  >Sign In</v-btn
-                >
-              </v-form>
+              <LoginForm @forgot-password="showForgotPassword = true" />
             </v-window-item>
 
-            <v-window-item value="signup">
-              <v-form @submit.prevent="handleSignup">
-                <v-text-field
-                  v-model="signupName"
-                  label="Full Name"
-                  prepend-inner-icon="mdi-account-outline"
-                  variant="outlined"
-                  class="mb-2"
-                  required
-                />
-                <v-text-field
-                  v-model="signupEmail"
-                  label="Email"
-                  prepend-inner-icon="mdi-email-outline"
-                  variant="outlined"
-                  class="mb-2"
-                  required
-                />
-                <v-text-field
-                  v-model="signupPassword"
-                  label="Password"
-                  prepend-inner-icon="mdi-lock-outline"
-                  type="password"
-                  variant="outlined"
-                  class="mb-4"
-                  required
-                />
-                <v-btn
-                  color="primary"
-                  block
-                  size="large"
-                  class="font-weight-bold py-4 h-auto rounded-lg"
-                  type="submit"
-                  :loading="loading"
-                  >Get Started</v-btn
-                >
-              </v-form>
+            <v-window-item value="register">
+              <RegisterForm />
             </v-window-item>
           </v-window>
         </v-card>
       </v-col>
+
     </v-row>
+
+    <!-- Forgot Password Modal -->
+    <v-dialog v-model="showForgotPassword" max-width="400">
+      <v-card class="pa-6 rounded-lg">
+        <v-card-title class="px-0 pt-0 text-h5 font-weight-bold">
+          Reset your password
+        </v-card-title>
+        <v-card-text class="px-0 text-body-2 text-muted mb-4">
+          We will send a password reset link to your registered email.
+        </v-card-text>
+        <v-text-field
+          v-model="forgotEmail"
+          label="Email"
+          placeholder="registered@email.com"
+          variant="outlined"
+          hide-details
+          class="mb-6"
+        />
+        <v-card-actions class="px-0 pb-0">
+          <v-spacer />
+          <v-btn variant="text" color="muted" @click="showForgotPassword = false">Cancel</v-btn>
+          <v-btn color="primary" @click="handleResetPassword" class="px-6">Send Reset Link</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
-import { useBrandingStore } from "@/stores/brandingStore";
-import { useUIStore } from "@/stores/uiStore";
 import { useRoute, useRouter } from 'vue-router';
-import { defaultTenantConfig } from '@/config/tenantConfig';
+import { useBrandingStore } from "@/stores/brandingStore";
 
-const props = defineProps({
-  config: { type: Object, default: () => defaultTenantConfig.auth }
-});
-
+import BrandSidebar from "@/components/auth/BrandSidebar.vue";
+import LoginForm from "@/components/auth/LoginForm.vue";
+import RegisterForm from "@/components/auth/RegisterForm.vue";
+import DonorLoginForm from "@/components/auth/DonorLoginForm.vue";
 
 const brandingStore = useBrandingStore();
-const uiStore = useUIStore();
 const route = useRoute();
 const router = useRouter();
 
-const activeTab = ref(route.path.includes("signup") ? "signup" : "login");
-const loading = ref(false);
-const loginEmail = ref("");
-const loginPassword = ref("");
-const signupName = ref("");
-const signupEmail = ref("");
-const signupPassword = ref("");
-
-watch(activeTab, (newVal) => router.replace(`/${newVal}`));
-
-const handleLogin = () => {
-  uiStore.startLoading();
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-    uiStore.stopLoading();
-    alert("Logged in!");
-  }, 1000);
+// Determine active tab based on route
+const getInitialTab = () => {
+  if (route.path.includes("signup")) return "register";
+  return "login";
 };
 
-const handleSignup = () => {
-  uiStore.startLoading();
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-    uiStore.stopLoading();
-    alert("Account created!");
-  }, 1000);
+const activeTab = ref(getInitialTab());
+const showForgotPassword = ref(false);
+const forgotEmail = ref('');
+
+// Sync route with tab
+watch(activeTab, (newTab) => {
+  const path = newTab === 'register' ? '/signup' : '/login';
+  router.replace(path);
+});
+
+const handleResetPassword = () => {
+  alert(`Reset link sent to ${forgotEmail.value}`);
+  showForgotPassword.value = false;
 };
 </script>
 
 <style scoped>
-.bg-primary-light {
-  background-color: rgba(var(--v-theme-primary), 0.05);
+.auth-tabs :deep(.v-selection-control-group) {
+  border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-.bg-light {
-  background-color: var(--bg-light) !important;
+.auth-tabs :deep(.v-tab) {
+  border-bottom: 2px solid transparent;
 }
+
+.text-muted {
+  /* color: #666; */
+  color: var(--text-secondary)
+}
+
+.lh-1 { line-height: 1; }
 </style>

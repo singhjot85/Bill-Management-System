@@ -164,9 +164,10 @@ const getComponentProps = (item) => {
     case 'icon-button':
       return {
         ...commonProps,
-        icon: true,
+        icon: !getDisplayText(item),
         size: meta.size || 'small',
-        color: meta.color
+        color: meta.color,
+        variant: meta.variant || 'text'
       };
     case 'text':
       return {

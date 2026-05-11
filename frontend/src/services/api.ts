@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { useUIStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
+import router from '@/router';
 
 const api = axios.create({
   // Using relative path so the Vite proxy handles it
@@ -7,6 +9,9 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
 });
 
 // Add interceptors to handle global loading overlay
@@ -30,6 +35,13 @@ api.interceptors.response.use((response) => {
 }, (error) => {
   const uiStore = useUIStore();
   uiStore.stopLoading();
+
+  if (error.response && error.response.status === 401) {
+    const authStore = useAuthStore();
+    authStore.destroyToken();
+    router.push({ name: 'Login' });
+  }
+
   return Promise.reject(error);
 });
 

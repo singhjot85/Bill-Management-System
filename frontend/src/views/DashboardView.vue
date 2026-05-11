@@ -1,7 +1,8 @@
 <template>
   <v-container class="py-16">
     <h1 class="text-h4 font-weight-bold mb-6">User Dashboard</h1>
-    <p>Welcome to your authenticated area.</p>
+    <p>Welcome to your authenticated area, {{ authStore.user?.username }}.</p>
+    <v-btn color="error" class="mt-4" @click="handleLogout">Logout</v-btn>
     <v-row class="mt-8">
       <v-col cols="12" md="4" v-for="i in 3" :key="i">
         <v-card class="pa-6" flat border>
@@ -14,5 +15,14 @@
 </template>
 
 <script setup>
-// Dashboard logic here
+import { useAuthStore } from "@/stores/authStore";
+import { useRouter } from "vue-router";
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+const handleLogout = async () => {
+  await authStore.logout();
+  router.push({ name: 'Login' });
+};
 </script>

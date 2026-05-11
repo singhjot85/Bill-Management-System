@@ -65,8 +65,6 @@ onMounted(async () => {
   background-color: var(--background-color) !important;
 }
 .main-content-wrapper {
-  margin-top: 24px;
-  margin-bottom: 24px;
   min-height: calc(100vh - 128px);
 }
 </style>

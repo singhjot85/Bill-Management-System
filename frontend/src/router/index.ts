@@ -14,19 +14,21 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const uiStore = useUIStore();
+  const authStore = useAuthStore();
   uiStore.startLoading();
 
-  const authToken = useAuthStore().refreshToken()
-
-  if (to.meta.requiresAuth && !authToken){
-    return { name: 'login' };
+  // If not authenticated, try to refresh from cookie
+  if (!authStore.isAuthenticated) {
+    await authStore.refreshToken();
   }
 
-  next();
-
-
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next({ name: 'login' });
+  } else {
+    next();
+  }
 });
 
 router.afterEach(() => {
