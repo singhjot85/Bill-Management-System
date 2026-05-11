@@ -1,0 +1,65 @@
+/* auth.css */
+
+.app-page-center {
+    min-height: var(--min-page-height);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background: var(--color-background);
+}
+
+.app-auth-card {
+    width: 100%;
+    max-width: var(--auth-card-max-width);
+    background: var(--color-white);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.app-page-title {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-title);
+    color: var(--color-text-primary);
+}
+
+.app-alert {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-sm);
+}
+
+.app-alert-danger {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
+.app-primary-button {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+}
+
+.app-primary-button:hover {
+    background: var(--color-primary-hover);
+}
+
+.app-secondary-button {
+    background: var(--color-white);
+    border: 1px solid var(--color-secondary-border);
+    color: var(--color-text-primary);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.app-full-width {
+    width: 100%;
+}

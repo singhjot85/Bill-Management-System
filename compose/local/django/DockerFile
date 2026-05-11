@@ -1,0 +1,57 @@
+ARG PYTHON_VERSION=3.12
+
+FROM python:${PYTHON_VERSION} AS python-image
+
+# =========================
+# Build Stage
+# =========================
+FROM python-image AS python-build-stage
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    poetry==2.3.1 \
+    poetry-plugin-export
+
+COPY pyproject.toml poetry.lock /
+
+RUN poetry export \
+    -f requirements.txt \
+    --output requirements.txt \
+    --without-hashes
+
+RUN pip wheel \
+    --wheel-dir /usr/src/app/wheels \
+    -r requirements.txt
+
+# =========================
+# Run Stage
+# =========================
+FROM python-image AS python-run-stage
+
+WORKDIR /app
+
+COPY --from=python-build-stage /usr/src/app/wheels /wheels
+
+RUN pip install --no-cache-dir \
+    --no-index \
+    --find-links=/wheels \
+    /wheels/*
+
+
+# Copy Backend Code
+COPY /config /app/config
+COPY /project_apps /app/project_apps
+
+# Copy and Permit Entrypoint Executable
+COPY /compose/local/django/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# TODO: Should we copy tests
+# COPY tests/ app/tests
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

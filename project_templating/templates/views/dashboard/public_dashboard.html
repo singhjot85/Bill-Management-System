@@ -1,0 +1,13 @@
+{% extends "base/base_authenticated.html" %}
+{% load static %} 
+
+{% block title %} Dashboard {% endblock %}
+{% block extra_head %} <link rel="stylesheet" href="{% static 'css/public_dashboard.css' %}" /> {% endblock %} 
+
+
+{% block authenticated_body %}
+    
+    {% include "components/active/navbar.html" with navbar=navbar_config %}
+
+    <script src="{% static 'js/public_dashboard.js' %}"></script>
+{% endblock %}

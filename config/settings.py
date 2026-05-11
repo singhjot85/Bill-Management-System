@@ -1,72 +1,55 @@
+"""
+Infra specific varibles will stay in this files
+Variables required to construct them or extra varibles used by project will be imported.
+This is done so that project settings do not bloat over.
+"""
+
 import os
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRETE_KEY",
-    "django-insecure-6%)b%#j9+01(l6!ux)5t77b3t4zx=bidehk@y4x1ga*e6x0bn%",
-)
-RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_SECRETE", "rzp_test_RSVIW8D3txWcSx")
-RAZORPAY_API_SECRETE = os.getenv("RAZORPAY_API_SECRETE", "aVja8X23PZ4NdiAV8pC0Jhlg")
-DEFAULT_AUTO_FIELD = os.getenv("DJANGO_DEFAULT_ID", "django.db.models.BigAutoField")
+from .apps import *
+from .variables import *
 
 
-LOCAL_ENVS = ["local", "dev", "devlopment"]
-if os.getenv("DJANGO_ENV", "devlopment") in LOCAL_ENVS:
-    DEBUG = True
-    ALLOWED_HOSTS = []
-    WSGI_APPLICATION = "config.wsgi.application"
-else:
-    # TODO: Write WSGI and  ALLOWED_HOSTS configuration for production
-    DEBUG = False
-    ALLOWED_HOSTS = []
-    WSGI_APPLICATION = ""
-
-
-USE_TZ = True
-USE_I18N = True
-TIME_ZONE = "UTC"
-LANGUAGE_CODE = "en-us"
-
+STATICFILES_DIRS = [PROJECT_STATIC_PATH]
 STATIC_URL = "static/"
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR / "static"),
-]
-
 
 ROOT_URLCONF = "config.routers"
+PUBLIC_SCHEMA_URLCONF = "config.public_routers"
 
-AUTH_USER_MODEL = "core.BaseUserModel"
+TENANT_MODEL = f"{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
+TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
+
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django_extensions",
-    "rest_framework",
-    "bma.requests",
-    "bma.payments",
-    "bma.core",
+    *DEFAULT_DJANGO_APPS,
+    *EXTRA_DEPENDENCIES,
+    *PROJECT_APPS,
 ]
 
+SHARED_APPS = DJANGO_TENANT_PUBLIC_APPS
+TENANT_APPS = DJANGO_TENANT_PRIVATE_APPS
+TENANT_SYNC_ROUTER = "django_tenants.routers.TenantSyncRouter"
+
+DATABASE_ROUTERS = [
+    # This is what figure's out what will go in INSTALLED_APPS, when running
+    TENANT_SYNC_ROUTER
+]
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django_tenants.postgresql_backend",
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
     }
 }
 
-AUTH_TEMPLATE_DIR = os.path.join(BASE_DIR, "bma", "core", "templates")
-PAYMENTS_TEMPLATE_DIR = os.path.join(BASE_DIR, "bma", "payments", "templates")
-REQUESTS_TEMPLATE_DIR = os.path.join(BASE_DIR, "bma", "requests", "templates")
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [AUTH_TEMPLATE_DIR, PAYMENTS_TEMPLATE_DIR, REQUESTS_TEMPLATE_DIR],
+        "DIRS": [TEMPLATES_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -80,6 +63,7 @@ TEMPLATES = [
 
 
 MIDDLEWARE = [
+    "django_tenants.middleware.main.TenantMainMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -104,3 +88,37 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+SECRET_KEY = os.getenv("DJANGO_SECRETE_KEY", "")
+RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_KEY", "")
+RAZORPAY_API_SECRETE = os.getenv("RAZORPAY_API_SECRETE", "")
+DEFAULT_AUTO_FIELD = os.getenv("DJANGO_DEFAULT_ID", "django.db.models.BigAutoField")
+
+USE_TZ = True
+USE_I18N = True
+TIME_ZONE = "UTC"
+LANGUAGE_CODE = "en-us"
+
+BOOTSRAP_SCHEMA_NAME = os.getenv("BOOTSTRAP_SCHEMA", "localclient")
+DEV_PASS = os.getenv("DEV_PASS")
+PUBLIC_USERNAME = os.getenv("PUBLIC_USERNAME")
+PUBLIC_PASSWORD = os.getenv("PUBLIC_PASSWORD")
+
+CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")
+LOCAL_ENVS = ["local", "dev", "devlopment"]
+
+if CURRENT_ENV in LOCAL_ENVS:
+    DEBUG = True
+    ALLOWED_HOSTS = []
+    WSGI_APPLICATION = "config.wsgi.application"
+else:
+    # TODO: Write WSGI and  ALLOWED_HOSTS configuration for production
+    DEBUG = False
+    ALLOWED_HOSTS = []
+    WSGI_APPLICATION = ""
+
+    # Kept here, so we don't foget to build this logic
+    def get_resolved_domains():
+        pass
+
+    RESOLVED_DOMAINS = get_resolved_domains()

@@ -1,0 +1,75 @@
+:root {
+    /* Colors */
+    --color-primary: #0d6efd;
+    --color-primary-hover: #0b5ed7;
+
+    --color-secondary: #6c757d;
+    --color-secondary-border: #ced4da;
+
+    --color-danger: #dc3545;
+    --color-danger-bg: #f8d7da;
+
+    --color-text-primary: #212529;
+    --color-text-secondary: #6c757d;
+
+    --color-white: #ffffff;
+    --color-background: #f8f9fa;
+    --color-border: #dee2e6;
+
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    /* Widths */
+    --auth-card-max-width: 420px;
+
+    /* Typography */
+    --font-size-title: 1.5rem;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.875rem;
+
+    /* Heights */
+    --min-page-height: 100vh;
+
+    /* Z Index */
+    --z-index-toast: 9999;
+
+    /* Toast */
+    --toast-width: 380px;
+    --toast-position-bottom: 24px;
+    --toast-position-right: 24px;
+
+    /* Layout */
+    --body-min-height: 100vh;
+
+    /* Typography */
+    --font-family-base: Arial, sans-serif;
+
+    /* Danger Theme */
+    --color-danger-text: #842029;
+    --color-danger-border: #f5c2c7;
+
+    /* Navbar */
+    --navbar-padding-x: 24px;
+    --navbar-padding-y: 16px;
+    --navbar-brand-font-size: 1.5rem;
+
+    /* Content */
+    --content-margin-top: 40px;
+    --content-max-width: 1320px;
+
+    /* Outline Danger Button */
+    --button-outline-danger-hover-bg: #dc3545;
+    --button-outline-danger-hover-text: #ffffff;
+}

@@ -1,0 +1,84 @@
+<div
+    id="api-error-snackbar"
+    class="app-snackbar app-snackbar-error"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+>
+    <div class="app-snackbar-content">
+
+        <span
+            id="api-error-message"
+            class="app-snackbar-message"
+        >
+            Something went wrong.
+        </span>
+
+        <button
+            type="button"
+            class="app-snackbar-close"
+            onclick="hideSnackbar()"
+            aria-label="Close"
+        >
+            x
+        </button>
+
+    </div>
+</div>
+
+<script>
+
+    let snackbarTimeout = null;
+
+    function showSnackbar(message, duration = 4000) {
+        const snackbar = document.getElementById("api-error-snackbar");
+        const messageElement = document.getElementById("api-error-message");
+
+        if (!snackbar || !messageElement) return;
+
+        /*
+        Update message
+        */
+        messageElement.textContent = message;
+
+        /*
+        Clear old timeout if snackbar already visible
+        Prevent multiple overlapping hide timers
+        */
+        if (snackbarTimeout) {
+            clearTimeout(snackbarTimeout);
+            snackbarTimeout = null;
+        }
+
+        /*
+        Show snackbar
+        */
+        snackbar.classList.add("app-snackbar-show");
+
+        /*
+        Auto hide after duration
+        */
+        snackbarTimeout = setTimeout(function () {
+            hideSnackbar();
+        }, duration);
+    }
+
+    function hideSnackbar() {
+        const snackbar = document.getElementById("api-error-snackbar");
+
+        if (!snackbar) return;
+
+        /*
+        Hide snackbar
+        */
+        snackbar.classList.remove("app-snackbar-show");
+
+        /*
+        Clear timeout reference
+        */
+        if (snackbarTimeout) {
+            clearTimeout(snackbarTimeout);
+            snackbarTimeout = null;
+        }
+    }
+</script>

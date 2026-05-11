@@ -1,0 +1,257 @@
+<!--
+Component: FormField
+
+Description:
+Reusable input field component with label, validation, sizing, and optional toggle behavior.
+
+Props:
+
+- field_id (string, default: name)
+    Unique id for input and label binding.
+
+- name (string, required)
+    Input name attribute.
+
+- label (string, optional)
+    Label text displayed above input.
+
+- type (string, default: "text")
+    Input type (text, password, email, etc.).
+
+- value (string, default: "")
+    Pre-filled input value.
+
+- placeholder (string, default: "...")
+    Input placeholder text.
+
+- required (bool/int, default: False)
+    Marks field as required and shows "*".
+
+- readonly (bool/int, default: False)
+    Makes input read-only.
+
+- disabled (bool/int, default: False)
+    Disables the input.
+
+- minlength (int, optional)
+    Minimum input length.
+
+- maxlength (int, optional)
+    Maximum input length.
+
+- pattern (string, optional)
+    Regex validation pattern.
+
+- autocomplete (string, optional)
+    Browser autocomplete hint.
+
+- size (string, default: "medium")
+    Input size: small | medium | large.
+
+- shape (string, optional)
+    Input shape: rounded | pill.
+
+- input_class (string, optional)
+    Additional custom CSS classes.
+
+- help_text (string, optional)
+    Helper text below input.
+
+- error (string, optional)
+    Error message below input.
+
+- toggle (bool/int, default: False)
+    Enables toggle button (e.g., password show/hide).
+
+- toggle_text (string, default: "Toggle")
+    Button text for toggle.
+
+- toggle_handler (string, optional)
+    Custom JS function name for toggle behavior.
+} -->
+<style>
+/* ---------------- */
+/* Form Field Base */
+/* ---------------- */
+
+.app-form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.app-form-label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.app-required {
+    color: var(--color-danger);
+}
+
+/* ---------------- */
+/* Input */
+/* ---------------- */
+
+.app-form-input {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-base);
+    outline: none;
+}
+
+/* Sizes */
+
+.app-form-input--small {
+    padding: 6px 10px;
+    font-size: var(--font-size-sm);
+}
+
+.app-form-input--medium {
+    padding: 10px 12px;
+}
+
+.app-form-input--large {
+    padding: 14px 16px;
+    font-size: 1.05rem;
+}
+
+/* Shapes */
+
+.app-form-input--rounded {
+    border-radius: var(--radius-lg);
+}
+
+.app-form-input--pill {
+    border-radius: 999px;
+}
+
+/* Focus */
+
+.app-form-input:focus {
+    border-color: var(--color-primary);
+}
+
+/* ---------------- */
+/* Input Group */
+/* ---------------- */
+
+.app-input-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+/* ---------------- */
+/* Help + Error */
+/* ---------------- */
+
+.app-form-help-text {
+    display: block;
+    margin-top: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.app-form-error {
+    margin-top: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-danger);
+}
+</style>
+
+<div class="app-form-group">
+
+    {% if label %}
+    <label for="{{ field_id|default:name }}" class="app-form-label">
+        {{ label }}
+        {% if required %}
+        <span class="app-required">*</span>
+        {% endif %}
+    </label>
+    {% endif %}
+
+    <div class="{% if toggle %}app-input-group{% endif %}">
+
+        <input
+            id="{{ field_id|default:name }}"
+            name="{{ name }}"
+            type="{{ type|default:'text' }}"
+            value="{{ value|default:'' }}"
+            placeholder="{{ placeholder|default:'...' }}"
+
+            class="
+                app-form-input
+                app-form-input--{{ size|default:'medium' }}
+                {% if shape %}app-form-input--{{ shape }}{% endif %}
+                {{ input_class|default:'' }}
+            "
+
+            {% if required %}required{% endif %}
+            {% if readonly %}readonly{% endif %}
+            {% if disabled %}disabled{% endif %}
+            {% if minlength %}minlength="{{ minlength }}"{% endif %}
+            {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+            {% if pattern %}pattern="{{ pattern }}"{% endif %}
+            {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+        />
+
+        {% if toggle %}
+        <button
+            type="button"
+            class="app-secondary-button"
+            id="{{ field_id }}-toggle"
+        >
+            {{ toggle_text|default:"Toggle" }}
+        </button>
+        {% endif %}
+
+    </div>
+
+    {% if help_text %}
+    <small class="app-form-help-text">
+        {{ help_text }}
+    </small>
+    {% endif %}
+
+    {% if error %}
+    <div class="app-form-error">
+        {{ error }}
+    </div>
+    {% endif %}
+
+</div>
+
+{% if toggle %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const input = document.getElementById("{{ field_id|default:name }}");
+    const btn = document.getElementById("{{ field_id }}-toggle");
+
+    if (!input || !btn) return;
+
+    btn.addEventListener("click", function () {
+
+        /*
+        Default behavior: toggle password/text
+        Can be overridden via custom handler
+        */
+
+        {% if toggle_handler %}
+            {{ toggle_handler }}(input, btn);
+        {% else %}
+            if (input.type === "password") {
+                input.type = "text";
+                btn.innerText = "Hide";
+            } else {
+                input.type = "password";
+                btn.innerText = "Show";
+            }
+        {% endif %}
+
+    });
+});
+</script>
+{% endif %}

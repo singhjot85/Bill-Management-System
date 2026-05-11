@@ -1,0 +1,154 @@
+{% load static %}
+
+<style>
+.app-navbar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--color-white);
+    box-shadow: var(--shadow-sm);
+    transition: 0.3s ease;
+}
+
+/* Alignment Utilities */
+
+.app-nav-left {
+    margin-right: auto;
+}
+
+.app-nav-center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.app-nav-right {
+    margin-left: auto;
+}
+
+/* ---------------- */
+/* Navbar Assets */
+/* ---------------- */
+
+.app-navbar img {
+    height: var(--navbar-logo-height, 40px);
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.app-navbar img.app-logo-small {
+    height: 28px;
+}
+
+.app-navbar img.app-logo-medium {
+    height: 40px;
+}
+
+.app-navbar img.app-logo-large {
+    height: 56px;
+}
+
+/* Orientation */
+.app-navbar--horizontal {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.app-navbar--vertical {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Positions */
+.app-navbar--top { width: 100%; }
+.app-navbar--bottom { width: 100%; bottom: 0; position: fixed; }
+.app-navbar--left { height: 100vh; }
+.app-navbar--right { height: 100vh; }
+
+/* Fixed */
+.app-navbar--fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+/* Hidden */
+.app-navbar--hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+/* Toggle Button */
+.app-navbar-toggle {
+    position: fixed;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    z-index: 1000;
+}
+</style>
+
+<!-- Toggle Button (always visible if enabled) -->
+{% if navbar.toggle %}
+    {% include "components/button.html" with button_id="navbar-toggle-btn" button_text="☰" variant="secondary" size="small" %}
+{% endif %}
+
+<div
+    id="app-navbar"
+    class="
+        app-navbar
+        app-navbar--{{ navbar.orientation|default:'horizontal' }}
+        app-navbar--{{ navbar.position|default:'top' }}
+        {% if navbar.fixed %}app-navbar--fixed{% endif %}
+        {% if navbar.hidden %}app-navbar--hidden{% endif %}
+    "
+>
+
+    {% for item in navbar.fields %}
+
+        <div class="{{ item.parent_class }}">
+
+            <!-- -------- ASSET -------- -->
+            {% if item.type == "asset" %}
+                <img
+                    src="{% static item.metadata.url %}"
+                    class="{{ item.class }}"
+                />
+            {% endif %}
+
+            <!-- -------- TEXT (WITH ICON) -------- -->
+            {% if item.type == "text" %}
+                <span class="{{ item.class }}">
+                    {% if item.metadata.icon %}
+                        <span>{{ item.metadata.icon }}</span>
+                    {% endif %}
+                    {{ item.metadata.text|default:"" }}
+                </span>
+            {% endif %}
+
+            <!-- -------- BUTTON -------- -->
+            {% if item.type == "button" %}
+                {% include "components/button.html" with button_text=item.metadata.button_text button_type=item.metadata.button_type variant=item.metadata.variant size=item.metadata.size shape=item.metadata.shape full_width=item.metadata.full_width disabled=item.metadata.disabled icon=item.metadata.icon onclick=item.metadata.onclick %}
+            {% endif %}
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% if navbar.toggle %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const navbar = document.getElementById("app-navbar");
+        const toggleBtn = document.getElementById("navbar-toggle-btn");
+
+        if (!navbar || !toggleBtn) return;
+
+        toggleBtn.addEventListener("click", function () {
+            navbar.classList.toggle("app-navbar--hidden");
+        });
+    });
+</script>
+{% endif %}

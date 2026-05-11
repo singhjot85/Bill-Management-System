@@ -1,0 +1,38 @@
+/* authenticated.css */
+
+.app-layout {
+    min-height: var(--body-min-height);
+    background: var(--color-background);
+}
+
+
+/* ---------------- */
+/* Content */
+/* ---------------- */
+
+.app-content-container {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: var(--content-margin-top) auto 0;
+    padding: 0 var(--spacing-md);
+}
+
+/* ---------------- */
+/* Buttons */
+/* ---------------- */
+
+.app-danger-outline-button {
+    background: transparent;
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    transition: 0.2s ease;
+}
+
+.app-danger-outline-button:hover {
+    background: var(--button-outline-danger-hover-bg);
+    color: var(--button-outline-danger-hover-text);
+}

@@ -1,0 +1,102 @@
+.app-body {
+    min-height: var(--body-min-height);
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-base);
+    margin: 0;
+    padding: 0;
+}
+
+.app-toast {
+    position: fixed;
+    right: var(--toast-position-right);
+    bottom: var(--toast-position-bottom);
+    width: var(--toast-width);
+    z-index: var(--z-index-toast);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.app-toast-danger {
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+    color: var(--color-danger-text);
+}
+
+.app-toast-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+}
+
+.app-toast-message {
+    flex: 1;
+    font-size: var(--font-size-sm);
+}
+
+.app-toast-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    margin-left: var(--spacing-md);
+    color: inherit;
+}
+
+.app-snackbar {
+    position: fixed;
+    right: var(--toast-position-right);
+    bottom: var(--toast-position-bottom);
+    width: var(--toast-width);
+    z-index: var(--z-index-toast);
+
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.25s ease;
+}
+
+.app-snackbar-show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.app-snackbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+}
+
+.app-snackbar-message {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+}
+
+.app-snackbar-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    margin-left: var(--spacing-md);
+    color: inherit;
+}
+
+.app-snackbar-error {
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+}
+
+.app-snackbar-error .app-snackbar-message {
+    color: var(--color-danger-text);
+}

@@ -1,5 +1,5 @@
 [project]
-name = "bma"
+name = "Bill-Management-System"
 version = "0.1.0"
 description = "Payments and Bill Management App"
 authors = []
@@ -13,13 +13,16 @@ dependencies = [
     "django-model-utils (>=5.0.0,<6.0.0)",
     "psycopg2 (>=2.9.11,<3.0.0)",
     "django-shell-plus (>=1.1.7,<2.0.0)",
-    "django-extensions (>=4.1,<5.0)",
     "ipython (>=9.6.0,<10.0.0)",
     "jq (>=1.10.0,<2.0.0)",
     "flask (>=3.1.2,<4.0.0)",
     "xhtml2pdf (>=0.2.17,<0.3.0)",
     "weasyprint (>=66.0,<67.0)",
     "pre-commit (>=4.5.1,<5.0.0)",
+    "pytest (>=9.0.3,<10.0.0)",
+    "pytest-django (>=4.12.0,<5.0.0)",
+    "psycopg[binary] (>=3.3.3,<4.0.0)",
+    "watchdog (>=6.0.0,<7.0.0)",
 ]
 
 
@@ -43,3 +46,11 @@ force-exclude = """
 profile = "black"
 atomic = true
 skip_glob = ["*/migrations/*"]
+
+[tool.pytest.ini_options]
+addopts = "--reuse-db -vv"
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+python_classes = ["Test*", "*Tests"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
