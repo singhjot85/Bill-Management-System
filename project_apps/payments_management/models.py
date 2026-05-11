@@ -1,9 +1,10 @@
-import random
+import secrets
 from datetime import datetime
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import connection, models
+from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from project_apps.utils import BetterModelMixin, VersionedBetterModelMixin
@@ -28,12 +29,12 @@ class InvoiceStatusChoices(models.TextChoices):
 
 
 class Invoice(BetterModelMixin):
-    RAND_INT_RANGE = (0, 10000)
+    CODE_SIZE = 8
 
     invoice_date = models.DateField(verbose_name="Invoices on", null=True, blank=True)
     due_date = models.DateField(verbose_name="Due Date", null=True, blank=True)
     status = models.CharField(max_length=125, choices=InvoiceStatusChoices.choices)
-    invoice_number = models.CharField(max_length=255, null=True, blank=True)
+    invoice_number = models.CharField(max_length=255, null=True, blank=True, unique=True)
     document = models.FileField(upload_to=get_invoice_url, null=True, blank=True)
     context_data = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
     payable_amount = models.FloatField(null=True, blank=True)
@@ -49,20 +50,23 @@ class Invoice(BetterModelMixin):
         to=settings.PAYMENT_TEMPLATES, on_delete=models.PROTECT, null=True, blank=True, related_name="invoices"
     )
 
-    def _generate_invoice_number(self):
+    @classmethod
+    def generate_invoice_number(cls):
         """
-        TODO: Very weak logic, refine it
+        Temporary tenant-local invoice code generator.
+        Replace with the tenant-sequential INV-YYYY-NNNN flow once invoice sequencing infra exists.
         """
-        from project_apps.tenants.models import OrganizationTenant
-
-        org = OrganizationTenant.models.get(schema_name=connection.schema_name)
-        return {org.name} - {random.randint(*self.RAND_INT_RANGE)}
+        while True:
+            code = f"INV-{timezone.now().year}-{secrets.token_hex(cls.CODE_SIZE // 2).upper()}"
+            if not cls.available_objects.filter(invoice_number=code).exists():
+                return code
 
     def __str__(self):
         return self.invoice_number
 
     def save(self, *args, **kwargs):
-        self.invoice_number = self._generate_invoice_number()
+        if not self.invoice_number:
+            self.invoice_number = self.generate_invoice_number()
         return super().save(*args, **kwargs)
 
 
@@ -121,7 +125,7 @@ class Payment(BetterModelMixin):
     gateway_signature = models.CharField(max_length=255, null=True, blank=True)
 
     is_verified = models.BooleanField(default=False)
-    verified_on = models.DateTimeField()
+    verified_on = models.DateTimeField(null=True, blank=True)
 
     payee = models.ForeignKey(
         to=settings.CUSTOMER_CUSTOMER, on_delete=models.PROTECT, null=True, blank=True, related_name="payments"
