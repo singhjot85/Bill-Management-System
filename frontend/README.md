@@ -3,8 +3,6 @@
 A modern, scalable frontend built with Vue 3 (Composition API), Vite, and Vuetify 3.  
 Strong emphasis on clean architecture, reusability, and maintainable styling.
 
----
-
 ## Tech Stack
 
 - **Framework:** Vue 3 (Composition API + `<script setup>`)
@@ -15,9 +13,8 @@ Strong emphasis on clean architecture, reusability, and maintainable styling.
 - **HTTP Client:** Axios (wrapped in service modules)
 - **Styling:** CSS custom properties, SCSS (for Vuetify overrides), global utilities
 
----
-
 ## Folder Structure
+
 ```
 src/
 |- assets/            # Static assets (images, fonts, etc.)
@@ -59,62 +56,97 @@ src/
 |- main.js            # Application entry point
 ```
 
----
-
 ## Core Conventions
 
-<!-- TODO: Update Conventions -->
+### 1. CSS and Static Assets
 
+**CSS/SCSS:**
 
-### 1. Component Design
-- **Presentational vs. Container**  
-  Keep business logic **out** of components. Components should be as “dumb” as possible – receiving props and emitting events.  
-- Extract logic into **composables** (`useAuth`, `useItems`, etc.)
-- Global state lives in **Pinia stores**.
-- API calls are **never** made directly inside a component; always go through a **service**.
-
-### 2. Views (Pages)
-A View is a **layout shell** only. It must contain **only**:
-- Navigation components (AppBar, Sidebar, etc.)
-- A `<router-view />` (or nested router) for the main content area.
-- Footer
-
-**Example (HomeView.vue):**
-```vue
-<template>
-  <AppBar />
-  <v-main>
-    <router-view />
-  </v-main>
-  <AppFooter />
-</template>
-```
-
-### 3. Styling & Dark Theme
+- Use Vuetify classes for CSS, use custom CSS as last resort, order for usage:
+  1.  _Veutify utility classes_ (Spacing, typography, colors, flexbox ...) 2. _Vuetify Component props_ (Dense, outlined, elevation ...)
+  2.  _Global SCSS variables_ overriding theme (colors, fonts, breakpoints ...)
+  3.  _Custom Scoped CSSS_ (complex animation, unique brand elements ...)
 - All styling follows a design‑token first approach to ensure dark theme support out‑of‑the‑box.
-    - styles/variables.css contains all design tokens as CSS custom properties:
-    - styles/main.css holds global resets, shared utility classes (e.g., .text-center, .sr-only), and typography foundations.
-- Use utility classes before adding component‑scoped styles.
-- Prefer Vuetify’s built‑in spacing, typography, and color helpers (class="pa-4 text-h5") over custom CSS.
-- styles/vuetify-overrides.scss customizes Vuetify’s SCSS variables to align with the project’s design tokens.
-- Component‑scoped styles: Use <style scoped> only when a component requires unique presentation. Always reference CSS variables (var(--color-surface)) instead of hardcoded colors.
+- Declare all the css variables in a common place only, Ex: `assets/css/variables.css`
+- Custom CSS should be scoped to the component only.
 
-### 4. API & Services
+> Before applying any style/css, go over this checklist:
+>
+> - Can Vuetify utility class do this? → Use it
+> - Can Vuetify prop do this? → Use prop
+> - Can SCSS variable do this? → Override in settings.scss
+> - Is this a complex animation? → Write scoped CSS
+> - Is this a brand gradient/pattern? → Write scoped CSS
+> - Am I repeating the same custom style? → Create global utility once
+
+<br/>
+
+**Images:**
+
+- Avoid using images, try using icon's wherever you can.
+- If an image is needed, do not put in code, get the image from a static store using urls.
+
+### 2. Components
+
+Components should follow a three tier architecture, Generic components, Layout components, View Components. Components should be configurable with defaults to reduce code bloat. Components should never handle business logic, if some business logic is to be added for a components behaviour just emit it and handle in the view. Favor generic, composable components `(<AppButton>, <AppModal>)` over ad‑hoc, one‑off implementations.
+**Generic Components:**
+
+- These should consist only app agnostic very dumb components.
+- They shouldn't be aware of any positioning, their only concer should be what and how big this looks like.
+- Ex: AppButton, AppCard, AppBar, AppFooter etc.
+
+**Layout Components:**
+
+- These Components should combine multiple Generic Components, and generate a chunck that can be directly used by a view or a View Component.
+- They should configure which component sits where and how it looks.
+- They should handle most of the needs for views.
+- Ex: HeroSection, TieredItems, etc.
+
+**View Components:**
+
+- These Components should be created only in deseprate times. Ex: Forms
+- They can be overrides, or combine of multiple Layout Components.
+- Convention is to create a dir in name of the view and add inside that. Ex: `components/view/donate/DonateForm.vue`
+
+### 3. Conf (App Configuration)
+
+- Configuration's control what text or PR content to show, what styles to apply and what behaviour's to invoke.
+- This consist of two directories: types and defaults.
+  - Types decalre Typescript types for that config, this gives the base for someone else to use you'r components.
+  - Defaults contain deafult config, this will rarely be used, mostly the config will come from backend only. Its there so that we have something to show on UI instead of empty UI.
+
+### 4. Layouts
+
+- These are the root level components after `App.vue`
+- Using this we can have multiple UI layout's over different routes.
+- Ex: Public Site will look entirely different from private site, then we can have two layouts, that can utilize same components and views (if need be).
+
+### 5. Router
+
+- Router houses all you'r UI routes and logic assossiated with them.
+- Lazy‑load route components for performance.
+- Use nested routes where a view acts as a layout shell.
+- index.js only handle's routing logic and custom route level overrides.
+- Actual routes reside in public.ts, private.ts, etc.
+  - **public.ts:** un- authenticated public routes.
+  - **private.ts:** authenticated private routes.
+
+### 6. Services
+
 - All external communication is handled through dedicated service modules.
 - Place Axios configuration, base URL, interceptors, and error handling in services/api.js.
 - Create feature‑specific services (e.g., services/userService.js) that only import the Axios instance.
 - Never use fetch or axios directly in components or stores.
 
-### 5. State Management (Pinia)
+### 7. Stores
+
+- Handle Pinia Store
+- Avoid keeping big or sensitive data inside store.
 - Stores only orchestrate data: calling services, caching, and exposing reactive state.
 - Components read state via store getters/state and dispatch actions; no direct API calls.
 
-6. Routing
-- Centralized router in router/index.js.
-- Lazy‑load route components for performance.
-- Use nested routes where a view acts as a layout shell.
+### 8. Views
 
-7. Reusability & Generalisation
-- Favor generic, composable components (<AppButton>, <AppModal>) over ad‑hoc, one‑off implementations.
-- Build utility CSS classes for common patterns (e.g., .flex-center) instead of repeating inline styles.
-- Re‑export and reuse Vuetify components with consistent prop defaults when needed.
+- Consumed by Layouts they keep the entire strucutre of currently rendered page.
+- They can use mulitple Layout or View Components providing them their configurations to tweak them.
+- They handle and store all the business logic.

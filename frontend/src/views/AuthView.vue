@@ -91,7 +91,7 @@ import { useBrandingStore } from "@/stores/brandingStore";
 import BrandSidebar from "@/components/auth/BrandSidebar.vue";
 import LoginForm from "@/components/auth/LoginForm.vue";
 import RegisterForm from "@/components/auth/RegisterForm.vue";
-import DonorLoginForm from "@/components/auth/DonorLoginForm.vue";
+import CustomerLoginForm from "@/components/auth/CustomerLoginForm.vue";
 
 const brandingStore = useBrandingStore();
 const route = useRoute();
