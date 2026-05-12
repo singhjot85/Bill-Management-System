@@ -185,6 +185,7 @@ export interface RealTimeCounterConfig {
 export interface FAQItem {
   question: string;
   answer: string;
+  icon?: string;
 }
 
 export interface FAQConfig {

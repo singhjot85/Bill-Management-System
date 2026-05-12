@@ -83,15 +83,14 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from 'vue-router';
 import { useBrandingStore } from "@/stores/brandingStore";
 
-import BrandSidebar from "@/components/auth/BrandSidebar.vue";
-import LoginForm from "@/components/auth/LoginForm.vue";
-import RegisterForm from "@/components/auth/RegisterForm.vue";
-import CustomerLoginForm from "@/components/auth/CustomerLoginForm.vue";
+import BrandSidebar from "@/components/view/auth/BrandSidebar.vue";
+import LoginForm from "@/components/view/auth/LoginForm.vue";
+import RegisterForm from "@/components/view/auth/RegisterForm.vue";
 
 const brandingStore = useBrandingStore();
 const route = useRoute();

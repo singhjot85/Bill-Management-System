@@ -205,20 +205,17 @@
   </v-card>
 </template>
 
-<script setup>
-import { ref, reactive, computed } from 'vue';
+<script setup lang="ts">
+import { ref, reactive, computed, watch } from 'vue';
 import { useUIStore } from '@/stores/uiStore';
 
 const uiStore = useUIStore();
 
-const props = defineProps({
-  title: String,
-  subtitle: String,
-  initialAmount: {
-    type: Number,
-    default: null
-  }
-});
+const props = defineProps<{
+  title?: string;
+  subtitle?: string;
+  initialAmount?: number | null;
+}>();
 
 const formData = reactive({
   name: '',
@@ -231,7 +228,6 @@ const formData = reactive({
 });
 
 // Watch for prop changes to update amount
-import { watch } from 'vue';
 watch(() => props.initialAmount, (newVal) => {
   if (newVal) formData.amount = newVal;
 });
@@ -248,10 +244,10 @@ const paymentStatus = ref('pending');
 const paymentId = ref('');
 
 const isFormValid = computed(() => {
-  return formData.name && emailVerified.value && phoneVerified.value && formData.address && formData.amount > 0;
+  return formData.name && emailVerified.value && phoneVerified.value && formData.address && (formData.amount ?? 0) > 0;
 });
 
-const sendOtp = (type) => {
+const sendOtp = (type: 'email' | 'phone') => {
   if (type === 'email') {
     emailLoading.value = true;
     setTimeout(() => { emailLoading.value = false; showEmailOtp.value = true; }, 800);
@@ -261,7 +257,7 @@ const sendOtp = (type) => {
   }
 };
 
-const verifyOtp = (type) => {
+const verifyOtp = (type: 'email' | 'phone') => {
   if (type === 'email') {
     emailLoading.value = true;
     setTimeout(() => { emailLoading.value = false; emailVerified.value = true; }, 800);

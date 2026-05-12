@@ -14,7 +14,7 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const uiStore = useUIStore();
   const authStore = useAuthStore();
   uiStore.startLoading();
