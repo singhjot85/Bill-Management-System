@@ -262,7 +262,7 @@ export const defaultTenantConfig: TenantViewConfig = {
   home: {
     hero: {
       headline: 'One Platform. Bills, Invoices, Donations & Stock. Zero Chaos.',
-      subheadline: 'Stop juggling between accounting software, spreadsheets, and donation trackers. Automate your financial workflow from a single dashboard—whether you are billing a client, receipting a donor, or counting inventory.',
+      subheadline: 'Stop juggling between accounting software, spreadsheets, and donation trackers. Automate your financial workflow from a single dashboard—whether you are billing a client, receipting a customer, or counting inventory.',
       primaryCTA: {
         text: 'Start Free Trial (No Credit Card Required)',
         to: '/donate'
@@ -299,7 +299,7 @@ export const defaultTenantConfig: TenantViewConfig = {
         {
           icon: 'mdi-heart-handshake',
           title: 'Donation Management',
-          text: 'Issue instant tax receipts. Track recurring pledges. Segment donors (One-time vs. Monthly) for thank-you emails.'
+          text: 'Issue instant tax receipts. Track recurring pledges. Segment customers (One-time vs. Monthly) for thank-you emails.'
         },
         {
           icon: 'mdi-package-variant-closed',
@@ -322,7 +322,7 @@ export const defaultTenantConfig: TenantViewConfig = {
         },
         {
           title: 'For Non-Profits & Charities',
-          quote: 'Donor trust starts with a clean receipt.',
+          quote: 'Customer trust starts with a clean receipt.',
           description: 'Generate IRS 501(c)(3) compliant donation receipts instantly. Track fundraising campaigns against goals. Send automated thank you notes.'
         },
         {
@@ -343,7 +343,7 @@ export const defaultTenantConfig: TenantViewConfig = {
     testimonials: {
       items: [
         {
-          quote: 'We used to have three different tools for donors, inventory, and invoices. FinTrack saved us $600/month and 20 hours of reconciliation work.',
+          quote: 'We used to have three different tools for customers, inventory, and invoices. FinTrack saved us $600/month and 20 hours of reconciliation work.',
           author: 'Sarah J.',
           role: 'Operations Director, Charity: Water'
         },
@@ -365,7 +365,7 @@ export const defaultTenantConfig: TenantViewConfig = {
           name: 'Pro Tier',
           price: '$29/month',
           popular: true,
-          features: ['Unlimited invoices & bills', '500 inventory SKUs', 'Automatic stock sync', 'Donor segmentation', 'Bank reconciliation']
+          features: ['Unlimited invoices & bills', '500 inventory SKUs', 'Automatic stock sync', 'Customer segmentation', 'Bank reconciliation']
         },
         {
           name: 'Enterprise',
@@ -402,7 +402,7 @@ export const defaultTenantConfig: TenantViewConfig = {
       trustBadges: [
         { icon: 'mdi-certificate', text: '80A & 12A Certified (Tax Exempt)' },
         { icon: 'mdi-trending-up', text: '₹1,500+ Raised This Month' },
-        { icon: 'mdi-star', text: '4.9 Rated by Donors' }
+        { icon: 'mdi-star', text: '4.9 Rated by Customers' }
       ]
     },
     problem: {
@@ -419,7 +419,7 @@ export const defaultTenantConfig: TenantViewConfig = {
     tiers: {
       headline: 'Shop for Impact',
       tiers: [
-        { name: 'One Full Meal', amount: 101, impact: 'Feeds 1 cow for 1 day', bestFor: 'Daily donors / Students' },
+        { name: 'One Full Meal', amount: 101, impact: 'Feeds 1 cow for 1 day', bestFor: 'Daily customers / Students' },
         { name: 'Weekly Care', amount: 501, impact: 'Feeds 1 cow for 7 days + 1 vitamin dose', bestFor: 'Working professionals' },
         { name: 'Medical Emergency', amount: 2500, impact: 'Covers wound treatment + antibiotics', bestFor: 'Animal lovers' },
         { name: 'Adopt a Cow', amount: 1500, impact: 'Name a cow. Monthly updates & photo.', bestFor: 'Families / Monthly givers', isMonthly: true },
@@ -434,7 +434,7 @@ export const defaultTenantConfig: TenantViewConfig = {
         { icon: 'mdi-cow', text: 'Name your cow – Choose from our live herd list.' },
         { icon: 'mdi-camera', text: 'Photo update every month showing your cow eating/healthy.' },
         { icon: 'mdi-file-document-outline', text: 'Auto-tax receipt – Your app sends you a 80G certificate every April.' },
-        { icon: 'mdi-pause-circle-outline', text: 'Pause anytime – No contracts. Cancel from your donor portal.' }
+        { icon: 'mdi-pause-circle-outline', text: 'Pause anytime – No contracts. Cancel from your customer portal.' }
       ],
       cta: 'Become a Monthly Guardian (₹1,500/mo)'
     },
@@ -445,7 +445,7 @@ export const defaultTenantConfig: TenantViewConfig = {
         { title: 'Step 1', description: 'You donate via UPI/Card/Netbanking.' },
         { title: 'Step 2', description: 'Our app generates a tax invoice instantly (emailed + SMS).' },
         { title: 'Step 3', description: 'We purchase hay/medicines. Your app logs the bill (vendor name, date, amount).' },
-        { title: 'Step 4', description: 'Log into your Donor Dashboard and see exactly where your money went.' }
+        { title: 'Step 4', description: 'Log into your Customer Dashboard and see exactly where your money went.' }
       ]
     },
     socialProof: {
@@ -453,12 +453,12 @@ export const defaultTenantConfig: TenantViewConfig = {
         {
           quote: 'I donated ₹2,500 last month for a medical emergency. Within 24 hours, I got an invoice showing the vet bill and a photo. I\'ve never seen an NGO so transparent.',
           author: 'Priya M.',
-          role: 'Donor from Bangalore'
+          role: 'Customer from Bangalore'
         },
         {
           quote: 'The "adopt a cow" feature is beautiful. My son named her "Ganga". Every month we get a health report via email.',
           author: 'Rajesh K.',
-          role: 'Donor from Delhi'
+          role: 'Customer from Delhi'
         }
       ]
     },
@@ -474,7 +474,7 @@ export const defaultTenantConfig: TenantViewConfig = {
     faq: {
       items: [
         { question: 'Is my donation tax-exempt?', answer: 'Yes. Under 80G (India) / 501(c)(3) (USA). You will get an instant receipt via our app.' },
-        { question: 'Can I visit the shelter?', answer: 'Absolutely. Monthly donors get a free guided tour every Sunday.' },
+        { question: 'Can I visit the shelter?', answer: 'Absolutely. Monthly customers get a free guided tour every Sunday.' },
         { icon: 'mdi-shield-check', question: 'How do I know my money is not stolen?', answer: 'Our app is a bill/invoice management system. Every single expense is logged as a bill.' },
         { question: 'What if I can only give ₹101?', answer: 'That feeds a cow for a full day. It is massive. Don\'t underestimate small amounts.' }
       ]

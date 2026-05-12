@@ -1,5 +1,5 @@
 <template>
-  <div class="donor-login-form">
+  <div class="customer-login-form">
     <div class="mb-8">
       <h3 class="text-h5 font-weight-bold mb-1">Check your donation impact</h3>
       <p class="text-body-2 text-muted">View receipts, track your recurring gifts, see where your money went.</p>
@@ -8,7 +8,7 @@
     <v-form @submit.prevent="handleSubmit" v-model="isValid">
       <v-text-field
         v-model="email"
-        label="Email (Registered Donor)"
+        label="Email (Registered Customer)"
         placeholder="you@gmail.com"
         prepend-inner-icon="mdi-email-outline"
         variant="outlined"
@@ -73,7 +73,7 @@ const otp = ref('');
 
 const handleSubmit = () => {
   if (isValid.value) {
-    alert("Donor impact tracking coming soon!");
+    alert("Customer impact tracking coming soon!");
   }
 };
 </script>
