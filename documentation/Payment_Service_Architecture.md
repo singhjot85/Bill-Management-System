@@ -8,7 +8,7 @@ The payment system follows a layered architecture to ensure separation of concer
 
 ### 1. Base HTTP Layer (`base.py`)
 - **Purpose**: A generalized wrapper around the `requests` library.
-- **Features**: 
+- **Features**:
     - Uses `requests.Session` for connection pooling.
     - Centralized handling of base URLs, authentication, and timeouts.
     - Standardized error logging.

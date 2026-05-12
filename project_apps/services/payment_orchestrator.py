@@ -1,16 +1,27 @@
 import logging
+
 from django.db import transaction
 from django.utils import timezone
-from project_apps.payments_management.models import Payment, Invoice, PaymentStatusChoices, InvoiceStatusChoices, PaymentGatewayChoices
+
+from project_apps.payments_management.models import (
+    Invoice,
+    InvoiceStatusChoices,
+    Payment,
+    PaymentGatewayChoices,
+    PaymentStatusChoices,
+)
+
 from .razorpay_service import RazorpayService
 
 logger = logging.getLogger(__name__)
+
 
 class PaymentOrchestrator:
     """
     Orchestration layer for managing payments and invoices.
     Coordinates between the Razorpay service and the application database.
     """
+
     def __init__(self):
         self.razorpay = RazorpayService()
 
@@ -32,9 +43,9 @@ class PaymentOrchestrator:
             currency="INR",
             receipt=invoice.invoice_number,
             notes={
-                "invoice_id": str(invoice.id), 
-                "customer_id": str(invoice.customer_id) if invoice.customer else "N/A"
-            }
+                "invoice_id": str(invoice.id),
+                "customer_id": str(invoice.customer_id) if invoice.customer else "N/A",
+            },
         )
 
         # 2. Record payment attempt in our database
@@ -46,27 +57,21 @@ class PaymentOrchestrator:
             status=PaymentStatusChoices.CREATED,
             gateway_name=PaymentGatewayChoices.RAZORPAY,
             raw_payment_response=order_data,
-            payee=invoice.customer
+            payee=invoice.customer,
         )
-        
+
         return payment
 
     @transaction.atomic
     def verify_razorpay_payment(
-        self, 
-        razorpay_order_id: str, 
-        razorpay_payment_id: str, 
-        razorpay_signature: str, 
-        user=None
+        self, razorpay_order_id: str, razorpay_payment_id: str, razorpay_signature: str, user=None
     ) -> bool:
         """
         Verifies a Razorpay payment and updates the corresponding Payment and Invoice records.
         Uses a database transaction to ensure atomicity.
         """
         # 1. Verify the signature locally
-        is_valid = self.razorpay.verify_payment_signature(
-            razorpay_order_id, razorpay_payment_id, razorpay_signature
-        )
+        is_valid = self.razorpay.verify_payment_signature(razorpay_order_id, razorpay_payment_id, razorpay_signature)
 
         try:
             # Use select_for_update to prevent race conditions during verification
@@ -100,8 +105,10 @@ class PaymentOrchestrator:
                 invoice.status = InvoiceStatusChoices.PAID
                 invoice.amount_paid = (invoice.amount_paid or 0) + payment.amount
                 invoice.save()
-            
-            logger.info(f"Payment {razorpay_payment_id} verified successfully for invoice {invoice.invoice_number if invoice else 'N/A'}")
+
+            logger.info(
+                f"Payment {razorpay_payment_id} verified successfully for invoice {invoice.invoice_number if invoice else 'N/A'}"
+            )
             return True
         else:
             payment.status = PaymentStatusChoices.FAILED

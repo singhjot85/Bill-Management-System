@@ -25,24 +25,17 @@ Expected context:
         cursor: pointer;
     }
 </style>
-<div class="nav-item {{ extra_classes|default:'' }}" data-align="{{ align }}">
-    
+<div class="nav-item {{ extra_classes|default:'' }}"
+     data-align="{{ align }}">
     {% if type == "image" %}
-        <img 
-            src="{{ data.src }}" 
-            alt="{{ data.alt|default:'nav-image' }}"
-            class="nav-item-image"
-        />
-
+        <img src="{{ data.src }}"
+             alt="{{ data.alt|default:'nav-image' }}"
+             class="nav-item-image" />
     {% elif type == "badge" %}
         {% include "components/nav_badge.html" with data=data %}
-
     {% elif type == "button" %}
         {% include "components/nav_button.html" with data=data %}
-
     {% elif type == "dropdown" %}
         {% include "components/nav_dropdown.html" with data=data %}
-
     {% endif %}
-
 </div>

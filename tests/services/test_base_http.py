@@ -1,14 +1,17 @@
 import unittest
-from unittest.mock import patch, MagicMock
-from project_apps.services.base import BaseHTTPService
+from unittest.mock import MagicMock, patch
+
 import requests
+
+from project_apps.services.base import BaseHTTPService
+
 
 class TestBaseHTTPService(unittest.TestCase):
     def setUp(self):
         self.base_url = "https://api.example.com"
         self.service = BaseHTTPService(base_url=self.base_url)
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_get_request(self, mock_request):
         # Setup mock
         mock_response = MagicMock()
@@ -28,12 +31,12 @@ class TestBaseHTTPService(unittest.TestCase):
             json=None,
             headers={},
             auth=None,
-            timeout=30
+            timeout=30,
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"key": "value"})
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_post_request_with_json(self, mock_request):
         mock_response = MagicMock()
         mock_response.status_code = 201
@@ -50,11 +53,11 @@ class TestBaseHTTPService(unittest.TestCase):
             json=payload,
             headers={},
             auth=None,
-            timeout=30
+            timeout=30,
         )
         self.assertEqual(response.status_code, 201)
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_custom_headers(self, mock_request):
         service = BaseHTTPService(base_url=self.base_url, headers={"X-Global": "global"})
         mock_response = MagicMock()
@@ -64,11 +67,11 @@ class TestBaseHTTPService(unittest.TestCase):
 
         mock_request.assert_called_once()
         args, kwargs = mock_request.call_args
-        self.assertEqual(kwargs['headers'], {"X-Global": "global", "X-Local": "local"})
+        self.assertEqual(kwargs["headers"], {"X-Global": "global", "X-Local": "local"})
 
-    @patch('requests.Session.request')
+    @patch("requests.Session.request")
     def test_request_exception(self, mock_request):
         mock_request.side_effect = requests.exceptions.RequestException("Error")
-        
+
         with self.assertRaises(requests.exceptions.RequestException):
             self.service.get("error")

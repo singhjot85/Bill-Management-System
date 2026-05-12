@@ -8,10 +8,11 @@ from django_tenants.utils import get_public_schema_name
 from .constants import TenantTypes
 
 if TYPE_CHECKING:
-    from project_apps.tenants.models import OrganizationTenant, OrganizationDomain
+    from project_apps.tenants.models import OrganizationDomain, OrganizationTenant
 
-OrganizationTenant = apps.get_model(settings.TENANT_MODEL)
-OrganizationDomain = apps.get_model(settings.TENANT_DOMAIN_MODEL)
+OrganizationTenant = apps.get_model(settings.TENANT_MODEL)  # noqa F811
+OrganizationDomain = apps.get_model(settings.TENANT_DOMAIN_MODEL)  # noqa F811
+
 
 class TenantCreationError(Exception):
     pass
@@ -61,25 +62,17 @@ class DomainConfig:
             return
 
         if not self.domain_names:
-            raise DomainCreationError(
-                "Private tenant requires at least one domain."
-            )
+            raise DomainCreationError("Private tenant requires at least one domain.")
 
         for domain in self.domain_names:
             if not isinstance(domain, str):
-                raise DomainCreationError(
-                    f"Invalid domain: {domain}"
-                )
+                raise DomainCreationError(f"Invalid domain: {domain}")
 
             if not domain.strip():
-                raise DomainCreationError(
-                    "Empty domain name is not allowed."
-                )
+                raise DomainCreationError("Empty domain name is not allowed.")
 
             if not domain.replace("-", "").isalnum():
-                raise DomainCreationError(
-                    f"Invalid domain name: {domain}"
-                )
+                raise DomainCreationError(f"Invalid domain name: {domain}")
 
     def build_domains(self) -> list[str]:
         """
@@ -96,10 +89,8 @@ class DomainConfig:
         if self.is_public:
             return [self.resolved_domain]
 
-        return [
-            f"{domain}.{self.resolved_domain}"
-            for domain in self.domain_names
-        ]
+        return [f"{domain}.{self.resolved_domain}" for domain in self.domain_names]
+
 
 class TenantCreationUtils:
 
@@ -118,10 +109,7 @@ class TenantCreationUtils:
         created_domains = []
 
         for domain_name in domain_config.build_domains():
-            domain, _ = OrganizationDomain.objects.get_or_create(
-                tenant=tenant,
-                domain=domain_name
-            )
+            domain, _ = OrganizationDomain.objects.get_or_create(tenant=tenant, domain=domain_name)
             created_domains.append(domain)
 
         return created_domains
@@ -138,11 +126,11 @@ class TenantCreationUtils:
 
     @staticmethod
     def create_tenant(
-        tenant_type: str, 
-        schema_name: str, 
+        tenant_type: str,
+        schema_name: str,
         tenant_name: str = None,
         create_domain: bool = False,
-        domain_config: DomainConfig = None
+        domain_config: DomainConfig = None,
     ) -> tuple["OrganizationTenant", list["OrganizationDomain"]]:
         """
         Entrypoint util for Tenant creation,
@@ -170,8 +158,8 @@ class TenantCreationUtils:
             schema_name = get_public_schema_name()
 
         tenant, domains = (None, [])
-        
-        with transaction.atomic(): # If anything fails revert all db changes
+
+        with transaction.atomic():  # If anything fails revert all db changes
             tenant = TenantCreationUtils._create_tenant(schema_name=schema_name, name=tenant_name)
             if create_domain:
                 if not domain_config and schema_name != get_public_schema_name():

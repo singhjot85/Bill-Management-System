@@ -34,13 +34,13 @@ A system that can be used to generate and manage bills/invoices.
 TODO: We need to figure out a way that consumes less external dependencies and also generates better invoices.
 Optional Addditional System dependencies:
 - dependencies for weasyprint: `brew install cairo pango gdk-pixbuf libffi`
-- dependencies for xhtml2pdf: `brew install cairo pkg-config` 
+- dependencies for xhtml2pdf: `brew install cairo pkg-config`
 -->
 
 ## UI Infra (Older - using Django Templatind)
 Earlier approach was to render UI using django templates, but that became quite complex very easily
 Also DjangoTemplates had some limitations and also the UI was not so good lookin.
-Instead of wasting much time we shifted to Vue+Vite+Vuetify for this. 
+Instead of wasting much time we shifted to Vue+Vite+Vuetify for this.
 More on that in [Readme](./frontend/README.md)
 ```
 project_templating/

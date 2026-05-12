@@ -1,46 +1,42 @@
 import json
 
-from django.views.generic import TemplateView
+from django.contrib.auth import authenticate, login, logout
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.views import View
-from django.contrib.auth import authenticate, login, logout
+from django.views.generic import TemplateView
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from project_apps.setup.models import ConfigurationInterfaceChoices, Configurations
 from project_apps.tenants.serializers import LoginSerializer, UserSerializer
 from project_apps.utils.view_utils import AuthenticatedViewMixin
-from project_apps.setup.models import Configurations, ConfigurationInterfaceChoices
 
 
 class AuthViewSet(viewsets.ViewSet):
     """
     API Endpoints for Authentication
     """
+
     permission_classes = [AllowAny]
 
     @action(detail=False, methods=["post"])
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         user = authenticate(
-            request, 
-            username=serializer.validated_data["username"], 
-            password=serializer.validated_data["password"]
+            request, username=serializer.validated_data["username"], password=serializer.validated_data["password"]
         )
-        
+
         if user:
             login(request, user)
             return Response(UserSerializer(user).data)
-        
-        return Response(
-            {"detail": "Invalid credentials"}, 
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+
+        return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def logout(self, request):
@@ -62,7 +58,8 @@ class DashboardView(AuthenticatedViewMixin, TemplateView):
         context["navbar_config"] = (
             Configurations.objects.filter(interface_type=ConfigurationInterfaceChoices.UI_CONFIGURATION.value)
             .order_by(*Configurations.DEFAULT_ORDERING)
-            .first().details
+            .first()
+            .details
         )
 
         return context
@@ -96,6 +93,7 @@ class LogoutView(TemplateView):
         logout(request)
         return redirect("login")
 
+
 class IsAllowed(AuthenticatedViewMixin, View):
 
     def get(self, request: HttpRequest, *args, **kwargs):
@@ -109,6 +107,6 @@ class IsAllowed(AuthenticatedViewMixin, View):
                 data["permission"] = user.permission
             else:
                 data["permission"] = user.has_perm(permission)
-        
+
         content = json.dumps(data).encode()
         return HttpResponse(content)

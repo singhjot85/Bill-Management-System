@@ -27,7 +27,7 @@ setup-python:
 
 setup: setup-system setup-python
 
-##################################### 
+#####################################
 ## Make target for docker commands ##
 #####################################
 
@@ -92,15 +92,15 @@ docker-clean-local-setup:
 	make clean
 	make build
 	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_tenants --schema_name localclient
-	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_users 
+	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_users
 	make run
 clean-setup: docker-clean-local-setup
 
-.PHONY: 
-	build 
-	run 
-	setup setup-system setup-python 
+.PHONY:
+	build
+	run
+	setup setup-system setup-python
 	bash s
-	mme mm m 
+	mme mm m
 	clean cbr
 	clean-setup

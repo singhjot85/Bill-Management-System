@@ -5,14 +5,14 @@
     <DonationTiers :config="config.tiers" @select-tier="handleTierSelect" />
     <RecurringDonation :config="config.recurringBlock" />
     <TransparencySteps :config="config.transparency" />
-    
+
     <v-container id="donation-form-section" class="py-16">
       <v-row justify="center">
         <v-col cols="12" md="8" lg="6">
-          <DonateForm 
+          <DonateForm
             ref="donateFormRef"
-            :title="config.formTitle" 
-            :subtitle="config.formSubtitle" 
+            :title="config.formTitle"
+            :subtitle="config.formSubtitle"
             :initialAmount="selectedAmount"
           />
         </v-col>
@@ -22,7 +22,7 @@
     <Testimonials :config="config.socialProof" />
     <RealTimeCounter :config="config.counter" @donate-click="handleTierSelect({ amount: $event })" />
     <FAQSection :config="config.faq" />
-    
+
     <!-- Final CTA -->
     <v-container fluid class="py-16 bg-primary-dark">
       <v-row justify="center" class="text-center">

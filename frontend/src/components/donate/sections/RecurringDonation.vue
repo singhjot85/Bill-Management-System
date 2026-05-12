@@ -7,7 +7,7 @@
             <v-col cols="12" md="7">
               <h2 class="headline font-weight-black mb-4 color-primary">{{ config.headline }}</h2>
               <p class="body-text mb-8">{{ config.body }}</p>
-              
+
               <div class="benefits-grid">
                 <div v-for="(benefit, index) in config.benefits" :key="index" class="benefit-item d-flex align-center mb-4">
                   <v-icon color="primary" class="mr-3" size="24">{{ benefit.icon }}</v-icon>

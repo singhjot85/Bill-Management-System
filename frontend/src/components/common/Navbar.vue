@@ -1,8 +1,8 @@
 <template>
-  <v-app-bar 
-    :flat="flat" 
-    :border="border" 
-    :color="color" 
+  <v-app-bar
+    :flat="flat"
+    :border="border"
+    :color="color"
     :class="['px-md-6 px-4', customClass]"
     :fixed="fixed"
     :app="app"
@@ -184,7 +184,7 @@ const getComponentProps = (item) => {
 
 const getComponentEvents = (item) => {
   const events = {};
-  
+
   if (item.metadata.action || item.metadata.to || item.metadata.clickable) {
     events.click = (e) => {
       e.stopPropagation();
@@ -195,7 +195,7 @@ const getComponentEvents = (item) => {
       }
     };
   }
-  
+
   return events;
 };
 </script>

@@ -1,12 +1,10 @@
 {% extends "base/base.html" %}
-
 {% block body %}
-<div class="app-layout">
-
-  <!-- Protected Content -->
-  <main class="app-content-container">
-    {% block authenticated_body %} {% endblock %}
-  </main>
-
-</div>
-{% endblock %}
+    <div class="app-layout">
+        <!-- Protected Content -->
+        <main class="app-content-container">
+            {% block authenticated_body %}
+            {% endblock authenticated_body %}
+        </main>
+    </div>
+{% endblock body %}

@@ -182,7 +182,7 @@
           </div>
           <h3 class="text-h4 font-weight-black mb-2">Contribution Received!</h3>
           <p class="text-subtitle-1 text-muted mb-10">Your impact is now being processed. Thank you for your support!</p>
-          
+
           <div class="payment-id-card pa-4 rounded-lg mb-10">
             <div class="text-overline mb-1">Platform Receipt ID</div>
             <div class="text-h6 font-weight-black text-primary">{{ paymentId }}</div>
@@ -290,10 +290,10 @@ const proceedToPayment = () => {
 const generateInvoice = () => {
   uiStore.startLoading();
   invoiceLoading.value = true;
-  setTimeout(() => { 
-    invoiceLoading.value = false; 
+  setTimeout(() => {
+    invoiceLoading.value = false;
     uiStore.stopLoading();
-    alert('Invoice generated!'); 
+    alert('Invoice generated!');
   }, 1000);
 };
 </script>

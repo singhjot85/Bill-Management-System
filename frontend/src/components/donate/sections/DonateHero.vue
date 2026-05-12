@@ -5,7 +5,7 @@
         <v-img :src="config.image" class="rounded-xl mb-10 elevation-8 mx-auto" max-height="400" cover></v-img>
         <h1 class="hero-headline font-weight-black mb-6">{{ config.headline }}</h1>
         <p class="hero-subheadline mb-10 mx-auto">{{ config.subheadline }}</p>
-        
+
         <div class="d-flex flex-wrap justify-center gap-4 mb-10">
           <v-btn
             color="primary"

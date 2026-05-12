@@ -1,6 +1,6 @@
 # Frontend – Vue 3 + Vite + Vuetify
 
-A modern, scalable frontend built with Vue 3 (Composition API), Vite, and Vuetify 3.  
+A modern, scalable frontend built with Vue 3 (Composition API), Vite, and Vuetify 3.
 Strong emphasis on clean architecture, reusability, and maintainable styling.
 
 ## Tech Stack

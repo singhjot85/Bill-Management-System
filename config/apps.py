@@ -21,20 +21,16 @@ PROJECT_APPS = [
     "project_apps.tenants",
     "project_apps.setup",
     "project_apps.customer_management",
-    "project_apps.payments_management"
+    "project_apps.payments_management",
 ]
 
-DJANGO_TENANT_PUBLIC_APPS = [
-    *DEFAULT_DJANGO_APPS,
-    "project_apps.tenants",
-    "project_apps.setup"
-]
+DJANGO_TENANT_PUBLIC_APPS = [*DEFAULT_DJANGO_APPS, "project_apps.tenants", "project_apps.setup"]
 
 DJANGO_TENANT_PRIVATE_APPS = [
     *DEFAULT_DJANGO_APPS,
     "project_apps.customer_management",
     "project_apps.payments_management",
-    "project_apps.setup"
+    "project_apps.setup",
 ]
 
 CUSTOMER_CUSTOMER = "customer_management.Customer"

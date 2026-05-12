@@ -15,7 +15,7 @@
         :rules="[v => !!v || 'Username is required']"
         class="mb-2"
       />
-      
+
       <v-text-field
         v-model="password"
         label="Password"
@@ -101,7 +101,7 @@ const rememberMe = ref(false);
 
 const handleSubmit = async () => {
   if (!isValid.value) return;
-  
+
   try {
     await authStore.login({
       username: username.value,
