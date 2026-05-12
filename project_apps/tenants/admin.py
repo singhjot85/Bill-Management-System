@@ -1,14 +1,13 @@
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.admin import GroupAdmin, UserAdmin
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sessions.models import Session
-from django.contrib import admin, messages
 from django.db.models import QuerySet
 
+from project_apps.tenants.models import OrganizationDomain, OrganizationTenant
 from project_apps.utils.admin_utils import public_admin_site
-from project_apps.tenants.models import OrganizationTenant, OrganizationDomain
 
 User = get_user_model()
 
@@ -21,7 +20,7 @@ class OrganizationTenantAdmin(admin.ModelAdmin):
     readonly_fields = ["schema_name", "get_domains", "is_removed", "created", "modified"]
 
     fieldsets = (
-        (None, {"fields": ( ("name", "schema_name"), "get_domains"), "classes": ["wide"]}),
+        (None, {"fields": (("name", "schema_name"), "get_domains"), "classes": ["wide"]}),
         ("Meta", {"fields": (("created", "modified"), "is_removed")}),
     )
 

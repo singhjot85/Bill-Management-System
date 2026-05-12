@@ -1,7 +1,7 @@
 # AGENTS.md — Invoice Management System (BMA)
 
-> Complete developer reference for the multi‑tenant billing platform.  
-> Backend: Django 5.2 + DRF + django‑tenants · Frontend: Vue 3 + Vite + Vuetify 3  
+> Complete developer reference for the multi‑tenant billing platform.
+> Backend: Django 5.2 + DRF + django‑tenants · Frontend: Vue 3 + Vite + Vuetify 3
 > Always consult this file first. For deeper rationale, see `README.md` and `documentation/`.
 
 ## 1. Project Overview
@@ -67,7 +67,7 @@ templates/ # Legacy Django templates (keep stable, prefer Vue for new features)
 
 ## 4. Frontend Rules (Vue 3 + Vite + Vuetify)
 
-> **Source code**: `frontend/`  
+> **Source code**: `frontend/`
 > Full architecture: `frontend/README.md`
 
 ### Stack & Tooling

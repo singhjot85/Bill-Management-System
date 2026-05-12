@@ -11,41 +11,42 @@ ROOT_PATH: TypeAlias = str
 DIRECTORIES: TypeAlias = list
 FILENAMES: TypeAlias = list
 
+
 def walk_dir() -> tuple[ROOT_PATH, DIRECTORIES, FILENAMES]:
     CONFIG_FIXTURE_PATH = "project_apps/setup/fixtures/configurations"
     complete_path = os.path.join(settings.BASE_DIR, CONFIG_FIXTURE_PATH)
     return next(os.walk(complete_path))
 
+
 def get_filecontent(file_path) -> dict:
     data = {}
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         try:
             data = json.load(f)
         except Exception:
             try:
                 data = json.loads(f.read())
-            except Exception as e:
-                print(f"Error reading data from {file_path}: {str(e)}")
+            except Exception:
                 return data
 
     return data
 
+
 def seed_configurations_from_fixture(apps, schema_context):
     """Seed Configuration from fixture"""
     Configurations = apps.get_model('setup', 'Configurations')
-    
+
     path, _, file_names = walk_dir()
     for file_name in file_names:
         details = get_filecontent(os.path.join(path, file_name))
         interface = file_name.split(".")[0]
         if interface not in ConfigurationInterfaceChoices.values:
-            print(f"Fixture for interface {file_name} not found!")
             continue
 
         try:
             obj, created = Configurations.objects.get_or_create(
                 interface_type=interface,
-                defaults={ "details": details }            
+                defaults={"details": details}
             )
         except Exception as e:
             raise e

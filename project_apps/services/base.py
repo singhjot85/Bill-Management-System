@@ -1,19 +1,22 @@
-import requests
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
+
+import requests
 
 logger = logging.getLogger(__name__)
+
 
 class BaseHTTPService:
     """
     A generalized HTTP wrapper for making API calls.
     """
+
     def __init__(
-        self, 
-        base_url: Optional[str] = None, 
-        headers: Optional[Dict[str, str]] = None, 
-        auth: Optional[Any] = None, 
-        timeout: int = 30
+        self,
+        base_url: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[Any] = None,
+        timeout: int = 30,
     ):
         self.base_url = base_url
         self.headers = headers or {}
@@ -22,17 +25,17 @@ class BaseHTTPService:
         self.session = requests.Session()
 
     def _request(
-        self, 
-        method: str, 
-        endpoint: str, 
-        params: Optional[Dict[str, Any]] = None, 
-        data: Optional[Any] = None, 
-        json: Optional[Any] = None, 
-        headers: Optional[Dict[str, str]] = None, 
-        **kwargs
+        self,
+        method: str,
+        endpoint: str,
+        params: Optional[Dict[str, Any]] = None,
+        data: Optional[Any] = None,
+        json: Optional[Any] = None,
+        headers: Optional[Dict[str, str]] = None,
+        **kwargs,
     ) -> requests.Response:
         url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}" if self.base_url else endpoint
-        
+
         request_headers = self.headers.copy()
         if headers:
             request_headers.update(headers)
@@ -47,9 +50,9 @@ class BaseHTTPService:
                 headers=request_headers,
                 auth=self.auth,
                 timeout=self.timeout,
-                **kwargs
+                **kwargs,
             )
-            # We don't call raise_for_status() here to allow the service layer 
+            # We don't call raise_for_status() here to allow the service layer
             # to handle different status codes as needed.
             return response
         except requests.exceptions.RequestException as e:

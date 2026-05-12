@@ -44,7 +44,7 @@
           <!-- Auth Windows -->
           <v-window v-model="activeTab">
             <v-window-item value="login">
-              <LoginForm @forgot-password="showForgotPassword = true" />
+              <LoginForm @forgot-password="showForgotPassword = true" /> <!-- pragma: allowlist-secret -->
             </v-window-item>
 
             <v-window-item value="register">

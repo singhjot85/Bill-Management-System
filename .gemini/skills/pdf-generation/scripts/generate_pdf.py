@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 """PDF generation utility"""
-import hashlib, base64
+import base64
+import hashlib
 from io import BytesIO
-from django.template.loader import render_to_string
+
+import qrcode
 from django.core.cache import cache
 from django.core.files.base import ContentFile
+from django.template.loader import render_to_string
 from weasyprint import HTML
-import qrcode
+
 
 class InvoicePDFGenerator:
     def __init__(self, tenant_schema):

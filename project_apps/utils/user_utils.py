@@ -2,29 +2,33 @@ from typing import TYPE_CHECKING
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django_tenants.utils import get_public_schema_name, schema_context
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
+
     from project_apps.tenants.models import OrganizationTenant
 
-User = get_user_model()
-OrganizationTenant = apps.get_model(settings.TENANT_MODEL)
+User = get_user_model()  # noqa F811
+OrganizationTenant = apps.get_model(settings.TENANT_MODEL)  # noqa F811
+
 
 class PublicUserCreationError(Exception):
     pass
 
+
 class PrivateUserCreation(Exception):
     pass
 
-class UserCreationUtils():
+
+class UserCreationUtils:
 
     @staticmethod
     def is_schema_avl(schema_name: str) -> bool:
         return OrganizationTenant.objects.filter(schema_name=schema_name).exists()
-        
+
     @staticmethod
     def user_creation(username: str, password: str, schema: str, create_super: bool = False) -> "User":
         """
@@ -41,7 +45,7 @@ class UserCreationUtils():
 
         if not UserCreationUtils.is_schema_avl(schema):
             raise PrivateUserCreation("Schema not available")
-        
+
         with schema_context(schema):
             with transaction.atomic():
                 user = None
@@ -65,7 +69,7 @@ class UserCreationUtils():
                 UserCreationUtils.user_creation(**creds)
             except Exception as e:
                 raise PrivateUserCreation(str(e)) from e
-    
+
     @staticmethod
     def private_tenant_creds():
         """Private tenant creation creds
@@ -79,14 +83,14 @@ class UserCreationUtils():
                 "username": f"admin1@{BOOTSTRAP_SCHEMA}.com",
                 "password": f"{BOOTSTRAP_SCHEMA}{BOOTSRAP_PASSWORD_POSTFIX}",
                 "schema": BOOTSTRAP_SCHEMA,
-                "create_super": True
+                "create_super": True,
             },
             {
                 "username": f"client1@{BOOTSTRAP_SCHEMA}.com",
                 "password": f"{BOOTSTRAP_SCHEMA}{BOOTSRAP_PASSWORD_POSTFIX}",
                 "schema": BOOTSTRAP_SCHEMA,
-                "create_super": False
-            }
+                "create_super": False,
+            },
         ]
         return BOOTSTRAP_CREDS
 
@@ -101,5 +105,5 @@ class UserCreationUtils():
             "username": username or settings.PUBLIC_USERNAME,
             "password": password or settings.PUBLIC_PASSWORD,
             "schema": get_public_schema_name(),
-            "create_super": create_super
+            "create_super": create_super,
         }

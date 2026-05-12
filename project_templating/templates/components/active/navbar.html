@@ -1,5 +1,4 @@
 {% load static %}
-
 <style>
 .app-navbar {
     display: flex;
@@ -88,58 +87,34 @@
     z-index: 1000;
 }
 </style>
-
 <!-- Toggle Button (always visible if enabled) -->
 {% if navbar.toggle %}
     {% include "components/button.html" with button_id="navbar-toggle-btn" button_text="☰" variant="secondary" size="small" %}
 {% endif %}
-
-<div
-    id="app-navbar"
-    class="
-        app-navbar
-        app-navbar--{{ navbar.orientation|default:'horizontal' }}
-        app-navbar--{{ navbar.position|default:'top' }}
-        {% if navbar.fixed %}app-navbar--fixed{% endif %}
-        {% if navbar.hidden %}app-navbar--hidden{% endif %}
-    "
->
-
+<div id="app-navbar"
+     class=" app-navbar app-navbar--{{ navbar.orientation|default:'horizontal' }} app-navbar--{{ navbar.position|default:'top' }} {% if navbar.fixed %}app-navbar--fixed{% endif %} {% if navbar.hidden %}app-navbar--hidden{% endif %} ">
     {% for item in navbar.fields %}
-
         <div class="{{ item.parent_class }}">
-
             <!-- -------- ASSET -------- -->
             {% if item.type == "asset" %}
-                <img
-                    src="{% static item.metadata.url %}"
-                    class="{{ item.class }}"
-                />
+                <img src="{% static item.metadata.url %}" class="{{ item.class }}" />
             {% endif %}
-
             <!-- -------- TEXT (WITH ICON) -------- -->
             {% if item.type == "text" %}
                 <span class="{{ item.class }}">
-                    {% if item.metadata.icon %}
-                        <span>{{ item.metadata.icon }}</span>
-                    {% endif %}
+                    {% if item.metadata.icon %}<span>{{ item.metadata.icon }}</span>{% endif %}
                     {{ item.metadata.text|default:"" }}
                 </span>
             {% endif %}
-
             <!-- -------- BUTTON -------- -->
             {% if item.type == "button" %}
                 {% include "components/button.html" with button_text=item.metadata.button_text button_type=item.metadata.button_type variant=item.metadata.variant size=item.metadata.size shape=item.metadata.shape full_width=item.metadata.full_width disabled=item.metadata.disabled icon=item.metadata.icon onclick=item.metadata.onclick %}
             {% endif %}
-
         </div>
-
     {% endfor %}
-
 </div>
-
 {% if navbar.toggle %}
-<script>
+    <script>
     document.addEventListener("DOMContentLoaded", function () {
         const navbar = document.getElementById("app-navbar");
         const toggleBtn = document.getElementById("navbar-toggle-btn");
@@ -150,5 +125,5 @@
             navbar.classList.toggle("app-navbar--hidden");
         });
     });
-</script>
+    </script>
 {% endif %}

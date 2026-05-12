@@ -2,8 +2,16 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
-from project_apps.customer_management.models import Customer, CustomerAddress, CustomerTypeChoices
-from project_apps.payments_management.models import Invoice, InvoiceStatusChoices, Payment
+from project_apps.customer_management.models import (
+    Customer,
+    CustomerAddress,
+    CustomerTypeChoices,
+)
+from project_apps.payments_management.models import (
+    Invoice,
+    InvoiceStatusChoices,
+    Payment,
+)
 
 
 class EmailValidationSerializer(serializers.Serializer):

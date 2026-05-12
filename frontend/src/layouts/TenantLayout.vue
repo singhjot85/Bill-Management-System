@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <Navbar 
-      :branding="brandingStore" 
+    <Navbar
+      :branding="brandingStore"
       :config="tenantConfig.navbar"
       fixed
       @action="handleAction"

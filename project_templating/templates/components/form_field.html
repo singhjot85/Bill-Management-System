@@ -160,71 +160,38 @@ Props:
     color: var(--color-danger);
 }
 </style>
-
 <div class="app-form-group">
-
     {% if label %}
-    <label for="{{ field_id|default:name }}" class="app-form-label">
-        {{ label }}
-        {% if required %}
-        <span class="app-required">*</span>
-        {% endif %}
-    </label>
+        <label for="{{ field_id|default:name }}" class="app-form-label">
+            {{ label }}
+            {% if required %}<span class="app-required">*</span>{% endif %}
+        </label>
     {% endif %}
-
     <div class="{% if toggle %}app-input-group{% endif %}">
-
-        <input
-            id="{{ field_id|default:name }}"
-            name="{{ name }}"
-            type="{{ type|default:'text' }}"
-            value="{{ value|default:'' }}"
-            placeholder="{{ placeholder|default:'...' }}"
-
-            class="
-                app-form-input
-                app-form-input--{{ size|default:'medium' }}
-                {% if shape %}app-form-input--{{ shape }}{% endif %}
-                {{ input_class|default:'' }}
-            "
-
-            {% if required %}required{% endif %}
-            {% if readonly %}readonly{% endif %}
-            {% if disabled %}disabled{% endif %}
-            {% if minlength %}minlength="{{ minlength }}"{% endif %}
-            {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
-            {% if pattern %}pattern="{{ pattern }}"{% endif %}
-            {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
-        />
-
+        <input id="{{ field_id|default:name }}"
+               name="{{ name }}"
+               type="{{ type|default:'text' }}"
+               value="{{ value|default:'' }}"
+               placeholder="{{ placeholder|default:'...' }}"
+               class=" app-form-input app-form-input--{{ size|default:'medium' }} {% if shape %}app-form-input--{{ shape }}{% endif %} {{ input_class|default:'' }} "
+               {% if required %}required{% endif %}
+               {% if readonly %}readonly{% endif %}
+               {% if disabled %}disabled{% endif %}
+               {% if minlength %}minlength="{{ minlength }}"{% endif %}
+               {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+               {% if pattern %}pattern="{{ pattern }}"{% endif %}
+               {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %} />
         {% if toggle %}
-        <button
-            type="button"
-            class="app-secondary-button"
-            id="{{ field_id }}-toggle"
-        >
-            {{ toggle_text|default:"Toggle" }}
-        </button>
+            <button type="button" class="app-secondary-button" id="{{ field_id }}-toggle">
+                {{ toggle_text|default:"Toggle" }}
+            </button>
         {% endif %}
-
     </div>
-
-    {% if help_text %}
-    <small class="app-form-help-text">
-        {{ help_text }}
-    </small>
-    {% endif %}
-
-    {% if error %}
-    <div class="app-form-error">
-        {{ error }}
-    </div>
-    {% endif %}
-
+    {% if help_text %}<small class="app-form-help-text">{{ help_text }}</small>{% endif %}
+    {% if error %}<div class="app-form-error">{{ error }}</div>{% endif %}
 </div>
-
 {% if toggle %}
-<script>
+    <script>
 document.addEventListener("DOMContentLoaded", function () {
 
     const input = document.getElementById("{{ field_id|default:name }}");
@@ -253,5 +220,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 });
-</script>
+    </script>
 {% endif %}

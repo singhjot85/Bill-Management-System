@@ -1,40 +1,25 @@
 {% extends "base/base.html" %}
 {% load static %}
-
-{% block title %} Login {% endblock %}
-{% block extra_head %} <link rel="stylesheet" href="{% static 'css/login.css' %}" /> {% endblock %}
-
-{% block body %}
-<div class="app-page-center">
-    <div class="app-auth-card">
-
-        <h3 class="app-page-title">
-            {{ data.org.name|default:"Login" }}
-        </h3>
-
-        {% if errors %}
-        <div class="app-alert app-alert-danger">
-            {{ errors }}
-        </div>
-        {% endif %}
-
-        <form method="POST">
-            {% csrf_token %}
-
-            {% include "components/form_field.html" with name="username" label="Username" placeholder="Enter username" required=1 %}
-
-            {% include "components/form_field.html" with name="password" label="Password" placeholder="Enter Password" required=1 type="password" toggle=True toggle_text="Show" %}
-
-            {% include "components/button.html" with button_id="loginSubmit" button_type="submit" full_width=True %}
-
-        </form>
-
-    </div>
-</div>
+{% block title %}Login{% endblock %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
 {% endblock %}
-
+{% block body %}
+    <div class="app-page-center">
+        <div class="app-auth-card">
+            <h3 class="app-page-title">{{ data.org.name|default:"Login" }}</h3>
+            {% if errors %}<div class="app-alert app-alert-danger">{{ errors }}</div>{% endif %}
+            <form method="POST">
+                {% csrf_token %}
+                {% include "components/form_field.html" with name="username" label="Username" placeholder="Enter username" required=1 %}
+                {% include "components/form_field.html" with name="password" label="Password" placeholder="Enter Password" required=1 type="password" toggle=True toggle_text="Show" %}
+                {% include "components/button.html" with button_id="loginSubmit" button_type="submit" full_width=True %}
+            </form>
+        </div>
+    </div>
+{% endblock %}
 {% block script %}
-<script>
+    <script>
     function togglePasswordVisibility() {
         const passwordInput = document.getElementById("password-input");
         const toggleBtn = document.getElementById("toggle-password-btn");
@@ -55,5 +40,5 @@
             togglePasswordVisibility();
         });
     });
-</script>
+    </script>
 {% endblock %}

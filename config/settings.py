@@ -9,7 +9,6 @@ import os
 from .apps import *
 from .variables import *
 
-
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
 STATIC_URL = "static/"
 

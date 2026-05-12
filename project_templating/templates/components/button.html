@@ -148,39 +148,16 @@ Props:
         display: inline-block;
     }
 </style>
-<button
-    id="{{ button_id|default:'' }}"
-    type="{{ button_type|default:'button' }}"
-    class="
-        app-button
-        app-button--{{ variant|default:'primary' }}
-        app-button--{{ size|default:'medium' }}
-        app-button--{{ shape|default:'default' }}
-        {% if full_width %}app-button--full{% endif %}
-        {{ button_class|default:'' }}
-    "
-
-    {% if disabled %}
-        disabled
-    {% endif %}
-
-    {% if onclick %}
-        onclick="{{ onclick }}"
-    {% endif %}
->
-    {% if icon %}
-        <span class="app-button__icon">
-            {{ icon }}
-        </span>
-    {% endif %}
-
-    <span class="app-button__text">
-        {{ button_text|default:"Submit" }}
-    </span>
+<button id="{{ button_id|default:'' }}"
+        type="{{ button_type|default:'button' }}"
+        class=" app-button app-button--{{ variant|default:'primary' }} app-button--{{ size|default:'medium' }} app-button--{{ shape|default:'default' }} {% if full_width %}app-button--full{% endif %} {{ button_class|default:'' }} "
+        {% if disabled %}disabled{% endif %}
+        {% if onclick %}onclick="{{ onclick }}"{% endif %}>
+    {% if icon %}<span class="app-button__icon">{{ icon }}</span>{% endif %}
+    <span class="app-button__text">{{ button_text|default:"Submit" }}</span>
 </button>
-
 {% if button_id and js_handler %}
-<script>
+    <script>
     /*
     Lazy JS wrapper
     Avoid repeating document.getElementById everywhere
@@ -195,5 +172,5 @@ Props:
             {{ js_handler }}(event, button);
         });
     });
-</script>
+    </script>
 {% endif %}

@@ -76,9 +76,12 @@ class WorkflowViewSet(ViewSet):
 
     @action(detail=False, methods=["get"], url_path=r"invoice/(?P<code>[^/.]+)")
     def invoice(self, request, code=None):
-        invoice = Invoice.available_objects.select_related("customer").prefetch_related("payments").filter(
-            invoice_number=code
-        ).first()
+        invoice = (
+            Invoice.available_objects.select_related("customer")
+            .prefetch_related("payments")
+            .filter(invoice_number=code)
+            .first()
+        )
         if not invoice:
             return Response({"detail": "Invoice not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(InvoiceLookupSerializer(invoice).data)
