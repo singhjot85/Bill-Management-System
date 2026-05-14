@@ -6,7 +6,10 @@ export const ENDPOINTS = Object.freeze({
   // Auth Endpoints
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
-  ME: 'ME',
+  USER_DETAILS: 'USER_DETAILS',
+  PASSWORD_RESET: 'PASSWORD_RESET',
+  PASSWORD_RESET_CONFIRM: 'PASSWORD_RESET_CONFIRM',
+  PASSWORD_CHANGE: 'PASSWORD_CHANGE',
 
   // Branding & Configuration
   BRANDING: 'BRANDING',
@@ -25,6 +28,11 @@ export const ENDPOINTS = Object.freeze({
  */
 const PUBLIC_ENDPOINTS: Record<string, string> = Object.freeze({
   [ENDPOINTS.LOGIN]: 'auth/login/',
+  [ENDPOINTS.LOGOUT]: 'auth/logout/',
+  [ENDPOINTS.USER_DETAILS]: 'auth/user/',
+  [ENDPOINTS.PASSWORD_RESET]: 'auth/password/reset/',
+  [ENDPOINTS.PASSWORD_RESET_CONFIRM]: 'auth/password/reset/confirm/',
+  [ENDPOINTS.PASSWORD_CHANGE]: 'auth/password/change/',
   [ENDPOINTS.BRANDING]: 'branding/',
 });
 
@@ -36,7 +44,10 @@ const PUBLIC_ENDPOINTS: Record<string, string> = Object.freeze({
 const PRIVATE_ENDPOINTS: Record<string, string> = Object.freeze({
   [ENDPOINTS.LOGIN]: 'auth/login/',
   [ENDPOINTS.LOGOUT]: 'auth/logout/',
-  [ENDPOINTS.ME]: 'auth/me/',
+  [ENDPOINTS.USER_DETAILS]: 'auth/user/',
+  [ENDPOINTS.PASSWORD_RESET]: 'auth/password/reset/',
+  [ENDPOINTS.PASSWORD_RESET_CONFIRM]: 'auth/password/reset/confirm/',
+  [ENDPOINTS.PASSWORD_CHANGE]: 'auth/password/change/',
   [ENDPOINTS.VALIDATE_EMAIL]: 'workflow/validate_email/',
   [ENDPOINTS.VALIDATE_PHONE]: 'workflow/validate_phone/',
   [ENDPOINTS.MAKE_PAYMENT]: 'workflow/make_payment/',

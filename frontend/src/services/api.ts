@@ -19,10 +19,16 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const tenantStore = useTenantStore();
   const uiStore = useUIStore();
+  const authStore = useAuthStore();
 
-  // Add tenant name to headers (backend can use Host header, but this is a good secondary check)
+  // Add tenant name to headers
   if (tenantStore.tenantName) {
     config.headers['X-Tenant'] = tenantStore.tenantName;
+  }
+
+  // Add Authorization header if token exists
+  if (authStore.accessToken) {
+    config.headers['Authorization'] = `Bearer ${authStore.accessToken}`;
   }
 
   // Only show loading if not explicitly disabled in config
