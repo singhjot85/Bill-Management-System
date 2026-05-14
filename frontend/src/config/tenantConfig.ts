@@ -298,7 +298,7 @@ export const defaultTenantConfig: TenantViewConfig = {
           text: 'Generate professional PDF invoices. Set recurring billing, auto-reminders, and track "Viewed/Paid" status.'
         },
         {
-          icon: 'mdi-heart-handshake',
+          icon: 'mdi-hand-heart',
           title: 'Donation Management',
           text: 'Issue instant tax receipts. Track recurring pledges. Segment customers (One-time vs. Monthly) for thank-you emails.'
         },

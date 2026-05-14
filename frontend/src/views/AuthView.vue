@@ -18,7 +18,7 @@
         lg="5"
         class="d-flex align-center justify-center bg-white"
       >
-        <v-card width="100%" flat class="pa-6 pa-sm-10">
+        <v-card width="100%" height="100%" flat class="pa-6 pa-sm-10">
           <!-- Mobile Logo (shown only on small screens) -->
           <div class="d-md-none text-center mb-8">
             <v-icon size="48" color="primary">mdi-heart-pulse</v-icon>

@@ -1,8 +1,10 @@
 import api from './api';
+import { ENDPOINTS, getEndpoint } from './endpoints';
 
 export const authService = {
   async login(credentials: any) {
-    const response = await api.post('/auth/login/', credentials);
+    const apiEndpoint = getEndpoint(ENDPOINTS.LOGIN)
+    const response = await api.post(apiEndpoint, credentials);
     return response.data;
   },
 

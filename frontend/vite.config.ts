@@ -15,13 +15,10 @@ export default defineConfig({
     }
   },
   server: {
-    host: true, // Needed for subdomain testing
     port: 5173,
     proxy: {
       '/api': {
         target: 'http://django:8000',
-        changeOrigin: true,
-        secure: false,
       }
     }
   }

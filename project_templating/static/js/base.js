@@ -59,6 +59,6 @@ async function makeApiCall(base_url, method = "GET", data = null) {
 }
 
 window.logoutUser = async function logoutUser() {
-  await makeApiCall("logout/", "GET");
+  await makeApiCall("api/auth/logout/", "GET");
   window.location.href = "/";
 }

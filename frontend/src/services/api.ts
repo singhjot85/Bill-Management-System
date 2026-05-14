@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useTenantStore } from '@/stores/tenantStore';
 import router from '@/router';
 
 const api = axios.create({
@@ -14,11 +15,18 @@ const api = axios.create({
   xsrfHeaderName: 'X-CSRFToken',
 });
 
-// Add interceptors to handle global loading overlay
+// Add interceptors to handle global loading overlay and tenant context
 api.interceptors.request.use((config) => {
+  const tenantStore = useTenantStore();
+  const uiStore = useUIStore();
+
+  // Add tenant name to headers (backend can use Host header, but this is a good secondary check)
+  if (tenantStore.tenantName) {
+    config.headers['X-Tenant'] = tenantStore.tenantName;
+  }
+
   // Only show loading if not explicitly disabled in config
   if ((config as any).showLoading !== false) {
-    const uiStore = useUIStore();
     uiStore.startLoading();
   }
   return config;
