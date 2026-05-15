@@ -6,16 +6,20 @@ from project_apps.customer_management.views import WorkflowViewSet
 from project_apps.utils.admin_utils import private_admin_site
 
 app_name = "api"
-urlpatterns = [
-    path("admin/", private_admin_site.urls, name="admin"),
-    path('auth/', include('dj_rest_auth.urls')),
-]
 
 router = SimpleRouter()
 if settings.DEBUG:
     router = DefaultRouter()
 
-
 router.register("workflow", WorkflowViewSet, "workflow")
 
-urlpatterns.extend(router.urls)
+api_urlpatterns = [
+    path("admin/", private_admin_site.urls, name="admin"),
+    path("auth/", include("dj_rest_auth.urls")),
+]
+
+api_urlpatterns.extend(router.urls)
+
+urlpatterns = [
+    path("api/", include(api_urlpatterns)),
+]

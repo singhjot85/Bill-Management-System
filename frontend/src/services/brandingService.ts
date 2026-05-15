@@ -1,12 +1,15 @@
 import api from './api';
+import { ENDPOINTS, getEndpoint } from './endpoints';
+import { useTenantStore } from '@/stores/tenantStore';
 import defaultLogo from '@/assets/img/bill-invoice.svg';
 
 export const brandingService = {
   async getBranding() {
-    // This will hit /api/branding/
-    // The backend identifies the tenant by the Host header
+    const tenantStore = useTenantStore();
+    const endpoint = getEndpoint(ENDPOINTS.BRANDING, tenantStore.tenantName);
+    
     try {
-      const response = await api.get('/branding/');
+      const response = await api.get(endpoint);
       return response.data;
     } catch (error) {
       console.warn('Branding fetch failed, using defaults');

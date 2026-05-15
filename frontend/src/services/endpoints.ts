@@ -42,6 +42,7 @@ const PUBLIC_ENDPOINTS: Record<string, string> = Object.freeze({
  * These are used when operating within a specific tenant's schema.
  */
 const PRIVATE_ENDPOINTS: Record<string, string> = Object.freeze({
+  [ENDPOINTS.BRANDING]: 'branding/',
   [ENDPOINTS.LOGIN]: 'auth/login/',
   [ENDPOINTS.LOGOUT]: 'auth/logout/',
   [ENDPOINTS.USER_DETAILS]: 'auth/user/',
