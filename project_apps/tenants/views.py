@@ -1,11 +1,13 @@
+from django.db import connection
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import MethodNotAllowed
 
 from project_apps.tenants.serializers import LoginSerializer, UserSerializer
-
+from project_apps.tenants.models import 
 
 class AuthViewSet(viewsets.ViewSet):
     """
@@ -37,3 +39,15 @@ class AuthViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def me(self, request):
         return Response(UserSerializer(request.user).data)
+
+
+class BrandingViewSet(viewsets.ViewSet):
+    
+    def create(self, request, *args, **kwargs):
+        return MethodNotAllowed("Bradning data not editable, currently!!")
+    
+    def list(self, request, *args, **kwargs):
+
+        branding = OrganizationBranding.objects.fil
+
+        return Response(data, status=status.HTTP_200_OK)

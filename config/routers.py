@@ -3,7 +3,9 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from project_apps.customer_management.views import WorkflowViewSet
+from project_apps.tenants.views import BrandingViewSet
 from project_apps.utils.admin_utils import private_admin_site
+from project_apps.utils.view_utils import ConnTestMixin
 
 app_name = "api"
 
@@ -11,7 +13,9 @@ router = SimpleRouter()
 if settings.DEBUG:
     router = DefaultRouter()
 
-router.register("workflow", WorkflowViewSet, "workflow")
+router.register(r"workflow", WorkflowViewSet, "workflow")
+router.register(r"branding", BrandingViewSet, "branding")
+router.register(r"conn-test", ConnTestMixin, "conn-test")
 
 api_urlpatterns = [
     path("admin/", private_admin_site.urls, name="admin"),
