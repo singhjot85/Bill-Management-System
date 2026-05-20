@@ -1,7 +1,7 @@
-from django.db import models
+from django.db import models, connection
 from django_tenants.models import DomainMixin, TenantMixin
 
-from project_apps.utils import SafeModelMixin, BetterModelMixin
+from project_apps.utils import SafeModelMixin, VersionedBetterModelMixin
 from project_apps.tenants.constants import CountryChoices
 
 
@@ -17,11 +17,10 @@ class OrganizationTenant(SafeModelMixin, TenantMixin):
 
 class OrganizationDomain(SafeModelMixin, DomainMixin):
     """Domain Model required fot Django Tenants."""
-
     pass
 
 
-class OrganizationBranding(BetterModelMixin):
+class OrganizationBranding(VersionedBetterModelMixin):
 
     organization = models.OneToOneField(to=OrganizationTenant, on_delete=models.PROTECT)
 
@@ -40,3 +39,7 @@ class OrganizationBranding(BetterModelMixin):
     footer_icon = models.CharField(verbose_name="Footer Icon(s) before Text", max_length=255, null=True, blank=True)
     footer_text = models.TextField(verbose_name="Text in Footer Section", null=True, blank=True)
     footer_extra_text = models.TextField(verbose_name="Extra Text at end of footer", null=True, blank=True)
+
+    @classmethod
+    def get_current_branding(cls):
+        return cls.objects.filter(organization__schema_name=connection.schema_name).order_by(cls.DEFAULT_ORDERING)

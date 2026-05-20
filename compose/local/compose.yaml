@@ -49,8 +49,9 @@ services:
       dockerfile: ../compose/local/vue/Dockerfile
     container_name: bma_frontend
     restart: unless-stopped
-    depends_on:
-      - django
+    # Slows down startup
+    # depends_on:
+    #   - django
     volumes:
       - ../../frontend:/app
       - /app/node_modules

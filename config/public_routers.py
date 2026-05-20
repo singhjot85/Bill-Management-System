@@ -9,7 +9,7 @@ router = SimpleRouter()
 if settings.DEBUG:
     router = DefaultRouter()
 
-router.register("branding", BrandingViewSet, "branding")
+router.register(r"branding", BrandingViewSet, "branding")
 
 api_urlpatterns = [
     path("admin/", public_admin_site.urls, name="admin"),

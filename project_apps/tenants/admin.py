@@ -83,7 +83,7 @@ class OrgBrandingAdmin(admin.ModelAdmin):
         ("Footer", {"fields": ["footer_icon", "footer_text", "footer_extra_text"], "classes": ["wide"]}),
     )
 
-public_admin_site.register(OrgBrandingAdmin, OrganizationBranding)
+public_admin_site.register(OrganizationBranding, OrgBrandingAdmin)
 public_admin_site.register(OrganizationDomain, OrgDomainAdmin)
 public_admin_site.register(OrganizationTenant, OrganizationTenantAdmin)
 public_admin_site.register(Group, GroupAdmin)
