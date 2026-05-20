@@ -25,7 +25,7 @@ A system that can be used to generate and manage bills/invoices.
 
 ## Tech Stack
 **Backend:** django, djangorestframework, django-tenats + django-celery, django-celery-beat, valkey
-**Frontend:** Vue + Vite
+**Frontend:** Vue + Vite + Vuetify
 **Database:** PostgreSQL
 **Other Infra:** Docker, Compose, Poetry, PreCommit
 

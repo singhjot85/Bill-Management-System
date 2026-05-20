@@ -11,5 +11,11 @@
         "razorpay-mcp-server:latest"
       ]
     }
+  },
+  "tools": {
+    "sandbox": "docker"
+  },
+  "security": {
+    "toolSandboxing": false
   }
 }

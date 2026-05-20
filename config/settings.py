@@ -1,12 +1,10 @@
 """
 Infra specific varibles will stay in this files
-Variables required to construct them or extra varibles used by project will be imported.
-This is done so that project settings do not bloat over.
+.constants : Settings Constant even at runtime
+.variables : Settings that may vary at runtime
 """
-
-import os
-
-from .apps import *
+# TODO: Explicitly define each import to make debugging easier
+from .constants import *
 from .variables import *
 
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
@@ -88,23 +86,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SECRET_KEY = os.getenv("DJANGO_SECRETE_KEY", "")
-RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_KEY", "")
-RAZORPAY_API_SECRETE = os.getenv("RAZORPAY_API_SECRETE", "")
-DEFAULT_AUTO_FIELD = os.getenv("DJANGO_DEFAULT_ID", "django.db.models.BigAutoField")
-
 USE_TZ = True
 USE_I18N = True
 TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en-us"
-
-BOOTSRAP_SCHEMA_NAME = os.getenv("BOOTSTRAP_SCHEMA", "localclient")
-DEV_PASS = os.getenv("DEV_PASS")
-PUBLIC_USERNAME = os.getenv("PUBLIC_USERNAME")
-PUBLIC_PASSWORD = os.getenv("PUBLIC_PASSWORD")
-
-CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")
-LOCAL_ENVS = ["local", "dev", "devlopment"]
 
 if CURRENT_ENV in LOCAL_ENVS:
     DEBUG = True

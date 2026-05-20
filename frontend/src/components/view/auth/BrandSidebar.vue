@@ -33,7 +33,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useBrandingStore } from "@/stores/brandingStore";
 
 const brandingStore = useBrandingStore();

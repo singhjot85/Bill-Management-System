@@ -96,6 +96,12 @@ docker-clean-local-setup:
 	make run
 clean-setup: docker-clean-local-setup
 
+docker-rebuild:
+	${BASE_COMPOSE_CMD} down
+	make build 
+	make run
+rebuild: docker-rebuild
+
 .PHONY:
 	build
 	run
@@ -104,3 +110,4 @@ clean-setup: docker-clean-local-setup
 	mme mm m
 	clean cbr
 	clean-setup
+	rebuild

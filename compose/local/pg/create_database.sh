@@ -3,6 +3,12 @@ set -e
 
 echo "Initializing database..."
 
+echo "DB: $POSTGRES_DB"
+echo "PORT: $POSTGRES_PORT"
+echo "HOST: $POSTGRES_HOST"
+echo "USER: $POSTGRES_USER"
+
+
 psql -v ON_ERROR_STOP=1 \
   --username "$POSTGRES_USER" \
   --dbname "$POSTGRES_DB" <<-EOSQL

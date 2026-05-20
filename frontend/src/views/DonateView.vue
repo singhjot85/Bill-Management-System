@@ -45,15 +45,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import DonateHero from '@/components/donate/sections/DonateHero.vue';
-import ProblemImpact from '@/components/donate/sections/ProblemImpact.vue';
-import DonationTiers from '@/components/donate/sections/DonationTiers.vue';
-import RecurringDonation from '@/components/donate/sections/RecurringDonation.vue';
-import TransparencySteps from '@/components/donate/sections/TransparencySteps.vue';
-import RealTimeCounter from '@/components/donate/sections/RealTimeCounter.vue';
-import FAQSection from '@/components/donate/sections/FAQSection.vue';
-import DonateForm from '@/components/donate/DonateForm.vue';
-import Testimonials from '@/components/landing/Testimonials.vue';
+import DonateHero from '@/components/layout/DonateHero.vue';
+import ProblemImpact from '@/components/layout/ProblemImpact.vue';
+import DonationTiers from '@/components/layout/DonationTiers.vue';
+import RecurringDonation from '@/components/layout/RecurringDonation.vue';
+import TransparencySteps from '@/components/layout/TransparencySteps.vue';
+import RealTimeCounter from '@/components/layout/RealTimeCounter.vue';
+import FAQSection from '@/components/layout/FAQSection.vue';
+import DonateForm from '@/components/view/donate/DonateForm.vue';
+import Testimonials from '@/components/layout/Testimonials.vue';
 import type { DonatePageConfig } from '@/config/tenantConfig';
 
 const props = defineProps<{
@@ -61,7 +61,6 @@ const props = defineProps<{
 }>();
 
 const selectedAmount = ref<number | null>(null);
-const donateFormRef = ref(null);
 
 const scrollToForm = () => {
   const el = document.getElementById('donation-form-section');

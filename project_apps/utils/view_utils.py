@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from rest_framework.viewsets import ViewSet
+from rest_framework import response, status
 
 
 class AuthenticatedViewMixin:
@@ -16,3 +18,16 @@ class AuthenticatedViewMixin:
             return redirect(self.login_url)
 
         return super().dispatch(request, *args, **kwargs)
+
+
+class ConnTestMixin(ViewSet):
+    """Connection Test Utility"""
+
+    def list(self, request, *args, **kwargs):
+        return response.Response({"data": "Hey LIST"}, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        return response.Response({"data": "Hey GET"}, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        return response.Response({"data": "Hey POST"}, status=status.HTTP_200_OK)

@@ -1,170 +1,81 @@
-# Bill Management Application
-A system that can be used to generate and manage bills/invoices.
+# Bill Management Application - Data Models
+Detailed overview of the database structuring and relationships.
 
-## Raw DB table requirements:
-- Authentcated user records
-- Non-Authenticated user records
-- Invoice
-- Invoice Template
-
-## Fields to store and Model layouts
-All models will implement SoftDelete + TimeStamp mixins. Not written below to reduce boilerplate.
-
-
-### Authenticated User
-
-- Use Django default user model (`django.contrib.auth`) for authenticated users.
+## Core Mixins
+All models implement the following mixins (via `BetterModelMixin` or `SafeModelMixin`):
+- **UUID Primary Key**: All models use UUIDs instead of auto-incrementing integers.
+- **TimeStamps**: `created_at` and `updated_at` fields.
+- **Soft Delete**: `is_deleted` flag to prevent accidental data loss.
 
 ---
 
-### Non-Authenticated User Records (`Customer` Model)
+## Tenants (Public Schema)
 
-- name
-- phone
-- email
-- is_phone_verified
-- is_email_verified
-- source
-- customer_type
-  (`PUBLIC / PRIVATE / VIP / CORPORATE`)
-- external_reference
-- details (JSON)
+### OrganizationTenant
+- `name`: Display name of the tenant.
+- `schema_name`: Database schema identifier (e.g., `acme_corp`).
+- `in_production`: Boolean flag for environment status.
 
-#### Relationships
-
-- addresses (1:M → CustomerAddress)
-- invoices (1:M → Invoice)
-- payments (1:M → Payment)
+### OrganizationBranding
+- `organization`: 1:1 link to `OrganizationTenant`.
+- `navbar_title`, `navbar_icon`: Customizes the header.
+- `footer_text`, `footer_extra_text`, `footer_icon`: Customizes the footer.
+- `phone`, `email`, `country`: Tenant contact details.
 
 ---
 
-### Customer Address (`CustomerAddress` Model)
+## Customer Management (Tenant Schema)
 
-- customer (FK → Customer)
-- address_line_1
-- address_line_2
-- city
-- state
-- country
-- postal_code
-- is_primary
+### Customer
+- `name`, `phone`, `email`: Contact details.
+- `customer_type`: `PUBLIC`, `PRIVATE`, or `INTERNAL`.
+- `is_phone_verified`, `is_email_verified`: Verification flags.
+- `external_reference`: Link to external systems.
+- `details`: JSON field for arbitrary metadata.
 
----
-
-### Invoices (`Invoice` Model)
-
-- invoice_date
-- due_date
-- status
-- tenant_invoice_number
-  (Example: `INV-2026-0001`)
-- document_url (FileField)
-- context_data (JSON)
-- payable_amount
-- amount_paid
-
-#### Relationships
-
-- recipient (FK → Customer)
-- invoice_template (FK → InvoiceTemplate)
-- generated_by (FK → AUTH_USER_MODEL)
-
-### Reverse Relations
-
-- payments (1:M ← Payment)
-
-> Removed direct `payment` field from Invoice model to avoid duplication.
-> Payments should always reference Invoice from the Payment model.
+### CustomerAddress
+- `customer`: FK to `Customer`.
+- `address_line_1`, `address_line_2`, `city`, `country`, `postal_code`.
+- `is_primary`: Boolean to identify the main billing address.
 
 ---
 
-### Invoice Template (`InvoiceTemplate` Model)
+## Payments & Invoicing (Tenant Schema)
 
-- template_name
-- template_key
-- template_html
-- template_plain_text
-- is_active
-- versioning
+### Invoice
+- `invoice_number`: Unique generated code (e.g., `INV-2026-XXXX`).
+- `invoice_date`, `due_date`: Key billing dates.
+- `status`: `CREATED`, `PAID`, `DEFAULTED`, `INVALID`.
+- `payable_amount`, `amount_paid`: Financial tracking.
+- `document`: FileField for the generated PDF.
+- `context_data`: JSON field storing data used to render the template.
+- **Relationships**:
+  - `customer`: FK to `Customer`.
+  - `generated_by`: FK to `User`.
+  - `template`: FK to `Templates`.
 
-#### Relationships
+### Templates
+- `template_name`: Human-readable name.
+- `template_type`: `DEFAULT_INVOICE`, etc.
+- `html`, `plain_text`: The template source code.
+- `is_active`: Toggle for template availability.
 
-- invoices (1:M ← Invoice)
-
----
-
-### Payments (`Payment` Model)
-
-- status
-- payment_type
-- order_id
-- payment_id
-- amount
-- currency
-- details (JSON)
-- raw_payment_responses (JSON)
-- verified_on (DateTime)
-- gateway_name
-- gateway_signature
-- verified_flag
-
-#### Relationships
-
-- payee (FK → Customer)
-- invoice (FK → Invoice)
-- verified_by (FK → AUTH_USER_MODEL)
-
-> Removed duplicate M:M reference between Payment and Invoice.
-> Correct relationship is: One Invoice → Many Payments
+### Payment
+- `order_id`: Razorpay Order ID.
+- `payment_id`: Razorpay Payment ID.
+- `amount`, `currency`: Transaction value.
+- `status`: `CREATED`, `PROCESSING`, `COMPLETED`, `FAILED`.
+- `gateway_name`: `RAZORPAY`, `PAYPAL`.
+- `is_verified`, `verified_on`, `verified_by`: Audit trail for verification.
+- **Relationships**:
+  - `invoice`: FK to `Invoice`.
+  - `payee`: FK to `Customer`.
+  - `verified_by`: FK to `User`.
 
 ---
 
-## Django Apps and Models
+## Setup (Tenant Schema)
 
-### auth
-- `django.contrib.auth`
-
-### customer_management
-- customer
-- customer_address
-
-### payments_management
-- invoice
-- invoice_template
-- payment
-
----
-
-## Django Tenants Reference:
-```text
-tenants/ -> Public Schema
-
-customer_management/ -> Tenant Scoped
-payments_management/ -> Tenant Scoped
-setup/ -> Tenant Scoped
-```
-
-
-## Foreign Key Refernces:
-```
-CustomerAddress -> Customer (M:1)
-customer = ForeignKey(to=Customer)
-
-Invoice -> Customer (M:1)
-recipient = ForeignKey(to=Customer)
-
-Payment -> Invoice (M:1)
-invoice = ForeignKey(to=Invoice)
-
-Invoice -> InvoiceTemplate (M:1)
-invoice_template = ForeignKey(to=InvoiceTemplate)
-
-Payment -> Customer (M:1)
-payee = ForeignKey(to=Customer)
-
-Invoice -> GeneratedBy (M:1)
-generated_by = ForeignKey(to=AUTH_USER_MODEL)
-
-Payment -> VerifiedBy (M:1)
-verified_by = ForeignKey(to=AUTH_USER_MODEL)
-```
+### Configurations
+- `interface_type`: Identifier for the setting (e.g., `RAZORPAY_CONFIG`).
+- `details`: JSON field storing the actual configuration values.

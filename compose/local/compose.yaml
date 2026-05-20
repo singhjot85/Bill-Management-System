@@ -49,15 +49,16 @@ services:
       dockerfile: ../compose/local/vue/Dockerfile
     container_name: bma_frontend
     restart: unless-stopped
-    depends_on:
-      - django
+    # Slows down startup
+    # depends_on:
+    #   - django
     volumes:
       - ../../frontend:/app
       - /app/node_modules
     ports:
       - "5173:5173"
-    environment:
-      - VITE_API_BASE_URL=/api
+    env_file:
+      - ../../.envs/vite.env
 
 
 secrets:

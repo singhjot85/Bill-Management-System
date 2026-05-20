@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { authService } from '@/services/authService';
 
-const AUTH_DATA_KEY = 'auth_data';
+const AUTH_TOKEN_KEY = 'auth_token';
 
 const getCookie = (name: string) => {
     const value = `; ${document.cookie}`;
@@ -24,18 +24,15 @@ const deleteCookie = (name: string) => {
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         isAuthenticated: false,
+        accessToken: getCookie(AUTH_TOKEN_KEY) || null,
         user: null as any,
         loading: false,
     }),
     actions: {
         async refreshToken() {
-            // Refresh state from cookie
-            const cookieData = getCookie(AUTH_DATA_KEY);
-            if (cookieData) {
+            // Refresh state from token in cookie
+            if (this.accessToken) {
                 try {
-                    this.user = JSON.parse(decodeURIComponent(cookieData));
-                    this.isAuthenticated = true;
-                    // Optionally fetch fresh user data from backend
                     await this.fetchUser();
                 } catch (e) {
                     this.destroyToken();
@@ -45,22 +42,27 @@ export const useAuthStore = defineStore('auth', {
         async login(credentials: any) {
             this.loading = true;
             try {
-                const userData = await authService.login(credentials);
-                this.user = userData;
-                this.isAuthenticated = true;
-                setCookie(AUTH_DATA_KEY, encodeURIComponent(JSON.stringify(userData)));
+                const response = await authService.login(credentials);
+                // Backend returns { access: '...', refresh: '...' } or similar
+                // We use 'access' as the primary token
+                this.accessToken = response.access || response.token;
+                if (this.accessToken) {
+                    setCookie(AUTH_TOKEN_KEY, this.accessToken);
+                    await this.fetchUser();
+                }
             } finally {
                 this.loading = false;
             }
         },
         async fetchUser() {
+            if (!this.accessToken) return;
             try {
-                const userData = await authService.me();
+                const userData = await authService.userDetails();
                 this.user = userData;
                 this.isAuthenticated = true;
-                setCookie(AUTH_DATA_KEY, encodeURIComponent(JSON.stringify(userData)));
             } catch (e) {
                 this.destroyToken();
+                throw e;
             }
         },
         async logout() {
@@ -72,8 +74,9 @@ export const useAuthStore = defineStore('auth', {
         },
         destroyToken() {
             this.isAuthenticated = false;
+            this.accessToken = null;
             this.user = null;
-            deleteCookie(AUTH_DATA_KEY);
+            deleteCookie(AUTH_TOKEN_KEY);
         }
     }
 })
