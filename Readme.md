@@ -23,6 +23,37 @@ A system that can be used to generate and manage bills/invoices.
     - Resposibilities: Can login, manage tenants, configure new tenants.
 
 
+## Local Development Setup
+
+To get started with local development, follow these steps:
+
+1.  **Build and Start Containers:**
+    ```bash
+    make build
+    make up
+    ```
+
+2.  **Bootstrap the Database:**
+    The application uses a multi-tenant architecture. You need to seed the base tenants and users:
+    ```bash
+    # Run all seeders (tenants and users)
+    docker-compose -f compose/local/compose.yaml run --rm django python manage.py bootstrap_tenants
+    docker-compose -f compose/local/compose.yaml run --rm django python manage.py bootstrap_users
+    ```
+
+## User Credentials (Local Development)
+
+The following credentials are created by the seeders for local testing:
+
+| Role | Username | Password | Domain |
+| :--- | :--- | :--- | :--- |
+| **Platform Admin** | `admin@localhost.com` | `qwerty@123` | `localhost:8000` |
+| **Tenant Admin (NGO)** | `admin@localngo.com` | `qwerty@123` | `localngo.localhost:8000` |
+| **Tenant Admin (Restraunt)** | `admin@restraunt.com` | `qwerty@123` | `restraunt.localhost:8000` |
+| **Client/User (NGO)** | `client@localngo.com` | `qwerty@123` | `localngo.localhost:8000` |
+
+*Note: Ensure your `/etc/hosts` or equivalent points these domains to `127.0.0.1` if you are not using a tool like `dnsmasq`.*
+
 ## Tech Stack
 **Backend:** django, djangorestframework, django-tenats + django-celery, django-celery-beat, valkey
 **Frontend:** Vue + Vite + Vuetify

@@ -25,15 +25,13 @@ setup-python:
 	poetry lock
 	poetry install --no-interaction
 
-setup: setup-system setup-python
-
 #####################################
 ## Make target for docker commands ##
 #####################################
 
 COMPOSE_NAME:=compose/local/compose.yaml
 BASE_COMPOSE_CMD:=docker compose -f ${COMPOSE_NAME}
-BASE_DJANGO_CONTAINER:=${BASE_COMPOSE_CMD} run --rm django
+DJANGO_CONTAINER_CMD:=${BASE_COMPOSE_CMD} run --rm django
 
 app:=setup
 mig_name:=default_empty_migration
@@ -52,29 +50,29 @@ run: docker-run
 
 docker-bash:
 	@echo "⌛ Starting bash in containers..."
-	${BASE_DJANGO_CONTAINER} bash
+	${DJANGO_CONTAINER_CMD} bash
 bash: docker-bash
 
 docker-django-makemigrations-empty:
 	@echo "⌛ Making an empty migration in App: ➡️[${app}] with Name: ➡️[${mig_name}]..."
 	@echo "⚠️ If this was not intended use command with app= or mig_name= flags"
-	${BASE_DJANGO_CONTAINER} python manage.py makemigrations --empty ${app} --name ${mig_name}
+	${DJANGO_CONTAINER_CMD} python manage.py makemigrations --empty ${app} --name ${mig_name}
 mme: docker-django-makemigrations-empty
 
 docker-django-makemigrations:
 	@echo "⌛ Making migrations in App: ➡️[${app}]..."
 	@echo "⚠️ If this was not intended use command with app= flag"
-	${BASE_DJANGO_CONTAINER} python manage.py makemigrations ${app}
+	${DJANGO_CONTAINER_CMD} python manage.py makemigrations ${app}
 mm: docker-django-makemigrations
 
 docker-django-migrate:
 	@echo "⌛ Migrating Schema's now..."
-	${BASE_DJANGO_CONTAINER} python manage.py migrate
+	${DJANGO_CONTAINER_CMD} python manage.py migrate
 m: docker-django-migrate
 
 docker-django-shell:
 	@echo "⌛ Launching Django shell..."
-	${BASE_DJANGO_CONTAINER} python manage.py shell
+	${DJANGO_CONTAINER_CMD} python manage.py shell
 s: docker-django-shell
 
 docker-clean-project:
@@ -85,29 +83,55 @@ clean: docker-clean-project
 docker-clean-build-run:
 	make docker-clean-project
 	make build
+	make m
 	make run
 cbr: docker-clean-build-run
 
 docker-clean-local-setup:
 	make clean
 	make build
-	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_tenants --schema_name localclient
-	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_users
+	make m
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
 	make run
 clean-setup: docker-clean-local-setup
 
 docker-rebuild:
 	${BASE_COMPOSE_CMD} down
-	make build 
+	make build
+	make m
 	make run
 rebuild: docker-rebuild
+
+docker-clean-local-setup-fast:
+	${BASE_COMPOSE_CMD} down
+	make build
+	make m
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
+	make run
+setup: docker-clean-local-setup-fast
+
+docker-local-db-reset:
+	${BASE_COMPOSE_CMD} down --volumes
+	make m
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
+	${DJANGO_CONTAINER_CMD} python manage.py migrate_schemas --shared
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
+	make run
+db-reset: docker-local-db-reset
 
 .PHONY:
 	build
 	run
-	setup setup-system setup-python
-	bash s
-	mme mm m
-	clean cbr
+	bash
+	mme
+	mm
+	m
+	s
+	clean
+	cbr
 	clean-setup
+	setup
+	db-reset
 	rebuild

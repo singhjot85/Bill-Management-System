@@ -1,0 +1,58 @@
+{
+    "OrganizationTenant": {
+        "name": "Local NGO",
+        "in_production": false,
+        "schema_name": "localngo"
+    },
+    "OrganizationBranding": {
+        "phone": "1234567891",
+        "email": "brandingemail@localngo.com",
+        "navbar_icon": "mdi-heart-pulse",
+        "navbar_title": "Local NGO",
+        "footer_icon": "mdi-heart-pulse",
+        "footer_text": "Hello to you'r local NGO, please conatct us at given conatcy info.",
+        "footer_extra_text": "Some extra footer text fot testing."
+    },
+    "OrganizationDomain": [
+        {
+            "domain": "localngo.localhost"
+        },
+        {
+            "domain": "ngo.localhost"
+        }
+    ],
+    "Users": [
+        {
+            "first_name": "Bruce",
+            "last_name": "Wayne",
+            "username": "admin@localngo.com",
+            "email": "admin@localngo.com",
+            "password": "qwerty@123",
+            "create_superuser": true
+        },
+        {
+            "first_name": "Clark",
+            "last_name": "Kent",
+            "username": "admin@ngo.com",
+            "email": "admin@ngo.com",
+            "password": "qwerty@123",
+            "create_superuser": true
+        },
+        {
+            "first_name": "Tony",
+            "last_name": "Stark",
+            "username": "client@localngo.com",
+            "email": "client@localngo.com",
+            "password": "qwerty@123",
+            "create_superuser": false
+        },
+        {
+            "first_name": "Bruce",
+            "last_name": "Banner",
+            "username": "client@ngo.com",
+            "email": "client@ngo.com",
+            "password": "qwerty@123",
+            "create_superuser": false
+        }
+    ]
+}

@@ -7,7 +7,7 @@ export const brandingService = {
   async getBranding() {
     const tenantStore = useTenantStore();
     const endpoint = getEndpoint(ENDPOINTS.BRANDING, tenantStore.tenantName);
-    
+
     try {
       const response = await api.get(endpoint);
       return response.data;

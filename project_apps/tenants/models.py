@@ -1,8 +1,8 @@
-from django.db import models, connection
+from django.db import connection, models
 from django_tenants.models import DomainMixin, TenantMixin
 
-from project_apps.utils import SafeModelMixin, VersionedBetterModelMixin
 from project_apps.tenants.constants import CountryChoices
+from project_apps.utils import SafeModelMixin, VersionedBetterModelMixin
 
 
 class OrganizationTenant(SafeModelMixin, TenantMixin):
@@ -17,6 +17,7 @@ class OrganizationTenant(SafeModelMixin, TenantMixin):
 
 class OrganizationDomain(SafeModelMixin, DomainMixin):
     """Domain Model required fot Django Tenants."""
+
     pass
 
 

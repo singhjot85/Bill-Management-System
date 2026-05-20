@@ -3,6 +3,7 @@ Infra specific varibles will stay in this files
 .constants : Settings Constant even at runtime
 .variables : Settings that may vary at runtime
 """
+
 # TODO: Explicitly define each import to make debugging easier
 from .constants import *
 from .variables import *

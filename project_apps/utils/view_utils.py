@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from rest_framework.viewsets import ViewSet
 from rest_framework import response, status
+from rest_framework.viewsets import ViewSet
 
 
 class AuthenticatedViewMixin:

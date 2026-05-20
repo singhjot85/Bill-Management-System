@@ -22,7 +22,7 @@ export function setupRoutes() {
     // TODO: Change route names, this is confusing, but right now way too tired to fix this.
     routesToLoad = [...publicRoutes];
   }
-  else{ 
+  else{
     routesToLoad = [...privateRoutes];
   }
 

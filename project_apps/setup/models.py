@@ -1,6 +1,6 @@
+from django.core.exceptions import ImproperlyConfigured
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.core.exceptions import ImproperlyConfigured
 
 from project_apps.setup.constants import ConfigurationInterfaceChoices
 from project_apps.utils.model_utils import VersionedBetterModelMixin
@@ -24,5 +24,5 @@ class Configurations(VersionedBetterModelMixin):
             config = self.objects.get(interface_type=interface_type).order_by(self.DEFAULT_ORDERING).first()
         except Exception as e:
             raise ImproperlyConfigured(str(e)) from e
-        
+
         return config
