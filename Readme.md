@@ -1,49 +1,51 @@
-# Bill Management Application
-A system that can be used to generate and manage bills/invoices.
+# Bill Management Application (BMA)
 
-## Current Items in Scope (Raw Requirements):
-- A user visits the webpage and can pay a certain amount to the vendor providing the link.
-    - User has to enter a minimal data form, and pay using a payment gateway (Future scope user can generate bill without paying).
-    - User gets invoice for the payment they made.
-- A frequent visitor/known user can login and perform same functionalities but with enhanced features available to them.
-- A BackOffice (BO) user can review, manage and generate invoivces.
+A modern, multi-tenant SaaS platform for generating, managing, and paying bills/invoices. BMA provides a seamless experience for vendors to manage their clients and for users to make payments and track their invoices.
 
-## User Views:
-- Public User:
-    - Role: Public
-    - Resposibilities: Can enter data, make payments, request bills, review their bills.
-- Private User:
-    - Role: Private
-    - Resposibilities: Can login, enter data, make payments, request bills, review their bills.
-- Tenant Admin:
-    - Role: Manager (Current Tenant's Admin).
-    - Resposibilities: Can login, enter data, make payments, request bills, review everyone's bills.
-- Platform Admin:
-    - Role: Project Admin
-    - Resposibilities: Can login, manage tenants, configure new tenants.
+## Core Features
+- **Multi-Tenant Architecture**: Robust isolation between organizations using database schemas (via `django-tenants`).
+- **Dynamic Branding**: Tenants can customize their portal with specific logos, colors, and contact information.
+- **Automated Invoicing**: Generate professional PDF invoices upon payment or on-demand.
+- **Integrated Payments**: Support for Razorpay and other payment gateways.
+- **Role-Based Access**:
+    - **Platform Admin**: Global system management and tenant provisioning.
+    - **Tenant Admin**: Organization-specific management of customers and billing.
+    - **Client/User**: View, download, and pay invoices.
+    - **Public User**: Fast-track payment and invoice generation without account creation.
 
+## Tech Stack
+| Component | Technologies |
+| :--- | :--- |
+| **Backend** | Django 5.2, DRF, django-tenants |
+| **Frontend** | Vue 3 (Composition API), Vite, Vuetify 3, Pinia |
+| **Worker/Queue** | Celery, Valkey |
+| **Database** | PostgreSQL |
+| **Infrastructure** | Docker, Compose, Poetry, Pre-Commit |
+
+## Documentation
+- [Frontend Architecture](./documentation/Frontend_Architecture.md)
+- [Data Models](./documentation/Models.md)
+- [Local Setup & Seeders](./documentation/Local_Setup.md)
+- [Payment Service Architecture](./documentation/Payment_Service_Architecture.md)
 
 ## Local Development Setup
 
-To get started with local development, follow these steps:
+### 1. Build and Start Containers
+```bash
+make build
+make up
+```
 
-1.  **Build and Start Containers:**
-    ```bash
-    make build
-    make up
-    ```
-
-2.  **Bootstrap the Database:**
-    The application uses a multi-tenant architecture. You need to seed the base tenants and users:
-    ```bash
-    # Run all seeders (tenants and users)
-    docker-compose -f compose/local/compose.yaml run --rm django python manage.py bootstrap_tenants
-    docker-compose -f compose/local/compose.yaml run --rm django python manage.py bootstrap_users
-    ```
+### 2. Bootstrap the Database
+Initialize the multi-tenant environment by seeding base tenants and users:
+```bash
+# Run all seeders
+make setup
+```
 
 ## User Credentials (Local Development)
 
-The following credentials are created by the seeders for local testing:
+The following pre-configured accounts are available for testing:
 
 | Role | Username | Password | Domain |
 | :--- | :--- | :--- | :--- |
@@ -52,38 +54,7 @@ The following credentials are created by the seeders for local testing:
 | **Tenant Admin (Restraunt)** | `admin@restraunt.com` | `qwerty@123` | `restraunt.localhost:8000` |
 | **Client/User (NGO)** | `client@localngo.com` | `qwerty@123` | `localngo.localhost:8000` |
 
-*Note: Ensure your `/etc/hosts` or equivalent points these domains to `127.0.0.1` if you are not using a tool like `dnsmasq`.*
+*Note: Map these domains to `127.0.0.1` in your `/etc/hosts` file for local testing.*
 
-## Tech Stack
-**Backend:** django, djangorestframework, django-tenats + django-celery, django-celery-beat, valkey
-**Frontend:** Vue + Vite + Vuetify
-**Database:** PostgreSQL
-**Other Infra:** Docker, Compose, Poetry, PreCommit
-
-
-<!--
-TODO: We need to figure out a way that consumes less external dependencies and also generates better invoices.
-Optional Addditional System dependencies:
-- dependencies for weasyprint: `brew install cairo pango gdk-pixbuf libffi`
-- dependencies for xhtml2pdf: `brew install cairo pkg-config`
--->
-
-## UI Infra (Older - using Django Templatind)
-Earlier approach was to render UI using django templates, but that became quite complex very easily
-Also DjangoTemplates had some limitations and also the UI was not so good lookin.
-Instead of wasting much time we shifted to Vue+Vite+Vuetify for this.
-More on that in [Readme](./frontend/README.md)
-```
-project_templating/
-    static/
-        css/
-        js/
-        images/
-        vendor/
-    templates/
-        base/
-        components/
-        views/
-        partials/
-        include/
-```
+---
+*For legacy UI documentation, see [Project Templating](./project_templating/Readme.md).*
