@@ -20,9 +20,4 @@ RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_KEY", "")
 RAZORPAY_API_SECRETE = os.getenv("RAZORPAY_API_SECRETE", "")
 DEFAULT_AUTO_FIELD = os.getenv("DJANGO_DEFAULT_ID", "django.db.models.BigAutoField")
 
-BOOTSRAP_SCHEMA_NAME = os.getenv("BOOTSTRAP_SCHEMA", "localclient")
-DEV_PASS = os.getenv("DEV_PASS")
-PUBLIC_USERNAME = os.getenv("PUBLIC_USERNAME")
-PUBLIC_PASSWORD = os.getenv("PUBLIC_PASSWORD")
-
 CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")

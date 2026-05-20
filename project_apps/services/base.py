@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 import requests
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class BaseHTTPService:
@@ -56,10 +56,10 @@ class BaseHTTPService:
             # to handle different status codes as needed.
             return response
         except requests.exceptions.RequestException as e:
-            logger.error(f"Request error occurred: {e}")
+            LOGGER.error(f"Request error occurred: {e}")
             raise e
         except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
+            LOGGER.error(f"An unexpected error occurred: {e}")
             raise e
 
     def get(self, endpoint: str, **kwargs) -> requests.Response:

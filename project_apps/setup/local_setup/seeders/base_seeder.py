@@ -5,8 +5,9 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from django.conf import settings
+from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
-from django.db.models import Field, FieldDoesNotExist, Model
+from django.db.models import Field, Model
 
 LOGGER = logging.getLogger()
 
@@ -92,7 +93,7 @@ class BaseSeeder(ABC):
         if len(file_name.split(".")) < 2:
             raise SeederException(f"Invalid file name [{file_name}] include file extension also.")
 
-        if hasattr(self, cache_key_name):
+        if hasattr(self, cache_key_name) and getattr(self, cache_key_name):
             return getattr(self, cache_key_name)
 
         file_path = os.path.join(settings.BASE_DIR, self.DATA_FILES_PATH, file_name)
@@ -101,9 +102,6 @@ class BaseSeeder(ABC):
         if file_name.split(".")[-1] == "json":
             with open(file_path) as f:
                 data = json.load(f)
-        else:
-            with open(file_path) as f:
-                data = f.read()
 
         if cache_key_name:
             setattr(self, cache_key_name, data)
