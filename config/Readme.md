@@ -13,14 +13,14 @@ project_root/
 |   |- variables.py         # Settings variables to keep settings.py clean
 |   |- wsgi.py              # Dev Server Configuration
 |
-|- frontend/            # Forntend code   
+|- frontend/            # Forntend code
 |- project_apps
 |   |- customer_management   # Customer Django App
 |   |- payments_management   # Payments Django App
 |   |- service               # External Service Logic
 |   |- setup                 # Setup App (Shared App)
 |   |- tenants               # Tenants App (Public App)
-|   |- utils                 # App level common utility logic 
+|   |- utils                 # App level common utility logic
 |- project templating   # Django Templates and Static Assets
 ```
 

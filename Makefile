@@ -91,14 +91,14 @@ cbr: docker-clean-build-run
 docker-clean-local-setup:
 	make clean
 	make build
-	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_tenants --schema_name localclient
+	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_tenants
 	${BASE_DJANGO_CONTAINER} python manage.py bootstrap_users
 	make run
 clean-setup: docker-clean-local-setup
 
 docker-rebuild:
 	${BASE_COMPOSE_CMD} down
-	make build 
+	make build
 	make run
 rebuild: docker-rebuild
 

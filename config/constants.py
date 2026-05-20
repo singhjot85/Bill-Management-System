@@ -29,12 +29,7 @@ PROJECT_APPS = [
     "project_apps.payments_management",
 ]
 
-DJANGO_TENANT_PUBLIC_APPS = [
-    *DEFAULT_DJANGO_APPS, 
-    *EXTRA_DEPENDENCIES, 
-    "project_apps.tenants", 
-    "project_apps.setup"
-]
+DJANGO_TENANT_PUBLIC_APPS = [*DEFAULT_DJANGO_APPS, *EXTRA_DEPENDENCIES, "project_apps.tenants", "project_apps.setup"]
 
 DJANGO_TENANT_PRIVATE_APPS = [
     *DEFAULT_DJANGO_APPS,

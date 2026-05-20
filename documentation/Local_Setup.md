@@ -21,7 +21,7 @@ project_apps/setup/local_setup/
 
 ## The Seeder Pattern (LLD Concept: Template Method Pattern)
 - Each seeder should follows a contract defined in `BaseSeeder`.
-- Every seeder implements `seed()`, the base class handles the logging ceremony via `run()`. 
+- Every seeder implements `seed()`, the base class handles the logging ceremony via `run()`.
 - This is the Template Method Pattern - the invariant steps *(logging, lifecycle)* live in the base, the variant step *(seed)* is delegated.
 
 ## The Orchestrator (LLD Concept: Chain of Responsibility + Facade)

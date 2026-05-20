@@ -6,7 +6,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sessions.models import Session
 from django.db.models import QuerySet
 
-from project_apps.tenants.models import OrganizationDomain, OrganizationTenant, OrganizationBranding
+from project_apps.tenants.models import (
+    OrganizationBranding,
+    OrganizationDomain,
+    OrganizationTenant,
+)
 from project_apps.utils.admin_utils import public_admin_site
 
 User = get_user_model()
@@ -82,6 +86,7 @@ class OrgBrandingAdmin(admin.ModelAdmin):
         ("Navbar", {"fields": ["navbar_icon", "navbar_title"], "classes": ["wide"]}),
         ("Footer", {"fields": ["footer_icon", "footer_text", "footer_extra_text"], "classes": ["wide"]}),
     )
+
 
 public_admin_site.register(OrganizationBranding, OrgBrandingAdmin)
 public_admin_site.register(OrganizationDomain, OrgDomainAdmin)

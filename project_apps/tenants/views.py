@@ -1,12 +1,17 @@
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import MethodNotAllowed
 
-from project_apps.tenants.serializers import LoginSerializer, UserSerializer, BrandingSerializer
 from project_apps.tenants.models import OrganizationBranding
+from project_apps.tenants.serializers import (
+    BrandingSerializer,
+    LoginSerializer,
+    UserSerializer,
+)
+
 
 class AuthViewSet(viewsets.ViewSet):
     """
@@ -46,6 +51,6 @@ class BrandingViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         return MethodNotAllowed("List not allowed, use get instead.")
-    
+
     def create(self, request, *args, **kwargs):
         return MethodNotAllowed("Cannot be created as of now.")

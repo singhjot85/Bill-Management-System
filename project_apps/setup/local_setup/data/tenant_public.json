@@ -1,0 +1,21 @@
+{
+    "OrganizationTenant": {
+        "name": "Public",
+        "in_production": false,
+        "schema_name": "public"
+    },
+    "OrganizationBranding": {
+        "phone": "1234567891",
+        "email": "brandingemail@public.com",
+        "navbar_icon": "mdi-heart-pulse",
+        "navbar_title": "Public",
+        "footer_icon": "mdi-heart-pulse",
+        "footer_text": "Hello to you'r local NGO, please conatct us at given conatcy info.",
+        "footer_extra_text": "Some extra footer text fot testing."
+    },
+    "OrganizationDomain": [
+        {
+            "domain": "localhost"
+        }
+    ]
+}
