@@ -73,3 +73,6 @@ class TenantSeeder(BaseSeeder):
             self._create_branding(tenant)
 
         return tenant
+
+    def get_tenant_schema(self, *args, **kwargs):
+        return self.tenant_seeder_data.get("OrganizationTenant").get("schema_name")

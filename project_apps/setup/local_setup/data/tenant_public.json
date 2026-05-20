@@ -17,5 +17,23 @@
         {
             "domain": "localhost"
         }
+    ],
+    "Users": [
+        {
+            "first_name": "Bruce",
+            "last_name": "Wayne",
+            "username": "admin@localhost.com",
+            "email": "admin@localhost.com",
+            "password": "qwerty@123",
+            "create_superuser": true
+        },
+        {
+            "first_name": "Tony",
+            "last_name": "Stark",
+            "username": "client@localhost.com",
+            "email": "client@localhost.com",
+            "password": "qwerty@123",
+            "create_superuser": false
+        }
     ]
 }

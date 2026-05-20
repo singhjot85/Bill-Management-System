@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
 from django.db.models import Field, Model
+from django_tenants.utils import tenant_context
 
 LOGGER = logging.getLogger()
 
@@ -28,12 +29,12 @@ class BaseSeeder(ABC):
         pass
 
     def run(self, *args, **kwargs):
-        """Main caller for each seeder, stays in base, DO NOT override this."""
+        """Main caller for each seeder, stays in base, rarely overriden"""
         LOGGER.info("[%s] Running Seeder...", self.label)
 
         try:
-            # Indempotent seeding, each seed should succeed fully only.
-            with transaction.atomic():
+            with transaction.atomic(): # Atomicity
+                # Idempotency, inside the seed (to be taken care of always).
                 self.seed(args, kwargs)
 
         except Exception as e:

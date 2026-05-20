@@ -20,5 +20,39 @@
         {
             "domain": "restraunt.localhost"
         }
+    ],
+    "Users": [
+        {
+            "first_name": "Bruce",
+            "last_name": "Wayne",
+            "username": "admin@localrestraunt.com",
+            "email": "admin@localrestraunt.com",
+            "password": "qwerty@123",
+            "create_superuser": true
+        },
+        {
+            "first_name": "Clark",
+            "last_name": "Kent",
+            "username": "admin@restraunt.com",
+            "email": "admin@restraunt.com",
+            "password": "qwerty@123",
+            "create_superuser": true
+        },
+        {
+            "first_name": "Tony",
+            "last_name": "Stark",
+            "username": "client@localrestraunt.com",
+            "email": "client@localrestraunt.com",
+            "password": "qwerty@123",
+            "create_superuser": false
+        },
+        {
+            "first_name": "Bruce",
+            "last_name": "Banner",
+            "username": "client@restraunt.com",
+            "email": "client@restraunt.com",
+            "password": "qwerty@123",
+            "create_superuser": false
+        }
     ]
 }
