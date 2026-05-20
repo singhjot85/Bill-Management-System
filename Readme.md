@@ -16,12 +16,12 @@ A modern, multi-tenant SaaS platform for generating, managing, and paying bills/
 
 ## Tech Stack
 <p align="center">
-  <img src="assets/django-logo-negative.png" width="180" height="100" alt="Django Logo" />
-  <img src="assets/drf-logo-dark.png" width="180" height="100" alt="DRF Logo" />
-  <img src="assets/vue-logo.png" width="auto" height="120" alt="Vue Logo" />
-  <img src="assets/celery-logo.webp" width="auto" height="120" alt="celery logo" />
-  <img src="assets/elephant.png" width="auto" height="120" alt="postgres logo" />
-  <img src="assets/docker-mark-ocean-blue.svg" width="180" height="100" alt="docker logo" />
+  <img src="assets/django-logo-negative.png" width="150" height="80" alt="Django Logo" />
+  <img src="assets/drf-logo-dark.png" width="150" height="80" alt="DRF Logo" />
+  <img src="assets/vue-logo.png" width="100" height="80" alt="Vue Logo" />
+  <img src="assets/celery-logo.webp" width="100" height="80" alt="celery logo" />
+  <img src="assets/elephant.png" width="100" height="80" alt="postgres logo" />
+  <img src="assets/docker-mark-ocean-blue.svg" width="100" height="80" alt="docker logo" />
 </p>
 
 ---
