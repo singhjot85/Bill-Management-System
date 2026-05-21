@@ -66,7 +66,7 @@ const PRIVATE_ENDPOINTS: Record<string, string> = Object.freeze({
  * @example
  * const path = getEndpoint(ENDPOINTS.LOGIN, 'public'); // returns 'auth/login/'
  */
-export function getEndpoint(endpointKey: string, tenantName: string = 'public', query_params: Record<string, any> = []): string {
+export function getEndpoint(endpointKey: string, tenantName: string = 'public', query_params: Record<string, any> = {}): string {
   const endpointsMap = tenantName === 'public' ? PUBLIC_ENDPOINTS : PRIVATE_ENDPOINTS;
   let path = endpointsMap[endpointKey];
 
@@ -75,9 +75,11 @@ export function getEndpoint(endpointKey: string, tenantName: string = 'public', 
     return '';
   }
 
-  if (path && query_params){
+  if (path && Object.keys(query_params).length > 0) {
     const queryString = new URLSearchParams(query_params).toString();
-    path += `?${queryString}`
+    if (queryString) {
+      path += `?${queryString}`;
+    }
   }
 
   return path;

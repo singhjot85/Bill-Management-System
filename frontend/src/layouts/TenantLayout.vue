@@ -33,7 +33,7 @@ const route = useRoute();
 const tenantConfig = ref(defaultTenantConfig);
 
 const viewConfig = computed(() => {
-  if (route.path === '/' || route.name === 'PublicHome') {
+  if (route.path === '/' || route.name === 'TenantHome') {
     return tenantConfig.value.home;
   }
   if (route.path.includes('login') || route.path.includes('signup')) {

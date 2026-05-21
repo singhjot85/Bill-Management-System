@@ -9,7 +9,7 @@ export const brandingService = {
     const endpoint = getEndpoint(ENDPOINTS.BRANDING, tenantStore.tenantName, queryParams);
 
     try {
-      const response = await api.get(endpoint, );
+      const response = await api.get(endpoint);
       return response.data;
     } catch (error) {
       console.warn('Branding fetch failed, using defaults');
