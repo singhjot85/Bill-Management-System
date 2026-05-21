@@ -7,6 +7,7 @@ Infra specific varibles will stay in this files
 # TODO: Explicitly define each import to make debugging easier
 from .constants import *
 from .variables import *
+from .setting_resolvers import get_resolved_cache_options, get_cache_url
 
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
 STATIC_URL = "static/"
@@ -43,9 +44,18 @@ DATABASES = {
     }
 }
 
-REST_AUTH = {
-    "USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER
+CACHE_URL = get_cache_url()
+CACHE_BACKEND, RESOLVED_CACHE_OPTIONS = get_resolved_cache_options()
+CACHES = {
+    "default": {
+        "BACKEND": CACHE_BACKEND,
+        "LOCATION": CACHE_URL,
+        "OPTIONS": RESOLVED_CACHE_OPTIONS,
+        "IGNORE_EXCEPTIONS": True,
+        "TIMEOUT": 3600,
+    },
 }
+
 
 TEMPLATES = [
     {
@@ -74,6 +84,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+REST_AUTH = {"USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -104,9 +115,3 @@ else:
     DEBUG = False
     ALLOWED_HOSTS = []
     WSGI_APPLICATION = ""
-
-    # Kept here, so we don't foget to build this logic
-    def get_resolved_domains():
-        pass
-
-    RESOLVED_DOMAINS = get_resolved_domains()

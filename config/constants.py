@@ -2,6 +2,8 @@
 This file list all the apps that are used in the project, this keep the settings.py file clean.
 """
 
+import os
+
 TENANT_APP_NAME = "tenants"
 TENANT_MODEL_NAME = "OrganizationTenant"
 DOMAIN_MODEL_NAME = "OrganizationDomain"
@@ -47,3 +49,27 @@ PAYMENT_TEMPLATES = "payments_management.Templates"
 LOCAL_ENVS = ["local", "dev", "devlopment"]
 
 USER_DETAIL_SERIALIZER = "project_apps.tenants.serializers.UserSerializer"
+
+# Default Redis, and Redis Cluster Settings
+DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+REDIS_DEFAULT_BACKEND = "django_redis.cache.RedisCache"
+REDIS_CLUSTER_DEFAULT_OPTIONS = {
+    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    "PICKLED_VERSION": 5,
+}
+REDIS_DEFAULT_OPTIONS = {
+    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+}
+
+# Default Valkey, and Valkey Cluster Settings
+VALKEY_DEFAULT_BACKEND = "django_valkey.cluster_cache.cache.ClusterValkeyCache"
+VALKEY_CLUSTER_DEFAULT_OPTIONS = {
+    "CLIENT_CLASS": "config.valkey_cluster_client.PatchedClusterClient",
+    "CONNECTION_POOL_KWARGS": {
+        "socket_connection_timeout": 5,
+        "socket_timeout": 5,
+    },
+}
+VALKEY_DEFAULT_OPTIONS = {
+    "CLIENT_CLASS": "django_valkey.client.DefaultClient",
+}

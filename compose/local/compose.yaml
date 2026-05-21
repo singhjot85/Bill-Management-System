@@ -16,6 +16,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      bma_cache:
+        condition: service_started
     volumes:
       - ../../.:/app
     environment:
@@ -60,6 +62,12 @@ services:
     env_file:
       - ../../.envs/vite.env
 
+  bma_cache:
+    image: valkey/valkey:8.1.5-alpine
+    pull_policy: if_not_present
+    container_name: valkey_cache
+    ports:
+      - "6379:6379"
 
 secrets:
   global-env:

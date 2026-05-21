@@ -21,3 +21,10 @@ RAZORPAY_API_SECRETE = os.getenv("RAZORPAY_API_SECRETE", "")
 DEFAULT_AUTO_FIELD = os.getenv("DJANGO_DEFAULT_ID", "django.db.models.BigAutoField")
 
 CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")
+
+CACHE_PROVIDER = os.getenv("CACHE_PROVIDER", "valkey")
+CACHE_HOST = os.getenv("CACHE_HOST", "bma_cache")
+CACHE_PORT = os.getenv("CACHE_PORT", "6379")
+
+VALKEY_SOCKET_CONN_TIMEOUT = os.getenv("VALKEY_SOCKET_CONN_TIMEOUT")
+VALKEY_SOCKER_TIMEOUT = os.getenv("VALKEY_SOCKER_TIMEOUT")
