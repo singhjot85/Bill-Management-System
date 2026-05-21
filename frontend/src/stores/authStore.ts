@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
                 const response = await authService.login(credentials);
                 // Backend returns { access: '...', refresh: '...' } or similar
                 // We use 'access' as the primary token
-                this.accessToken = response.access || response.token;
+                this.accessToken = response.key || response.token;
                 if (this.accessToken) {
                     setCookie(AUTH_TOKEN_KEY, this.accessToken);
                     await this.fetchUser();

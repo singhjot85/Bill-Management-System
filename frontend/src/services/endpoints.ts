@@ -66,13 +66,18 @@ const PRIVATE_ENDPOINTS: Record<string, string> = Object.freeze({
  * @example
  * const path = getEndpoint(ENDPOINTS.LOGIN, 'public'); // returns 'auth/login/'
  */
-export function getEndpoint(endpointKey: string, tenantName: string = 'public'): string {
+export function getEndpoint(endpointKey: string, tenantName: string = 'public', query_params: Record<string, any> = []): string {
   const endpointsMap = tenantName === 'public' ? PUBLIC_ENDPOINTS : PRIVATE_ENDPOINTS;
-  const path = endpointsMap[endpointKey];
+  let path = endpointsMap[endpointKey];
 
   if (!path) {
     console.error(`[Endpoints] Key "${endpointKey}" not found in context "${tenantName}"`);
     return '';
+  }
+
+  if (path && query_params){
+    const queryString = new URLSearchParams(query_params).toString();
+    path += `?${queryString}`
   }
 
   return path;

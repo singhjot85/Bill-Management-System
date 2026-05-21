@@ -19,7 +19,12 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://django:8000',
-      }
+        changeOrigin: false,
+      },
+      '/static': {
+        target: 'http://django:8000',
+        changeOrigin: false,
+      },
     }
   }
 })

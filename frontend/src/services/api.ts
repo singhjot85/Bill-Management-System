@@ -28,7 +28,7 @@ api.interceptors.request.use((config) => {
 
   // Add Authorization header if token exists
   if (authStore.accessToken) {
-    config.headers['Authorization'] = `Bearer ${authStore.accessToken}`;
+    config.headers['Authorization'] = `Token ${authStore.accessToken}`;
   }
 
   // Only show loading if not explicitly disabled in config
