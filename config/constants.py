@@ -44,6 +44,6 @@ CUSTOMER_ADDRESS = "customer_management.CustomerAddress"
 PAYMENT_INVOICE = "payments_management.Invoice"
 PAYMENT_TEMPLATES = "payments_management.Templates"
 
-LOCAL_ENVS = ["local", "dev", "devlopment"]
+LOCAL_ENVS = ["local", "dev", "development"]
 
 USER_DETAIL_SERIALIZER = "project_apps.tenants.serializers.UserSerializer"
