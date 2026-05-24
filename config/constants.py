@@ -2,6 +2,9 @@
 This file list all the apps that are used in the project, this keep the settings.py file clean.
 """
 
+PROJECT_NAME = "bill-management-application"
+PROJECT_LABEL = "Bill Management Application"
+
 TENANT_APP_NAME = "tenants"
 TENANT_MODEL_NAME = "OrganizationTenant"
 DOMAIN_MODEL_NAME = "OrganizationDomain"

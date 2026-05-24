@@ -4,84 +4,79 @@ NOTE: Never do a dependecy import in this file, or any import that might trigger
     Make sure you do lazy imports only, if needed do after setting's import
 """
 
-import copy
-import logging
-import os
-
-from celery import Celery, Task
+from celery import Celery
+from celery.contrib.django.task import DjangoTask
+from celery.signals import task_prerun, task_postrun
 from django.db import connection
 
-from project_apps.tasks.registry import FailureModes
 
-# Make sure project settings are setup before any import that might look for django settings
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-from django_tenants.utils import schema_context  # noqa: E402
+class TenantAwareTask(DjangoTask):
+    """
+    Custom Task class that ensures the tenant schema context is preserved
+    during task execution.
+    """
 
-LOGGER = logging.getLogger()
-
-
-class TenantAwareTask(Task):
     abstract = True
-    failure_mode = FailureModes.SILENT.value
 
-    def apply_async(
-        self, args=None, kwargs=None, task_id=None, producer=None, link=None, link_error=None, shadow=None, **options
-    ):
+    def _add_current_schema(self, kwargs: dict):
+        kwargs.setdefault("_schema_name", connection.schema_name)
+
+    def apply_async(self, args=None, kwargs=None, *arg, **options):
         kwargs = kwargs or {}
+        self._add_current_schema(kwargs)
+        return super().apply_async(args, kwargs, *arg, **options)
 
-        if "_schema_name" not in kwargs:
-            kwargs["_schema_name"] == connection.schema_name
-        return super().apply_async(args, kwargs, task_id, producer, link, link_error, shadow, **options)
-
-    def __call__(self, *args, **kwargs):
-        schema_name = kwargs.pop("_schema_name")
-        with schema_context(schema_name):
-            return super().__call__(*args, **kwargs)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        if self.failure_mode == FailureModes.DLQ.value:
-            self._handle_dead_letter_queues(exc, task_id, args, kwargs)
-        elif self.failure_mode == FailureModes.ALERT.value:
-            self._handle_alerts(exc, task_id)
-        else:
-            self._handle_silent_failure(exc)
-
-        return super().on_failure(exc, task_id, args, kwargs, einfo)
-
-    # TODO: Implement these handlers
-    def _handle_dead_letter_queues(self, exc, task_id, args, kwargs):
-        pass
-
-    def _handle_silent_failure(self, exc):
-        LOGGER.error("Error in async task", exc_info=exc)
-
-    def _handle_alerts(self, exc):
-        pass
+    def apply(self, args=None, kwargs=None, *arg, **options):
+        kwargs = kwargs or {}
+        self._add_current_schema(kwargs)
+        return super().apply(args, kwargs, *arg, **options)
 
 
-def add_schema_name_to_headers(headers: dict = None):
-    if headers and "_schema_name" in headers:
-        return headers
+def switch_schema_context(task, kwargs, **kw):
+    """Set the correct database connection, before the task runs."""
+    from django_tenants.utils import get_public_schema_name, get_tenant_model
 
-    headers = copy.deepcopy(headers) if headers else {}
-    headers["_schema_name"] = connection.schema_name
-    return headers
+    old_schema = (connection.schema_name, connection.include_public_schema)
+    setattr(task, "_old_schema", old_schema)
+
+    schema = kwargs.pop("_schema_name", get_public_schema_name())
+
+    if connection.schema_name == schema:
+        return
+
+    if connection.schema_name != get_public_schema_name():
+        connection.set_schema_to_public()
+
+    tenant = get_tenant_model().objects.get(schema_name=schema)
+    connection.set_tenant(tenant, include_public=True)
+
+
+def restore_schema_context(task, **kw):
+    """Restore the original schema, after the task runs."""
+    from django_tenants.utils import get_public_schema_name
+
+    schema_name, include_public = getattr(task, "_old_schema", (get_public_schema_name, True))
+
+    if connection.schema_name == schema_name:
+        return
+
+    connection.set_schema(schema_name, include_public=include_public)
+
+
+task_prerun.connect(switch_schema_context, sender=None, dispatch_uid="custom_switch_schema_context")
+
+task_postrun.connect(restore_schema_context, sender=None, dispatch_uid="custom_restore_schema_context")
 
 
 class TenantAwareCeleryApp(Celery):
     """
-    Overriden to add schema_name to send_task, i.e. each task has a schema_name as first parameter.
-    Also uses TenantAwareTask that does schema_context switching before executing the task
+    Custom Celery App that automatically injects the current tenant's schema
+    into the task arguments before sending it to the broker.
     """
 
-    task_cls = "project_apps.tasks.base.TenantAwareTask"
-
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("task_cls", self.task_cls)
-        super().__init__(*args, **kwargs)
+    task_cls = "project_apps.tasks.base.TenantAwareCeleryApp"
 
     def create_task_cls(self):
-        return self.subclass_with_self(self.task_cls, abstract=True, name="TenantAwareTask", attribute="_app")
-
-    def send_task(self, name, args=None, kwargs=None, *arg, **options):
-        return super().send_task(name, args, kwargs, *arg, **options)
+        return self.subclass_with_self(
+            "project_apps.tasks.base.TenantAwareCeleryApp", abstract=True, name="TenantAwareTask", attribute="_app"
+        )
