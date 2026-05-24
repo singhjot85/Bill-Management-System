@@ -79,9 +79,15 @@ RUN pip install --no-cache-dir \
 COPY /config /app/config
 COPY /project_apps /app/project_apps
 
-# Copy and Permit Entrypoint Executable
-COPY /compose/local/django/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy executables
+COPY /compose/local/django/entrypoint.sh /django-entrypoint.sh
+COPY /compose/local/django/celerybeat/start.sh /beat-start.sh
+COPY /compose/local/django/celeryworker/start.sh /worker-start.sh
+
+# Give file permissions to executables
+RUN chmod +x /django-entrypoint.sh
+RUN chmod +x /beat-start.sh
+RUN chmod +x /worker-start.sh
 
 # TODO: Should we copy tests in development image
 # COPY tests/ app/tests

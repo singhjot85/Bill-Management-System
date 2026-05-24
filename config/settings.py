@@ -6,8 +6,8 @@ Infra specific varibles will stay in this files
 
 # TODO: Explicitly define each import to make debugging easier
 from .constants import *
+from .setting_resolvers import get_broker_url, get_cache_url, get_resolved_cache_options
 from .variables import *
-from .setting_resolvers import get_resolved_cache_options, get_cache_url
 
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
 STATIC_URL = "static/"
@@ -20,7 +20,8 @@ TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
 
 INSTALLED_APPS = [
     *DEFAULT_DJANGO_APPS,
-    *EXTRA_DEPENDENCIES,
+    *SHARED_EXTRA_DEPENDENCIES,
+    *PUBLIC_ONLY_EXTRA_DEPENDENCIES,
     *PROJECT_APPS,
 ]
 
@@ -55,6 +56,34 @@ CACHES = {
         "TIMEOUT": 3600,
     },
 }
+
+# https://docs.celeryq.dev/en/latest/userguide/configuration.html#
+CELERY_BROKER_URL = get_broker_url()
+CELERY_RESULT_BACKEND = RESULT_BACKEND
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
+CELERY_TIMEZONE = APPLICATION_TIMEZONE
+
+CELERY_TASK_ALWAYS_EAGER = False  # Eager task run on same caller process
+CELERY_TASK_TRACK_STARTED = True  # Save's `Started` as one of the task status.
+CELERY_TASK_TIME_LIMIT = TASK_TIME_LIMIT
+CELERY_TASK_SOFT_TIME_LIMIT = TASK_SOFT_TIME_LIMIT
+
+# Writes extended results to backend (name, args, kwargs, worker, retries, queue, delivery_info).
+CELERY_RESULT_EXTENDED = True
+CELERY_DEFAULT_TASK_QUEUE = DEFAULT_TASK_QUEUE_NAME
+
+# Need to define this explicilty fo celery
+TENANT_DB_ALIAS = "default"
+
+# CELERY_TASK_ROUTES = {
+#     "task_name": {"queue": "queue_name"}
+# }
+
+# CELERY_BEAT_SCHEDULER = "config.beat.CustomDatabaseScheduler"
 
 
 TEMPLATES = [
@@ -102,8 +131,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 USE_TZ = True
+TIME_ZONE = APPLICATION_TIMEZONE
+
 USE_I18N = True
-TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en-us"
 
 if CURRENT_ENV in LOCAL_ENVS:

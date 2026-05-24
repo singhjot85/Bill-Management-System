@@ -2,8 +2,6 @@
 This file list all the apps that are used in the project, this keep the settings.py file clean.
 """
 
-import os
-
 TENANT_APP_NAME = "tenants"
 TENANT_MODEL_NAME = "OrganizationTenant"
 DOMAIN_MODEL_NAME = "OrganizationDomain"
@@ -17,11 +15,15 @@ DEFAULT_DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-EXTRA_DEPENDENCIES = [
+SHARED_EXTRA_DEPENDENCIES = [
     "rest_framework",
     "django_tenants",
     "rest_framework.authtoken",
     "dj_rest_auth",
+]
+
+PUBLIC_ONLY_EXTRA_DEPENDENCIES = [
+    "django_celery_results",
 ]
 
 PROJECT_APPS = [
@@ -31,11 +33,17 @@ PROJECT_APPS = [
     "project_apps.payments_management",
 ]
 
-DJANGO_TENANT_PUBLIC_APPS = [*DEFAULT_DJANGO_APPS, *EXTRA_DEPENDENCIES, "project_apps.tenants", "project_apps.setup"]
+DJANGO_TENANT_PUBLIC_APPS = [
+    *DEFAULT_DJANGO_APPS,
+    *SHARED_EXTRA_DEPENDENCIES,
+    *PUBLIC_ONLY_EXTRA_DEPENDENCIES,
+    "project_apps.tenants",
+    "project_apps.setup",
+]
 
 DJANGO_TENANT_PRIVATE_APPS = [
     *DEFAULT_DJANGO_APPS,
-    *EXTRA_DEPENDENCIES,
+    *SHARED_EXTRA_DEPENDENCIES,
     "project_apps.customer_management",
     "project_apps.payments_management",
     "project_apps.setup",

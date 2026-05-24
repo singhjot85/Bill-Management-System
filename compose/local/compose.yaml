@@ -1,8 +1,12 @@
 volumes:
   pg_data:
 
+secrets:
+  global-env:
+    file: ../../.env
+
 services:
-  django:
+  django: &Django
     build:
       context: ../../.
       dockerfile: compose/local/django/DockerFile
@@ -27,6 +31,13 @@ services:
       - WATCHFILES_FORCE_POLLING=true
     ports:
       - "8000:8000"
+    # TODO: fix healthcheck
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/api/conn-test/"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 40s
 
   postgres:
     build:
@@ -65,10 +76,58 @@ services:
   bma_cache:
     image: valkey/valkey:8.1.5-alpine
     pull_policy: if_not_present
-    container_name: valkey_cache
+    container_name: bma_valkey_cache
     ports:
       - "6379:6379"
 
-secrets:
-  global-env:
-    file: ../../.env
+  bma_broker:
+    image: valkey/valkey:8.1.5-alpine
+    pull_policy: if_not_present
+    container_name: bma_valkey_broker
+    command: valkey-server --port 6378 --appendonly yes
+    ports:
+      - "6378:6378"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-p", "6378", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  bma_celeryworker:
+    <<: *Django
+    command: ../worker-start.sh
+    container_name: bma_celeryworker
+    ports:
+      - "5555:5555"
+    depends_on:
+      django:
+        condition: service_started
+      bma_broker:
+        condition: service_healthy
+        # TODO: Add health-check to django
+        # condition: service_healthy
+
+  # TODO: Let's get worker up and running then we can think of scheduler also
+  # bma_celerybeat:
+  #   <<: *Django
+  #   command: ../beat-start
+  #   container_name: bma_celerybeat
+  #   env_file:
+  #     - ../../.envs/celery.env
+  #   depends_on:
+  #     django:
+  #       condition: service_healthy
+  #     bma_broker:
+  #       condition: service_healthy
+
+  # TODO: Implement RabbitMQ later on
+  # bma_broker:
+  #   image: rabbitmq:3.13-management-alpine
+  #   container_name: bma_rabbitmq
+  #   ports:
+  #     - "5672:5672"   # RabbitMQ main port
+  #     - "15672:15672" # Management UI
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=guest
+  #     - RABBITMQ_DEFAULT_PASS=guest

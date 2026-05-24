@@ -1,19 +1,35 @@
+from django.core.exceptions import ImproperlyConfigured
+
 from .constants import (
-    VALKEY_DEFAULT_BACKEND,
-    VALKEY_DEFAULT_OPTIONS,
+    REDIS_CLUSTER_DEFAULT_OPTIONS,
     REDIS_DEFAULT_BACKEND,
     REDIS_DEFAULT_OPTIONS,
     VALKEY_CLUSTER_DEFAULT_OPTIONS,
-    REDIS_CLUSTER_DEFAULT_OPTIONS,
+    VALKEY_DEFAULT_BACKEND,
+    VALKEY_DEFAULT_OPTIONS,
 )
-from .variables import CACHE_PROVIDER, VALKEY_SOCKET_CONN_TIMEOUT, VALKEY_SOCKER_TIMEOUT, CACHE_HOST, CACHE_PORT
+from .variables import (
+    BROKER_HOST,
+    BROKER_PORT,
+    BROKER_PROVIDER,
+    CACHE_HOST,
+    CACHE_PORT,
+    CACHE_PROVIDER,
+    VALKEY_SOCKER_TIMEOUT,
+    VALKEY_SOCKET_CONN_TIMEOUT,
+)
 
-from django.core.exceptions import ImproperlyConfigured
+
+def get_broker_url():
+    if not any([BROKER_PROVIDER, BROKER_HOST, BROKER_PORT]):
+        raise ImproperlyConfigured("Celery Broker url is incorrect")
+
+    return f"{BROKER_PROVIDER}://{BROKER_HOST}:{BROKER_PORT}/0"
 
 
 def get_cache_url():
     if not any([CACHE_PROVIDER, CACHE_HOST, CACHE_PORT]):
-        return None
+        raise ImproperlyConfigured("Cache url is incorrect")
 
     return f"{CACHE_PROVIDER}://{CACHE_HOST}:{CACHE_PORT}/0"
 
