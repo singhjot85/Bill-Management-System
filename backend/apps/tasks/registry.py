@@ -16,7 +16,7 @@ TaskReference: TypeAlias = Union[str, "TaskNames", "DjangoTask"]
 class TaskLocation(Enum):
     """Task file path for auto discover_tasks, whenever a new task file is created register it here"""
 
-    INVOICE_TASK = "project_apps.tasks.invoice_tasks"
+    INVOICE_TASK = "backend.apps.tasks.invoice_tasks"
 
     @staticmethod
     def get_autodiscove_tasks():

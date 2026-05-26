@@ -76,8 +76,7 @@ RUN pip install --no-cache-dir \
     /wheels/*
 
 # Copy Backend Code
-COPY /config /app/config
-COPY /project_apps /app/project_apps
+COPY /backend /app/backend
 
 # Copy executables
 COPY /compose/local/django/entrypoint.sh /django-entrypoint.sh

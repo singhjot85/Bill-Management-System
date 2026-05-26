@@ -8,4 +8,4 @@ set -e
 # done
 
 echo "Starting Celery Beat..."
-exec celery -A config.celery beat --loglevel=infop
+exec celery -A backend.config.celery beat --loglevel=info

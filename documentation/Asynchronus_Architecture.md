@@ -49,16 +49,16 @@ def generate_invoice_pdf(...):
 
 **Decision: `django-celery-beat` with `DatabaseScheduler`**
 
-Schedule lives in PostgreSQL, manageable via Django Admin at runtime — no redeployment needed to add/modify/disable jobs. Initial static schedule is defined in `config/celery_config.py` and imported into DB on first run.
+Schedule lives in PostgreSQL, manageable via Django Admin at runtime — no redeployment needed to add/modify/disable jobs. Initial static schedule is defined in `backend/config/celery_config.py` and imported into DB on first run.
 
 ## 2. Task File Structure
 
-**Decision: Dedicated `project_apps/tasks/` module**
+**Decision: Dedicated `backend/apps/tasks/` module**
 
 Rejected per-app `tasks.py` files because periodic and notification tasks are cross-cutting concerns that touch multiple apps. A dedicated module prevents implicit coupling between apps through the task layer.
 
 ```
-project_apps/
+backend/apps/
 |- tasks/
 |   |- __init__.py
 |   |- base.py              # TenantAwareTask, TenantFanOut, failure handling
@@ -74,14 +74,14 @@ project_apps/
 
 **Decision: Explicit `autodiscover_tasks` list**
 
-`autodiscover_tasks()` with no arguments won't find `project_apps/tasks/` because it is not in `INSTALLED_APPS`. Explicit registration is consistent with the project's convention of explicit URL routing in `config/routers.py`.
+`autodiscover_tasks()` with no arguments won't find `backend/apps/tasks/` because it is not in `INSTALLED_APPS`. Explicit registration is consistent with the project's convention of explicit URL routing in `backend/config/routers.py`.
 
 ```python
-# config/celery.py
+# backend/config/celery.py
 app.autodiscover_tasks([
-    'project_apps.tasks.invoice_tasks',
-    'project_apps.tasks.notification_tasks',
-    'project_apps.tasks.periodic_tasks',
+    'backend.apps.tasks.invoice_tasks',
+    'backend.apps.tasks.notification_tasks',
+    'backend.apps.tasks.periodic_tasks',
 ])
 ```
 
@@ -92,7 +92,7 @@ app.autodiscover_tasks([
 Default names derived from module paths break if files are renamed or moved — Beat schedules, DLQ entries, and in-flight broker messages all reference the name as a string. Explicit names decouple the task's identity from its file location.
 
 ```python
-# project_apps/tasks/registry.py
+# backend/apps/tasks/registry.py
 class TaskNames:
     GENERATE_INVOICE_PDF             = 'bma.invoice.generate_pdf'
     SEND_PAYMENT_NOTIFICATION        = 'bma.notification.payment'
@@ -126,7 +126,7 @@ Solves the core problem: Celery workers have no active HTTP request, so `connect
 **CS Concept: Template Method Pattern** — base class defines the execution skeleton (schema injection → execution → failure routing), subclasses declare the specifics (failure mode, task logic).
 
 ```python
-# project_apps/tasks/base.py
+# backend/apps/tasks/base.py
 
 class TenantAwareTask(Task):
     abstract = True
@@ -447,22 +447,22 @@ services:
 
 ## 10. Configuration Location
 
-Follows the project's existing `config/` convention.
+Follows the project's existing `backend/config/` convention.
 
 ```
-config/
+backend/config/
 |- celery.py         # Celery app instance, autodiscover_tasks
 |- celery_config.py  # Beat schedule, queue routing, serializer settings
 ```
 
 ```python
-# config/celery.py
+# backend/config/celery.py
 app = Celery('bma')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks([
-    'project_apps.tasks.invoice_tasks',
-    'project_apps.tasks.notification_tasks',
-    'project_apps.tasks.periodic_tasks',
+    'backend.apps.tasks.invoice_tasks',
+    'backend.apps.tasks.notification_tasks',
+    'backend.apps.tasks.periodic_tasks',
 ])
 ```
 
@@ -491,7 +491,7 @@ app.autodiscover_tasks([
 | Broker | Two Valkey containers (cache / broker separated) |
 | Result backend | `django-celery-results` (PostgreSQL) |
 | Beat scheduler | `django-celery-beat` with `DatabaseScheduler` |
-| Task location | Dedicated `project_apps/tasks/` module |
+| Task location | Dedicated `backend/apps/tasks/` module |
 | Task discovery | Explicit `autodiscover_tasks` list |
 | Task naming | Explicit names in `registry.py` with `bma.*` namespace |
 | Queue routing | Pattern-based on task name prefix (zero-maintenance) |

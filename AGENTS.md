@@ -24,7 +24,7 @@
 ### Key Directories
 
 ```
-project_apps/services/ # All external API + orchestration logic
+backend/apps/services/ # All external API + orchestration logic
 config/ # Django settings, routers, env
 documentation/ # Specs, architecture decisions, diagrams
 compose/ # Docker Compose files (local & prod)
@@ -38,11 +38,11 @@ templates/ # Legacy Django templates (keep stable, prefer Vue for new features)
 
 - **Public schema**: `auth`, `tenants` models, platform‑wide settings.
 - **Tenant schemas**: `customer_management`, `payments_management`.
-- **All tenant‑scoped models** must guarantee isolation. Use `BetterModelMixin` from `project_apps.utils` (provides `uuid` PK, `created`, `modified`, `deleted` — soft‑delete enabled).
+- **All tenant‑scoped models** must guarantee isolation. Use `BetterModelMixin` from `backend.apps.utils` (provides `uuid` PK, `created`, `modified`, `deleted` — soft‑delete enabled).
 
 ### Service Layer (strict separation)
 
-1. **`project_apps/services/base.py`** — Generic HTTP wrapper (using `requests.Session`). All external calls go through here.
+1. **`backend/apps/services/base.py`** — Generic HTTP wrapper (using `requests.Session`). All external calls go through here.
 2. **Specific services** (e.g., `razorpay_service.py`) — encapsulate 3rd‑party logic (signature verification, order creation).
 3. **Orchestration** (e.g., `payment_orchestrator.py`) — coordinates services and Django models using:
    - `@transaction.atomic` for data consistency.

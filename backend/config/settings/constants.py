@@ -30,26 +30,26 @@ PUBLIC_ONLY_EXTRA_DEPENDENCIES = [
 ]
 
 PROJECT_APPS = [
-    "project_apps.tenants",
-    "project_apps.setup",
-    "project_apps.customer_management",
-    "project_apps.payments_management",
+    "backend.apps.tenants",
+    "backend.apps.setup",
+    "backend.apps.customer_management",
+    "backend.apps.payments_management",
 ]
 
 DJANGO_TENANT_PUBLIC_APPS = [
     *DEFAULT_DJANGO_APPS,
     *SHARED_EXTRA_DEPENDENCIES,
     *PUBLIC_ONLY_EXTRA_DEPENDENCIES,
-    "project_apps.tenants",
-    "project_apps.setup",
+    "backend.apps.tenants",
+    "backend.apps.setup",
 ]
 
 DJANGO_TENANT_PRIVATE_APPS = [
     *DEFAULT_DJANGO_APPS,
     *SHARED_EXTRA_DEPENDENCIES,
-    "project_apps.customer_management",
-    "project_apps.payments_management",
-    "project_apps.setup",
+    "backend.apps.customer_management",
+    "backend.apps.payments_management",
+    "backend.apps.setup",
 ]
 
 CUSTOMER_CUSTOMER = "customer_management.Customer"
@@ -59,7 +59,7 @@ PAYMENT_TEMPLATES = "payments_management.Templates"
 
 LOCAL_ENVS = ["local", "dev", "devlopment"]
 
-USER_DETAIL_SERIALIZER = "project_apps.tenants.serializers.UserSerializer"
+USER_DETAIL_SERIALIZER = "backend.apps.tenants.serializers.UserSerializer"
 
 # Default Redis, and Redis Cluster Settings
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
@@ -75,7 +75,7 @@ REDIS_DEFAULT_OPTIONS = {
 # Default Valkey, and Valkey Cluster Settings
 VALKEY_DEFAULT_BACKEND = "django_valkey.cluster_cache.cache.ClusterValkeyCache"
 VALKEY_CLUSTER_DEFAULT_OPTIONS = {
-    "CLIENT_CLASS": "config.valkey_cluster_client.PatchedClusterClient",
+    "CLIENT_CLASS": "backend.config.valkey_cluster_client.PatchedClusterClient",
     "CONNECTION_POOL_KWARGS": {
         "socket_connection_timeout": 5,
         "socket_timeout": 5,

@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
 
-APP_NAME = "project_apps"
-BASE_DIR = Path(__file__).resolve().parent.parent
-APP_DIR = os.path.join(BASE_DIR, APP_NAME)
+APP_NAME = "apps"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+APP_DIR = os.path.join(BASE_DIR, "backend", APP_NAME)
 
 PROJECT_STATIC_PATH = os.path.join(BASE_DIR, "project_templating", "static")
 

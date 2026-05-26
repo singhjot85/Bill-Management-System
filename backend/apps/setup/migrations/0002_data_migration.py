@@ -13,7 +13,7 @@ FILENAMES: TypeAlias = list
 
 
 def walk_dir() -> tuple[ROOT_PATH, DIRECTORIES, FILENAMES]:
-    CONFIG_FIXTURE_PATH = "project_apps/setup/fixtures/configurations"
+    CONFIG_FIXTURE_PATH = "backend/apps/setup/fixtures/configurations"
     complete_path = os.path.join(settings.BASE_DIR, CONFIG_FIXTURE_PATH)
     return next(os.walk(complete_path))
 

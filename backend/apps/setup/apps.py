@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class SetupConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "project_apps.setup"
+    name = "backend.apps.setup"

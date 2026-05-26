@@ -11,8 +11,8 @@ from backend.config.settings.variables import *
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
 STATIC_URL = "static/"
 
-ROOT_URLCONF = "config.routers"
-PUBLIC_SCHEMA_URLCONF = "config.public_routers"
+ROOT_URLCONF = "backend.config.routers"
+PUBLIC_SCHEMA_URLCONF = "backend.config.public_routers"
 
 TENANT_MODEL = f"{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
 TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
@@ -82,7 +82,7 @@ TENANT_DB_ALIAS = "default"
 #     "task_name": {"queue": "queue_name"}
 # }
 
-# CELERY_BEAT_SCHEDULER = "config.beat.CustomDatabaseScheduler"
+# CELERY_BEAT_SCHEDULER = "backend.config.beat.CustomDatabaseScheduler"
 
 
 TEMPLATES = [
@@ -138,7 +138,7 @@ LANGUAGE_CODE = "en-us"
 if CURRENT_ENV in LOCAL_ENVS:
     DEBUG = True
     ALLOWED_HOSTS = []
-    WSGI_APPLICATION = "config.wsgi.application"
+    WSGI_APPLICATION = "backend.config.wsgi.application"
 else:
     # TODO: Write WSGI and  ALLOWED_HOSTS configuration for production
     DEBUG = False

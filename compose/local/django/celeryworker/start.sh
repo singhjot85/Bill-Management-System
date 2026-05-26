@@ -9,4 +9,4 @@ set -e
 # done
 
 echo "Starting Celery Worker..."
-exec celery -A config.celery worker --loglevel=info --concurrency=4
+exec celery -A backend.config.celery worker --loglevel=info --concurrency=4

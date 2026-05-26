@@ -21,7 +21,7 @@ class BaseSeeder(ABC):
     """Base Seeder Templae to be used by each seeder."""
 
     label: str = ""
-    DATA_FILES_PATH = "project_apps/setup/local_setup/data"
+    DATA_FILES_PATH = "backend/apps/setup/local_setup/data"
 
     @abstractmethod
     def seed(self, *args, **kwargs):
