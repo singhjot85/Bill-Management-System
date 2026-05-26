@@ -3,7 +3,7 @@ import hmac
 import unittest
 from unittest.mock import MagicMock, patch
 
-from project_apps.services.razorpay_service import RazorpayService
+from backend.apps.services.razorpay_service import RazorpayService
 
 
 class TestRazorpayService(unittest.TestCase):

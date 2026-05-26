@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from project_apps.services.base import BaseHTTPService
+from backend.apps.services.base import BaseHTTPService
 
 
 class TestBaseHTTPService(unittest.TestCase):

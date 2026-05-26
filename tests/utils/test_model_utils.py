@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.test import TestCase
 
-from project_apps.utils.model_utils import SoftDeleteModelMixin
+from backend.utils.model_utils import SoftDeleteModelMixin
 
 User = get_user_model()
 

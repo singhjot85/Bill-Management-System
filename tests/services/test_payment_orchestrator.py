@@ -3,14 +3,14 @@ from unittest.mock import patch
 import pytest
 from django.contrib.auth import get_user_model
 
-from project_apps.customer_management.models import Customer
-from project_apps.payments_management.models import (
+from backend.apps.customer_management.models import Customer
+from backend.apps.payments_management.models import (
     Invoice,
     InvoiceStatusChoices,
     Payment,
     PaymentStatusChoices,
 )
-from project_apps.services.payment_orchestrator import PaymentOrchestrator
+from backend.apps.services.payment_orchestrator import PaymentOrchestrator
 
 User = get_user_model()
 
