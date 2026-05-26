@@ -3,27 +3,27 @@ volumes:
 
 secrets:
   global-env:
-    file: ../../.env
+    file: ../.env
 
 services:
   django: &Django
     build:
-      context: ../../.
-      dockerfile: compose/local/django/DockerFile
+      context: ../backend
+      dockerfile: ./local/django/DockerFile
       secrets:
         - global-env
     container_name: bma_django
     restart: unless-stopped
     env_file:
-      - ../../.envs/django.env
-      - ../../.envs/postgres.env
+      - ./.envs/django.env
+      - ./.envs/postgres.env
     depends_on:
       postgres:
         condition: service_healthy
       bma_cache:
         condition: service_started
     volumes:
-      - ../../.:/app
+      - ../backend:/app/backend
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -31,23 +31,16 @@ services:
       - WATCHFILES_FORCE_POLLING=true
     ports:
       - "8000:8000"
-    # TODO: fix healthcheck
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/api/conn-test/"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 40s
 
   postgres:
     build:
-      context: ../../.
-      dockerfile: compose/local/pg/Dockerfile
+      context: ./local/pg
+      dockerfile: ../compose/local/pg/Dockerfile
       secrets:
         - global-env
     container_name: bma_postgres
     env_file:
-      - ../../.envs/postgres.env
+      - ./.envs/postgres.env
     ports:
       - "5432:5432"
     healthcheck:
@@ -58,20 +51,17 @@ services:
 
   frontend:
     build:
-      context: ../../frontend
+      context: ../frontend
       dockerfile: ../compose/local/vue/Dockerfile
     container_name: bma_frontend
     restart: unless-stopped
-    # Slows down startup
-    # depends_on:
-    #   - django
     volumes:
-      - ../../frontend:/app
+      - ../frontend:/app
       - /app/node_modules
     ports:
       - "5173:5173"
     env_file:
-      - ../../.envs/vite.env
+      - ./.envs/vite.env
 
   bma_cache:
     image: valkey/valkey:8.1.5-alpine
@@ -96,7 +86,7 @@ services:
 
   bma_celeryworker:
     <<: *Django
-    command: ../worker-start.sh
+    command: backend/scripts/worker-start.sh
     container_name: bma_celeryworker
     ports:
       - "5555:5555"
@@ -105,29 +95,13 @@ services:
         condition: service_started
       bma_broker:
         condition: service_healthy
-        # TODO: Add health-check to django
-        # condition: service_healthy
 
-  # TODO: Let's get worker up and running then we can think of scheduler also
-  # bma_celerybeat:
-  #   <<: *Django
-  #   command: ../beat-start
-  #   container_name: bma_celerybeat
-  #   env_file:
-  #     - ../../.envs/celery.env
-  #   depends_on:
-  #     django:
-  #       condition: service_healthy
-  #     bma_broker:
-  #       condition: service_healthy
-
-  # TODO: Implement RabbitMQ later on
-  # bma_broker:
-  #   image: rabbitmq:3.13-management-alpine
-  #   container_name: bma_rabbitmq
-  #   ports:
-  #     - "5672:5672"   # RabbitMQ main port
-  #     - "15672:15672" # Management UI
-  #   environment:
-  #     - RABBITMQ_DEFAULT_USER=guest
-  #     - RABBITMQ_DEFAULT_PASS=guest
+  bma_celerybeat:
+    <<: *Django
+    command: backend/scripts/beat-start.sh
+    container_name: bma_celerybeat
+    depends_on:
+      django:
+        condition: service_started
+      bma_broker:
+        condition: service_healthy

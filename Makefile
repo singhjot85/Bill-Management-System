@@ -3,33 +3,35 @@
 ###################################
 
 poetry-run:
-	poetry run python manage.py runserver
+	cd backend && poetry run python manage.py runserver
 
 poetry-mm:
-	poetry run python manage.py makemigrations $(app_name)
+	cd backend && poetry run python manage.py makemigrations $(app_name)
 
 poetry-m:
-	poetry run python manage.py migrate
+	cd backend && poetry run python manage.py migrate
 
 poetry-superuser:
-	poetry run python manage.py createsuperuser
+	cd backend && poetry run python manage.py createsuperuser
 
 poetry-shell-plus:
-	poetry run python manage.py shell_plus --ipython
+	cd backend && poetry run python manage.py shell_plus --ipython
 
 setup-system:
 	@command -v brew >/dev/null || (echo "Homebrew is required. Install from https://brew.sh"; exit 1)
 	brew install poetry cairo pkg-config cmake pango gdk-pixbuf libffi
 
 setup-python:
-	poetry lock
-	poetry install --no-interaction
+	cd backend && poetry lock && poetry install --no-interaction
+
+pre-commit:
+	cd backend && poetry run pre-commit run --all-files
 
 #####################################
 ## Make target for docker commands ##
 #####################################
 
-COMPOSE_NAME:=compose/local/compose.yaml
+COMPOSE_NAME:=compose/compose.local.yaml
 BASE_COMPOSE_CMD:=docker compose -f ${COMPOSE_NAME}
 DJANGO_CONTAINER_CMD:=${BASE_COMPOSE_CMD} run --rm django
 
@@ -121,6 +123,11 @@ docker-local-db-reset:
 	make run
 db-reset: docker-local-db-reset
 
+docker-django-shell-plus:
+	@echo "⌛ Launching Django shell-plus..."
+	${DJANGO_CONTAINER_CMD} python manage.py shell_plus --ipython
+sp: docker-django-shell-plus
+
 .PHONY:
 	build
 	run
@@ -129,6 +136,7 @@ db-reset: docker-local-db-reset
 	mm
 	m
 	s
+	sp
 	clean
 	cbr
 	clean-setup

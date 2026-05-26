@@ -25,11 +25,11 @@
 
 ```
 backend/apps/services/ # All external API + orchestration logic
-config/ # Django settings, routers, env
+backend/config/ # Django settings, routers, env
+backend/django_templates/ # Legacy Django templates (keep stable, prefer Vue for new features)
 documentation/ # Specs, architecture decisions, diagrams
 compose/ # Docker Compose files (local & prod)
 frontend/ # Vue 3 SPA (API‑driven, built with Vite)
-templates/ # Legacy Django templates (keep stable, prefer Vue for new features)
 ```
 
 ## 3. Backend Rules (Django)

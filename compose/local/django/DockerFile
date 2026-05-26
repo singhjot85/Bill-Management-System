@@ -75,21 +75,12 @@ RUN pip install --no-cache-dir \
     --find-links=/wheels \
     /wheels/*
 
-# Copy Backend Code
-COPY /backend /app/backend
 
-# Copy executables
-COPY /compose/local/django/entrypoint.sh /django-entrypoint.sh
-COPY /compose/local/django/celerybeat/start.sh /beat-start.sh
-COPY /compose/local/django/celeryworker/start.sh /worker-start.sh
+COPY . ./backend
 
 # Give file permissions to executables
-RUN chmod +x /django-entrypoint.sh
-RUN chmod +x /beat-start.sh
-RUN chmod +x /worker-start.sh
+RUN chmod +x backend/scripts/django-start.sh
+RUN chmod +x backend/scripts/beat-start.sh
+RUN chmod +x backend/scripts/worker-start.sh
 
-# TODO: Should we copy tests in development image
-# COPY tests/ app/tests
-
-# ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["backend/scripts/django-start.sh"]

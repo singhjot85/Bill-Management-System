@@ -1,6 +1,6 @@
 FROM node:lts-alpine
 
-WORKDIR /app
+WORKDIR /frontend
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 5173
 
 # Start the Vite server
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["scripts/npm-start.sh"]
