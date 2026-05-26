@@ -13,31 +13,31 @@ docker-run:
 	${BASE_COMPOSE_CMD} up
 run: docker-run
 
-docker-bash:
-	@echo "⌛ Starting bash in containers..."
+docker-django-bash:
+	@echo "⌛ Starting bash in Django container..."
 	${DJANGO_CONTAINER_CMD} bash
-bash: docker-bash
+django-bash: docker-django-bash
 
 docker-django-makemigrations-empty:
 	@echo "⌛ Making an empty migration in App: ➡️[${app}] with Name: ➡️[${emn}]..."
 	@echo "⚠️ If this was not intended use command with 'app=' or 'emn=' flags"
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py makemigrations --empty ${app} --name ${emn}
+	${DJANGO_CONTAINER_CMD} python manage.py makemigrations --empty ${app} --name ${emn}
 mme: docker-django-makemigrations-empty
 
 docker-django-makemigrations:
 	@echo "⌛ Making migrations in App: ➡️[${app}]..."
 	@echo "⚠️ If this was not intended use command with app= flag"
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py makemigrations ${app}
+	${DJANGO_CONTAINER_CMD} python manage.py makemigrations ${app}
 mm: docker-django-makemigrations
 
 docker-django-migrate:
 	@echo "⌛ Migrating Schema's now..."
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py migrate
+	${DJANGO_CONTAINER_CMD} python manage.py migrate
 m: docker-django-migrate
 
 docker-django-shell:
 	@echo "⌛ Launching Django shell..."
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py shell
+	${DJANGO_CONTAINER_CMD} python manage.py shell
 s: docker-django-shell
 
 docker-clean-project:
@@ -56,8 +56,8 @@ docker-clean-local-setup:
 	make clean
 	make build
 	make m
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py bootstrap_tenants
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py bootstrap_users
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
 	make run
 clean-setup: docker-clean-local-setup
 
@@ -72,23 +72,23 @@ docker-clean-local-setup-fast:
 	${BASE_COMPOSE_CMD} down
 	make build
 	make m
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py bootstrap_tenants
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py bootstrap_users
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
 	make run
 setup: docker-clean-local-setup-fast
 
 docker-local-db-reset:
 	${BASE_COMPOSE_CMD} down --volumes
 	make m
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py bootstrap_tenants
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py migrate_schemas --shared
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py bootstrap_users
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
+	${DJANGO_CONTAINER_CMD} python manage.py migrate_schemas --shared
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
 	make run
 db-reset: docker-local-db-reset
 
 docker-django-shell-plus:
 	@echo "⌛ Launching Django shell-plus..."
-	${DJANGO_CONTAINER_CMD} python ${BACKED_DIR}/manage.py shell_plus --ipython
+	${DJANGO_CONTAINER_CMD} python manage.py shell_plus --ipython
 sp: docker-django-shell-plus
 
 docker-test:
@@ -97,11 +97,9 @@ docker-test:
 test: docker-test
 
 .PHONY:
-	docker-build
 	build
-	docker-run
 	run
-	docker-bash
+	django-bash
 	bash
 	s
 	sp

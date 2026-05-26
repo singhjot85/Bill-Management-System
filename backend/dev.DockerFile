@@ -66,7 +66,7 @@ RUN pip wheel \
 # ================================================================================
 FROM python-image AS python-run-stage
 
-WORKDIR /app
+WORKDIR /backend
 
 COPY --from=python-build-stage /usr/src/app/wheels /wheels
 
@@ -76,11 +76,11 @@ RUN pip install --no-cache-dir \
     /wheels/*
 
 
-COPY . ./backend
+COPY . /backend
 
 # Give file permissions to executables
-RUN chmod +x backend/scripts/django-start.sh
-RUN chmod +x backend/scripts/beat-start.sh
-RUN chmod +x backend/scripts/worker-start.sh
+RUN chmod +x scripts/django-start.sh
+RUN chmod +x scripts/beat-start.sh
+RUN chmod +x scripts/worker-start.sh
 
-CMD ["backend/scripts/django-start.sh"]
+CMD ["scripts/django-start.sh"]

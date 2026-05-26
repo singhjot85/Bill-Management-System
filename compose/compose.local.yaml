@@ -1,5 +1,6 @@
 volumes:
   pg_data:
+    name: bma_local_pg_data
 
 secrets:
   global-env:
@@ -9,7 +10,7 @@ services:
   django: &Django
     build:
       context: ../backend
-      dockerfile: ./local/django/DockerFile
+      dockerfile: dev.DockerFile
       secrets:
         - global-env
     container_name: bma_django
@@ -23,19 +24,20 @@ services:
       bma_cache:
         condition: service_started
     volumes:
-      - ../backend:/app/backend
+      - ../backend:/backend
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - DJANGO_DEBUG=True
       - WATCHFILES_FORCE_POLLING=true
+      - PYTHONPATH=/
     ports:
       - "8000:8000"
 
   postgres:
     build:
       context: ./local/pg
-      dockerfile: ../compose/local/pg/Dockerfile
+      dockerfile: Dockerfile
       secrets:
         - global-env
     container_name: bma_postgres
@@ -43,6 +45,8 @@ services:
       - ./.envs/postgres.env
     ports:
       - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -52,12 +56,12 @@ services:
   frontend:
     build:
       context: ../frontend
-      dockerfile: ../compose/local/vue/Dockerfile
+      dockerfile: dev.Dockerfile
     container_name: bma_frontend
     restart: unless-stopped
     volumes:
-      - ../frontend:/app
-      - /app/node_modules
+      - ../frontend:/frontend
+      - /frontend/node_modules
     ports:
       - "5173:5173"
     env_file:
@@ -86,7 +90,7 @@ services:
 
   bma_celeryworker:
     <<: *Django
-    command: backend/scripts/worker-start.sh
+    command: scripts/worker-start.sh
     container_name: bma_celeryworker
     ports:
       - "5555:5555"
@@ -96,12 +100,12 @@ services:
       bma_broker:
         condition: service_healthy
 
-  bma_celerybeat:
-    <<: *Django
-    command: backend/scripts/beat-start.sh
-    container_name: bma_celerybeat
-    depends_on:
-      django:
-        condition: service_started
-      bma_broker:
-        condition: service_healthy
+  # bma_celerybeat:
+  #   <<: *Django
+  #   command: backend/scripts/beat-start.sh
+  #   container_name: bma_celerybeat
+  #   depends_on:
+  #     django:
+  #       condition: service_started
+  #     bma_broker:
+  #       condition: service_healthy
