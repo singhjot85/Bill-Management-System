@@ -5,7 +5,7 @@ from backend.apps.tasks import TaskLocation, TenantAwareCeleryApp
 # Make sure project settings are setup
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.config.settings.settings")
 
-from django.conf import settings
+from django.conf import settings  # noqa E402
 
 PROJECT_NAME = settings.PROJECT_NAME
 

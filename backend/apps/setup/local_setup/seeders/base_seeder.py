@@ -8,7 +8,6 @@ from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
 from django.db.models import Field, Model
-from django_tenants.utils import tenant_context
 
 LOGGER = logging.getLogger()
 

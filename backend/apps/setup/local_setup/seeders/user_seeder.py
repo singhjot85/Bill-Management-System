@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from django.contrib.auth.models import User
 
 LOGGER = logging.getLogger()
-User = get_user_model()
+User = get_user_model()  # noqa F811
 
 
 class UserSeeder(BaseSeeder):
