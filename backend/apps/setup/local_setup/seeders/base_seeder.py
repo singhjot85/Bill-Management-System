@@ -33,7 +33,7 @@ class BaseSeeder(ABC):
         LOGGER.info("[%s] Running Seeder...", self.label)
 
         try:
-            with transaction.atomic(): # Atomicity
+            with transaction.atomic():  # Atomicity
                 # Idempotency, inside the seed (to be taken care of always).
                 self.seed(args, kwargs)
 

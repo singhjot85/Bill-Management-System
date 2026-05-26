@@ -4,8 +4,13 @@ Infra specific varibles will stay in this files
 .variables : Settings that may vary at runtime
 .resolvers : Keeps this file clean and perevent circular imports.
 """
+
 from backend.config.settings.constants import *
-from backend.config.settings.resolvers import get_broker_url, get_cache_url, get_resolved_cache_options
+from backend.config.settings.resolvers import (
+    get_broker_url,
+    get_cache_url,
+    get_resolved_cache_options,
+)
 from backend.config.settings.variables import *
 
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]

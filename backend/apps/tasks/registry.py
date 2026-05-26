@@ -3,15 +3,16 @@ This registry file serves as both a constant and a util file.
 It handles all kinds of constants and utilities related to async tasks
 """
 
-from importlib import import_module
-from typing import TypeAlias, Union, TYPE_CHECKING, Optional
 from enum import Enum
+from importlib import import_module
+from typing import TYPE_CHECKING, Optional, TypeAlias, Union
 
 if TYPE_CHECKING:
     from celery.contrib.django.task import DjangoTask
     from celery.result import AsyncResult
 
 TaskReference: TypeAlias = Union[str, "TaskNames", "DjangoTask"]
+
 
 class TaskLocation(Enum):
     """Task file path for auto discover_tasks, whenever a new task file is created register it here"""
@@ -104,7 +105,7 @@ def queue_task(
 
     if not isinstance(task, DjangoTask):
         raise TaskQueuingException("Invalid argument type for task!")
-    
+
     task: DjangoTask
     if on_commit:
         task.apply_async_on_commit(args=task_args, kwargs=task_kwargs, *args, **kwargs)

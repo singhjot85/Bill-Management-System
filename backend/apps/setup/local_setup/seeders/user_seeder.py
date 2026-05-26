@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger()
 User = get_user_model()
 
+
 class UserSeeder(BaseSeeder):
     label = "User Seeder"
     user_seeder_data: dict = None
@@ -19,10 +20,10 @@ class UserSeeder(BaseSeeder):
     def __init__(self, file_name: str):
         super().__init__()
         self.load_data(file_name, "user_seeder_data")
-    
+
     def _is_existing_user(self, user_fields: dict):
         return User.objects.filter(**user_fields).exists()
-    
+
     def _create_user(self, user_fields: dict, super: bool = False):
         if super:
             return User.objects.create_superuser(**user_fields)
@@ -32,19 +33,19 @@ class UserSeeder(BaseSeeder):
         user_data: list[dict] = self.user_seeder_data.get("Users")
         for data in user_data:
             try:
-                username = data.get('username')
+                username = data.get("username")
                 LOGGER.info("Creating user >>> %s", username)
                 fields = self.filter_model_fields(User, data)
-                
+
                 if self._is_existing_user(fields):
                     LOGGER.warning("[%s] User alredy exist, skipping creation...", username)
                     continue
 
-                self._create_user(fields, super=data.get('create_superuser', False))
+                self._create_user(fields, super=data.get("create_superuser", False))
             except Exception as e:
-                LOGGER.error('User creation failed >>> %s', str(e))
+                LOGGER.error("User creation failed >>> %s", str(e))
                 raise SeederException(str(e)) from e
-    
+
     def run(self, *args, **kwargs):
         schema_name: str = self.user_seeder_data.get("OrganizationTenant").get("schema_name")
 

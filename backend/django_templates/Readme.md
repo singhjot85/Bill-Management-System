@@ -1,6 +1,6 @@
 # Project Templating (Legacy)
 
-This directory contains the original UI infrastructure using Django Templates. 
+This directory contains the original UI infrastructure using Django Templates.
 
 ## Overview
 Earlier in the project's development, the UI was rendered using Django's built-in templating system. However, as requirements grew more complex, we shifted to a decoupled frontend using **Vue 3 + Vite + Vuetify**.

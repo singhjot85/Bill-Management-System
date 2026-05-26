@@ -6,7 +6,7 @@ NOTE: Never do a dependecy import in this file, or any import that might trigger
 
 from celery import Celery
 from celery.contrib.django.task import DjangoTask
-from celery.signals import task_prerun, task_postrun
+from celery.signals import task_postrun, task_prerun
 from django.db import connection
 
 
