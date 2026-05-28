@@ -6,11 +6,12 @@ NOTE: Never do a dependecy import in this file, or any import that might trigger
 
 from celery import Celery
 from celery.contrib.django.task import DjangoTask
+from celery import Task
 from celery.signals import task_postrun, task_prerun
 from django.db import connection
 
 
-class TenantAwareTask(DjangoTask):
+class TenantAwareTask(Task):
     """
     Custom Task class that ensures the tenant schema context is preserved
     during task execution.
@@ -74,9 +75,9 @@ class TenantAwareCeleryApp(Celery):
     into the task arguments before sending it to the broker.
     """
 
-    task_cls = "backend.apps.tasks.base.TenantAwareCeleryApp"
+    task_cls = "backend.apps.tasks.base.TenantAwareTask"
 
     def create_task_cls(self):
         return self.subclass_with_self(
-            "backend.apps.tasks.base.TenantAwareCeleryApp", abstract=True, name="TenantAwareTask", attribute="_app"
+            "backend.apps.tasks.base.TenantAwareTask", abstract=True, name="TenantAwareTask", attribute="_app"
         )

@@ -28,7 +28,6 @@ class TaskLocation(Enum):
 
 class TaskNames(Enum):
 
-    # PDF_GENERATION = 'bma.invoice.generate_pdf'
     PDF_GENERATION = "generate_pdf", TaskLocation.INVOICE_TASK.value
 
     def task_label(self) -> str:

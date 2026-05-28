@@ -46,7 +46,7 @@ docker-clean-project:
 clean: docker-clean-project
 
 docker-clean-build-run:
-	make docker-clean-project
+	make clean
 	make build
 	make m
 	make run
@@ -62,9 +62,9 @@ docker-clean-local-setup:
 clean-setup: docker-clean-local-setup
 
 docker-rebuild:
+	@echo "⌛ Putting down containers build process..."
 	${BASE_COMPOSE_CMD} down
 	make build
-	make m
 	make run
 rebuild: docker-rebuild
 
