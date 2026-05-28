@@ -14,5 +14,8 @@ COPY . .
 # Expose port
 EXPOSE 5173
 
+# just to be double sure
+RUN chmod +x scripts/npm-start.sh
+
 # Start the Vite server
-# CMD ["scripts/npm-start.sh"]
+CMD ["sh", "scripts/npm-start.sh"]
