@@ -5,13 +5,12 @@ from django.conf import settings
 from django_tenants.test.client import TenantClient
 from django_tenants.utils import (
     get_public_schema_name,
-    get_tenant_domain_model,
     get_tenant_model,
     schema_context,
 )
 
 if TYPE_CHECKING:
-    from apps.tenants.models import OrganizationDomain, OrganizationTenant
+    from apps.tenants.models import OrganizationTenant
 
 
 TEST_SCHEMA = settings.TENANT_SCHEMA_NAME
@@ -25,14 +24,10 @@ def django_db_setup(django_db_setup, django_db_blocker):
     """
     with django_db_blocker.unblock():
         Tenant: "OrganizationTenant" = get_tenant_model()
-        Domain: "OrganizationDomain" = get_tenant_domain_model()
 
         tenant, created = Tenant.objects.get_or_create(
             schema_name=TEST_SCHEMA, defaults={"name": TEST_SCHEMA.replace("_", " ").title()}
         )
-
-        if created:
-            Domain.objects.get_or_create(domain="test.localhost", tenant=tenant, defaults={"is_primary": True})
 
 
 @pytest.fixture

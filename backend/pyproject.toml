@@ -63,6 +63,7 @@ addopts = [
 	"--strict-markers",
 	"--tb=short",
 	"--reuse-db",
+	"--import-mode=importlib",
 	"-p no:warnings",
 ]
 markers = [
