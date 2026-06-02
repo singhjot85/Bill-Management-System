@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 
 if TYPE_CHECKING:
-    from backend.apps.tenants.models import OrganizationTenant
+    from apps.tenants.models import OrganizationTenant
 
 
 def is_local_env() -> bool:

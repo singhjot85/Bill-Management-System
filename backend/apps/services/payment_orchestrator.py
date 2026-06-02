@@ -3,7 +3,7 @@ import logging
 from django.db import transaction
 from django.utils import timezone
 
-from backend.apps.payments_management.models import (
+from apps.payments_management.models import (
     Invoice,
     InvoiceStatusChoices,
     Payment,

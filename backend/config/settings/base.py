@@ -5,19 +5,19 @@ Infra specific varibles will stay in this files
 .resolvers : Keeps this file clean and perevent circular imports.
 """
 
-from backend.config.settings.constants import *
-from backend.config.settings.resolvers import (
+from config.settings.constants import *
+from config.settings.resolvers import (
     get_broker_url,
     get_cache_url,
     get_resolved_cache_options,
 )
-from backend.config.settings.variables import *
+from config.settings.variables import *
 
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
 STATIC_URL = "static/"
 
-ROOT_URLCONF = "backend.config.routers"
-PUBLIC_SCHEMA_URLCONF = "backend.config.public_routers"
+ROOT_URLCONF = "config.routers"
+PUBLIC_SCHEMA_URLCONF = "config.public_routers"
 
 TENANT_MODEL = f"{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
 TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
@@ -87,7 +87,7 @@ TENANT_DB_ALIAS = "default"
 #     "task_name": {"queue": "queue_name"}
 # }
 
-# CELERY_BEAT_SCHEDULER = "backend.config.beat.CustomDatabaseScheduler"
+# CELERY_BEAT_SCHEDULER = "config.beat.CustomDatabaseScheduler"
 
 
 TEMPLATES = [
@@ -143,7 +143,7 @@ LANGUAGE_CODE = "en-us"
 if CURRENT_ENV in LOCAL_ENVS:
     DEBUG = True
     ALLOWED_HOSTS = []
-    WSGI_APPLICATION = "backend.config.wsgi.application"
+    WSGI_APPLICATION = "config.wsgi.application"
 else:
     # TODO: Write WSGI and  ALLOWED_HOSTS configuration for production
     DEBUG = False

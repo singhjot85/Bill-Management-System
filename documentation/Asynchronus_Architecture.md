@@ -79,9 +79,9 @@ backend/apps/
 ```python
 # backend/config/celery.py
 app.autodiscover_tasks([
-    'backend.apps.tasks.invoice_tasks',
-    'backend.apps.tasks.notification_tasks',
-    'backend.apps.tasks.periodic_tasks',
+    'apps.tasks.invoice_tasks',
+    'apps.tasks.notification_tasks',
+    'apps.tasks.periodic_tasks',
 ])
 ```
 
@@ -460,9 +460,9 @@ backend/config/
 app = Celery('bma')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks([
-    'backend.apps.tasks.invoice_tasks',
-    'backend.apps.tasks.notification_tasks',
-    'backend.apps.tasks.periodic_tasks',
+    'apps.tasks.invoice_tasks',
+    'apps.tasks.notification_tasks',
+    'apps.tasks.periodic_tasks',
 ])
 ```
 

@@ -5,12 +5,8 @@ from rest_framework.exceptions import MethodNotAllowed, NotFound
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from backend.apps.tenants.models import OrganizationBranding
-from backend.apps.tenants.serializers import (
-    BrandingSerializer,
-    LoginSerializer,
-    UserSerializer,
-)
+from apps.tenants.models import OrganizationBranding
+from apps.tenants.serializers import BrandingSerializer, LoginSerializer, UserSerializer
 
 
 class AuthViewSet(viewsets.ViewSet):

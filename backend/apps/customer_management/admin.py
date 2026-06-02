@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 
-from backend.apps.customer_management.models import Customer, CustomerAddress
-from backend.utils.admin_utils import private_admin_site
+from apps.customer_management.models import Customer, CustomerAddress
+from utils.admin_utils import private_admin_site
 
 User = get_user_model()
 

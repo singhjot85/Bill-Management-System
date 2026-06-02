@@ -1,8 +1,8 @@
 from django.db import connection, models
 from django_tenants.models import DomainMixin, TenantMixin
 
-from backend.apps.tenants.constants import CountryChoices
-from backend.utils import SafeModelMixin, VersionedBetterModelMixin
+from apps.tenants.constants import CountryChoices
+from utils import SafeModelMixin, VersionedBetterModelMixin
 
 
 class OrganizationTenant(SafeModelMixin, TenantMixin):

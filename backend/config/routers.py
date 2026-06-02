@@ -2,10 +2,10 @@ from django.conf import settings
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
-from backend.apps.customer_management.views import WorkflowViewSet
-from backend.apps.tenants.views import BrandingViewSet
-from backend.utils.admin_utils import private_admin_site
-from backend.utils.view_utils import ConnTestMixin
+from apps.customer_management.views import WorkflowViewSet
+from apps.tenants.views import BrandingViewSet
+from utils.admin_utils import private_admin_site
+from utils.view_utils import ConnTestMixin
 
 app_name = "api"
 

@@ -38,7 +38,7 @@ frontend/ # Vue 3 SPA (API‑driven, built with Vite)
 
 - **Public schema**: `auth`, `tenants` models, platform‑wide settings.
 - **Tenant schemas**: `customer_management`, `payments_management`.
-- **All tenant‑scoped models** must guarantee isolation. Use `BetterModelMixin` from `backend.apps.utils` (provides `uuid` PK, `created`, `modified`, `deleted` — soft‑delete enabled).
+- **All tenant‑scoped models** must guarantee isolation. Use `BetterModelMixin` from `apps.utils` (provides `uuid` PK, `created`, `modified`, `deleted` — soft‑delete enabled).
 
 ### Service Layer (strict separation)
 

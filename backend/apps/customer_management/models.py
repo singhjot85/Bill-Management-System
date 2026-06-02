@@ -3,7 +3,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from backend.utils import BetterModelMixin
+from utils import BetterModelMixin
 
 
 class CustomerTypeChoices(models.TextChoices):

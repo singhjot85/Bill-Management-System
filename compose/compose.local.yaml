@@ -30,7 +30,7 @@ services:
       - PYTHONUNBUFFERED=1
       - DJANGO_DEBUG=True
       - WATCHFILES_FORCE_POLLING=true
-      - PYTHONPATH=/
+      - PYTHONPATH=/backend
     ports:
       - "8000:8000"
 

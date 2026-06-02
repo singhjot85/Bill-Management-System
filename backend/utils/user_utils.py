@@ -9,7 +9,7 @@ from django_tenants.utils import get_public_schema_name, schema_context
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
 
-    from backend.apps.tenants.models import OrganizationTenant
+    from apps.tenants.models import OrganizationTenant
 
 User = get_user_model()  # noqa F811
 OrganizationTenant = apps.get_model(settings.TENANT_MODEL)  # noqa F811

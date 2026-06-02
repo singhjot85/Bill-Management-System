@@ -1,9 +1,9 @@
 import os
 
-from backend.apps.tasks import TaskLocation, TenantAwareCeleryApp
+from apps.tasks import TaskLocation, TenantAwareCeleryApp
 
 # Make sure project settings are setup
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.config.settings.base")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.base")
 
 from django.conf import settings  # noqa E402
 

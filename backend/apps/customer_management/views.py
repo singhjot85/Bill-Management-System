@@ -4,14 +4,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from backend.apps.customer_management.serializers import (
+from apps.customer_management.serializers import (
     EmailValidationSerializer,
     FormSubmitSerializer,
     InvoiceLookupSerializer,
     PaymentCreateSerializer,
     PhoneValidationSerializer,
 )
-from backend.apps.payments_management.models import Invoice
+from apps.payments_management.models import Invoice
 
 
 def send_validation_email(email):

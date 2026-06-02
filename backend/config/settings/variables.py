@@ -2,12 +2,12 @@ import os
 from pathlib import Path
 
 APP_NAME = "apps"
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-APP_DIR = os.path.join(BASE_DIR, "backend", APP_NAME)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+APP_DIR = os.path.join(BASE_DIR, APP_NAME)
 
-PROJECT_STATIC_PATH = os.path.join(BASE_DIR, "project_templating", "static")
+PROJECT_STATIC_PATH = os.path.join(BASE_DIR, "django_templates", "static")
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, "project_templating", "templates")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "django_templates", "templates")
 
 APPLICATION_TIMEZONE = os.getenv("TIME_ZONE", "UTC")
 

@@ -28,6 +28,7 @@ dependencies = [
     "django-valkey (>=0.4.1,<0.5.0)",
     "django-celery-beat (>=2.9.0,<3.0.0)",
     "redis (>=7.4.0,<8.0.0)",
+    "factory-boy (>=3.3.3,<4.0.0)",
 ]
 
 
@@ -53,9 +54,20 @@ atomic = true
 skip_glob = ["*/migrations/*"]
 
 [tool.pytest.ini_options]
-addopts = "--reuse-db -vv"
-DJANGO_SETTINGS_MODULE = "backend.config.settings.base"
-python_files = ["tests.py", "test_*.py", "*_tests.py"]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "*_tests.py"]
 python_classes = ["Test*", "*Tests"]
 python_functions = ["test_*"]
 testpaths = ["tests"]
+addopts = [
+	"--strict-markers",
+	"--tb=short",
+	"--reuse-db",
+	"-p no:warnings",
+]
+markers = [
+    "slow: marks tests that take longer to run",
+    "integration: marks tests that hit multiple components",
+    "unit: marks tests for isolated functions",
+    "celery: marks tests that involve celery tasks",
+]

@@ -1,6 +1,6 @@
 from django.core.management import BaseCommand
 
-from backend.apps.setup.local_setup import bootstrap_users
+from apps.setup.local_setup import bootstrap_users
 
 
 class Command(BaseCommand):

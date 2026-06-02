@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import MethodNotAllowed
 
-from backend.apps.tenants.models import OrganizationBranding
+from apps.tenants.models import OrganizationBranding
 
 User = get_user_model()
 

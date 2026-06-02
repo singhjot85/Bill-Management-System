@@ -2,8 +2,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
-from backend.apps.setup.constants import ConfigurationInterfaceChoices
-from backend.utils.model_utils import VersionedBetterModelMixin
+from apps.setup.constants import ConfigurationInterfaceChoices
+from utils.model_utils import VersionedBetterModelMixin
 
 
 class Configurations(VersionedBetterModelMixin):

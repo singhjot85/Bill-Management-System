@@ -36,7 +36,7 @@ To implement a successful payment flow, follow these steps in your DRF views:
 When the user clicks "Pay", call the orchestrator to generate a Razorpay Order ID.
 
 ```python
-from backend.apps.services.payment_orchestrator import PaymentOrchestrator
+from apps.services.payment_orchestrator import PaymentOrchestrator
 
 orchestrator = PaymentOrchestrator()
 payment_record = orchestrator.create_razorpay_order(invoice_id=invoice_uuid)
@@ -54,7 +54,7 @@ The frontend uses the `order_id` to open the Razorpay Checkout modal. Upon succe
 The frontend sends these credentials back to a verification endpoint.
 
 ```python
-from backend.apps.services.payment_orchestrator import PaymentOrchestrator
+from apps.services.payment_orchestrator import PaymentOrchestrator
 
 orchestrator = PaymentOrchestrator()
 success = orchestrator.verify_razorpay_payment(

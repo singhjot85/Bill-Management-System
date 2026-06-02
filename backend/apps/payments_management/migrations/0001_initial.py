@@ -4,7 +4,7 @@ import django.core.serializers.json
 import django.db.models.deletion
 import django.utils.timezone
 import model_utils.fields
-import backend.apps.payments_management.models
+import apps.payments_management.models
 import uuid
 from django.conf import settings
 from django.db import migrations, models
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('due_date', models.DateField(blank=True, null=True, verbose_name='Due Date')),
                 ('status', models.CharField(choices=[('created', 'Created'), ('paid', 'Paid'), ('defaulted', 'defaulted'), ('invalid', 'Invalid')], max_length=125)),
                 ('invoice_number', models.CharField(blank=True, max_length=255, null=True, unique=True)),
-                ('document', models.FileField(blank=True, null=True, upload_to=backend.apps.payments_management.models.get_invoice_url)),
+                ('document', models.FileField(blank=True, null=True, upload_to=apps.payments_management.models.get_invoice_url)),
                 ('context_data', models.JSONField(default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder)),
                 ('payable_amount', models.FloatField(blank=True, null=True)),
                 ('amount_paid', models.FloatField(blank=True, null=True)),

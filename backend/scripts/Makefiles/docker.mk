@@ -16,7 +16,7 @@ run: docker-run
 docker-django-bash:
 	@echo "⌛ Starting bash in Django container..."
 	${DJANGO_CONTAINER_CMD} bash
-django-bash: docker-django-bash
+b: docker-django-bash
 
 docker-django-makemigrations-empty:
 	@echo "⌛ Making an empty migration in App: ➡️[${app}] with Name: ➡️[${emn}]..."
@@ -99,7 +99,7 @@ test: docker-test
 .PHONY:
 	build
 	run
-	django-bash
+	b
 	bash
 	s
 	sp

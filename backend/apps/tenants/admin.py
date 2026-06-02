@@ -6,12 +6,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sessions.models import Session
 from django.db.models import QuerySet
 
-from backend.apps.tenants.models import (
+from apps.tenants.models import (
     OrganizationBranding,
     OrganizationDomain,
     OrganizationTenant,
 )
-from backend.utils.admin_utils import public_admin_site
+from utils.admin_utils import public_admin_site
 
 User = get_user_model()
 

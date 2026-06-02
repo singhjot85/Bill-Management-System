@@ -1,6 +1,6 @@
 import logging
 
-from backend.apps.tenants.models import (
+from apps.tenants.models import (
     OrganizationBranding,
     OrganizationDomain,
     OrganizationTenant,
