@@ -1,8 +1,35 @@
-###################################
-## Make Targets for normal shell ##
-###################################
+#####################################
+### Docker Explicit Make Targets  ###
+#####################################
+
+# ----------------------------------
+# Django Explicit Targets
+# ----------------------------------
+poetry-activate:
+	cd ${BACKEND_DIR} && eval "$$(poetry env activate)" && exec $$SHELL
+pa: poetry-activate
 
 poetry-run:
+	cd ${BACKEND_DIR} && poetry run python ${arg}
+
+poetry-lock:
+	cd ${BACKEND_DIR} && poetry lock
+
+poetry-install:
+	cd ${BACKEND_DIR} && poetry install --no-root --no-interaction
+
+poetry-refresh-system:
+	cd ${BACKEND_DIR} && poetry lock && poetry install --no-interaction
+
+pre-commit:
+	cd ${BACKEND_DIR} && poetry run pre-commit run --all-files
+
+
+# ----------------------------------
+# Django Specific Targets
+# ----------------------------------
+
+poetry-runserver:
 	cd ${BACKEND_DIR} && poetry run python manage.py runserver
 
 poetry-mm:
@@ -11,33 +38,9 @@ poetry-mm:
 poetry-m:
 	cd ${BACKEND_DIR} && poetry run python manage.py migrate
 
-poetry-superuser:
-	cd ${BACKEND_DIR} && poetry run python manage.py createsuperuser
-
 poetry-shell-plus:
 	cd ${BACKEND_DIR} && poetry run python manage.py shell_plus --ipython
 
-poetry-test:
-	cd ${BACKEND_DIR} && poetry run pytest
-
-setup-system:
-	@command -v brew >/dev/null || (echo "Homebrew is required. Install from https://brew.sh"; exit 1)
-	brew install poetry cairo pkg-config cmake pango gdk-pixbuf libffi
-
-setup-python:
-	cd ${BACKEND_DIR} && poetry lock && poetry install --no-interaction
-
-pre-commit:
-	cd ${BACKEND_DIR} && poetry run pre-commit run --all-files
 
 
-.PHONY:
-	poetry-run
-	poetry-mm
-	poetry-m
-	poetry-superuser
-	poetry-shell-plus
-	poetry-test
-	setup-system
-	setup-python
-	pre-commit
+.PHONY: poetry-activate poetry-run poetry-lock poetry-install poetry-refresh-system pre-commit poetry-runserver poetry-mm poetry-m poetry-shell-plus pa

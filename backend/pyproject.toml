@@ -43,8 +43,6 @@ force-exclude = """
 /(
   | migrations
   | venv
-  | stgcore-app-ulp
-  | los/db_migrations
 )/
 """
 

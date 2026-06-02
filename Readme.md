@@ -15,6 +15,7 @@ A modern, multi-tenant SaaS platform for generating, managing, and paying bills/
   - **Public User**: Fast-track payment and invoice generation without account creation.
 
 ## Tech Stack
+
 <p align="center">
   <img src="assets/django-logo-negative.png" width="150" height="80" alt="Django Logo" />
   <img src="assets/drf-logo-dark.png" width="150" height="80" alt="DRF Logo" />
@@ -34,6 +35,24 @@ A modern, multi-tenant SaaS platform for generating, managing, and paying bills/
 | **Database**       | PostgreSQL                                      |
 | **Infrastructure** | Docker, Compose, Poetry, Pre-Commit             |
 
+## Project Structure
+
+The codebase is organized into dedicated directories to ensure a clean separation of concerns and optimized build processes.
+
+- **`backend/`**: Contains the complete Django project, including apps, configuration, and management scripts.
+- **`frontend/`**: Contains the Vue 3 SPA, including components, assets, and build configuration.
+- **`compose/`**: Docker Compose configuration files for various environments.
+- **`documentation/`**: Architectural specifications, diagrams, and developer guides.
+- **Root Directory**: Houses environment variables (`.env`), CI/CD configurations, repository-wide tools (`Makefile`, `pre-commit`), and project metadata.
+
+### Rationale: Build Isolation
+
+This structure is designed to leverage **Docker BuildKit's** context isolation:
+
+- During the backend build, only the `backend/` directory is provided as context.
+- During the frontend build, only the `frontend/` directory is provided as context.
+
+This eliminates accidental leakage of irrelevant code (e.g., frontend source in the backend image) and ensures that changes in one domain do not unnecessarily invalidate the build cache of the other.
 
 ## Documentation
 

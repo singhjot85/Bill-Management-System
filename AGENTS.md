@@ -23,14 +23,11 @@
 
 ### Key Directories
 
-```
-backend/apps/services/ # All external API + orchestration logic
-backend/config/ # Django settings, routers, env
-backend/django_templates/ # Legacy Django templates (keep stable, prefer Vue for new features)
-documentation/ # Specs, architecture decisions, diagrams
-compose/ # Docker Compose files (local & prod)
-frontend/ # Vue 3 SPA (API‑driven, built with Vite)
-```
+- **`backend/`**: Dedicated directory for the entire Django backend. Docker BuildKit has access *only* to this directory during backend builds to prevent leakage.
+- **`frontend/`**: Dedicated directory for the Vue 3 SPA. Docker BuildKit has access *only* to this directory during frontend builds.
+- **`compose/`**: Shared Docker Compose configurations for local and production environments.
+- **`documentation/`**: Centralized repository for all technical specs, diagrams, and architecture decisions.
+- **Project Root**: Contains all environment (`.env`), CI/CD, and repository-level configurations (e.g., `.pre-commit-config.yaml`, `Makefile`).
 
 ## 3. Backend Rules (Django)
 

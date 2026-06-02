@@ -96,21 +96,4 @@ docker-test:
 	${DJANGO_CONTAINER_CMD} pytest
 test: docker-test
 
-.PHONY:
-	build
-	run
-	bash
-	bash
-	s
-	sp
-	m
-	mm
-	mme
-	cbr
-	clean
-	rebuild
-	setup
-	clean-setup
-	db-reset
-	docker-test
-	test
+.PHONY: build run bash s sp m mm mme cbr clean rebuild setup clean-setup db-reset docker-test test
