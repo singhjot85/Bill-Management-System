@@ -28,6 +28,7 @@ backend/tests/
 └── tenants/             # Multi-tenant isolation and provisioning tests
 ```
 
+- Prefer Class Based Tests, over function based tests.
 - For Detailed Testing Convention refer: [Backend Testing Convention](backend/tests/Readme.md)
 - For Any confusion refer: [Backend Documentation](backend/Readme.md)
 
@@ -35,7 +36,7 @@ backend/tests/
 
 ### Step 1: Analyze the Code
 
-- Identify the app (e.g., `customer_management`, `billing`).
+- Identify the app (e.g., `customer_management`, `tasks`).
 - If the app directory doesn't exist in `tests/`, create it and add `__init__.py`.
 - Determine test type: model, view, serializer, form, task.
 - Identify dependencies (other models, tenant requirements).
@@ -58,25 +59,20 @@ backend/tests/
 - Assert that the outcome of the callable matches the expected outcome.
 - Test error paths and edge cases wherever applicable.
 
-### Step 4: Include Necessary Imports
+### Step 4: Imports, DocString, TypeConvetion
 
-```python
-import pytest
-from django.urls import reverse
-from django.core.exceptions import ValidationError
-from django.test import override_settings
-from django_tenants.test.cases import TenantTestCase
-from tests.factories import (
-    UserFactory, CustomerFactory, TenantFactory
-)
-```
+- Insure all necessary imports are there.
+- After writing the tests, verify the import's, add mission imports and remove unwanted imports.
+- Add clear and concise docstring.
+- Add necessary type conventions.
+- imports required only for type convention should be always under typing.TYPE_CHECKING.
 
 ### Step 5: Run Validation
 
-After writing tests, suggest running:
-
+- After writing tests, suggest running.
+- Always run tests in docker setup.
 ```bash
-pytest backend/tests/<app_name>/ -v
+docker compose -f compose/compose.local.yaml run django pytest tests/<app_name>/test_*.py
 ```
 
 ## Anti-Patterns to Avoid

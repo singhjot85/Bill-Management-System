@@ -97,3 +97,14 @@ docker-test:
 test: docker-test
 
 .PHONY: build run bash s sp m mm mme cbr clean rebuild setup clean-setup db-reset docker-test test
+
+
+
+docker-service-state-check:
+	${BASE_COMPOSE_CMD} ps --format json | jq -s 'map({service: .Service, status: .State})'
+
+docker-detached-run:
+	@echo "⌛ Starting containers..."
+	${BASE_COMPOSE_CMD} up -d
+
+.PHONY: docker-service-state-check docker-detached-run
