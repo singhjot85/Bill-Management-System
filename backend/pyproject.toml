@@ -1,0 +1,73 @@
+[project]
+name = "Bill-Management-System"
+version = "0.1.0"
+description = "Payments and Bill Management App"
+authors = []
+readme = "README.md"
+requires-python = ">=3.11,<4"
+dependencies = [
+    "django (>=5.2.7,<6.0.0)",
+    "djangorestframework (>=3.16.1,<4.0.0)",
+    "django-tenants (>=3.9.0,<4.0.0)",
+    "razorpay (>=2.0.0,<3.0.0)",
+    "django-model-utils (>=5.0.0,<6.0.0)",
+    "django-shell-plus (>=1.1.7,<2.0.0)",
+    "ipython (>=9.6.0,<10.0.0)",
+    "jq (>=1.10.0,<2.0.0)",
+    "flask (>=3.1.2,<4.0.0)",
+    "pre-commit (>=4.5.1,<5.0.0)",
+    "pytest (>=9.0.3,<10.0.0)",
+    "pytest-django (>=4.12.0,<5.0.0)",
+    "psycopg[binary] (>=3.3.3,<4.0.0)",
+    "watchdog (>=6.0.0,<7.0.0)",
+    "psycopg2-binary (>=2.9.12,<3.0.0)",
+    "dj-rest-auth (>=7.2.0,<8.0.0)",
+    "valkey (>=6.1.1,<7.0.0)",
+    "django-celery-results (>=2.6.0,<3.0.0)",
+    "celery (>=5.6.3,<6.0.0)",
+    "django-valkey (>=0.4.1,<0.5.0)",
+    "django-celery-beat (>=2.9.0,<3.0.0)",
+    "redis (>=7.4.0,<8.0.0)",
+    "factory-boy (>=3.3.3,<4.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+line-length = 120
+force-exclude = """
+/(
+  | migrations
+  | venv
+)/
+"""
+
+[tool.isort]
+profile = "black"
+atomic = true
+skip_glob = ["*/migrations/*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "*_tests.py"]
+python_classes = ["Test*", "*Tests"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
+addopts = [
+    "-v",
+	"--strict-markers",
+	"--tb=short",
+	"--reuse-db",
+	"--import-mode=importlib",
+	"-p no:warnings",
+]
+markers = [
+    "slow: marks tests that take longer to run",
+    "integration: marks tests that hit multiple components",
+    "unit: marks tests for isolated functions",
+    "celery: marks tests that involve celery tasks",
+]

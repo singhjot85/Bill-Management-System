@@ -24,21 +24,21 @@ Heavy operations like PDF generation and email notifications are offloaded to **
 
 ## Database Structure (Models)
 
-### 1. Tenant & Branding (`project_apps.tenants`)
+### 1. Tenant & Branding (`apps.tenants`)
 - **OrganizationTenant**: The core tenant model.
 - **OrganizationDomain**: Domain mapping for tenants.
 - **OrganizationBranding**: Stores tenant-specific UI configurations (logos, titles, footers, and contact info).
 
-### 2. Customer Management (`project_apps.customer_management`)
+### 2. Customer Management (`apps.customer_management`)
 - **Customer**: Stores user details (Public, Private, or Internal). Supports external references and metadata via JSON.
 - **CustomerAddress**: Handles multiple addresses per customer, marking one as primary for billing.
 
-### 3. Invoicing & Payments (`project_apps.payments_management`)
+### 3. Invoicing & Payments (`apps.payments_management`)
 - **Invoice**: The central billing entity. Tracks dates, status (`CREATED`, `PAID`, `INVALID`), and generated documents.
 - **Templates**: Versioned HTML/Plain-text templates for dynamic invoice generation.
 - **Payment**: Tracks financial transactions, gateway responses, and verification status. Linked to both an `Invoice` and a `Customer`.
 
-### 4. System Configuration (`project_apps.setup`)
+### 4. System Configuration (`apps.setup`)
 - **Configurations**: A versioned key-value store for tenant-level settings (e.g., API keys, feature flags).
 
 ---

@@ -1,11 +1,11 @@
 # Local Setup for BMA
 Being a configurable app, BMA needs some tenant's and configurations to be pre-setup for local testing and development
 
-**Location:** `project_apps/setup/local_setup`
+**Location:** `backend/apps/setup/local_setup`
 
 ## Diectory Structure:
 ```
-project_apps/setup/local_setup/
+backend/apps/setup/local_setup/
 |- __init__.py
 |- runner.py                # The Orchestrator ( "core python file")
 |- guards.py                # Environment safety checks
