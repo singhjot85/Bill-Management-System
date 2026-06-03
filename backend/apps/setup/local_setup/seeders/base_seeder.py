@@ -20,7 +20,7 @@ class BaseSeeder(ABC):
     """Base Seeder Templae to be used by each seeder."""
 
     label: str = ""
-    DATA_FILES_PATH = "backend/apps/setup/local_setup/data"
+    DATA_FILES_PATH = "setup/local_setup/data"
 
     @abstractmethod
     def seed(self, *args, **kwargs):
@@ -96,7 +96,7 @@ class BaseSeeder(ABC):
         if hasattr(self, cache_key_name) and getattr(self, cache_key_name):
             return getattr(self, cache_key_name)
 
-        file_path = os.path.join(settings.BASE_DIR, self.DATA_FILES_PATH, file_name)
+        file_path = os.path.join(settings.APP_DIR, self.DATA_FILES_PATH, file_name)
 
         data = None
         if file_name.split(".")[-1] == "json":

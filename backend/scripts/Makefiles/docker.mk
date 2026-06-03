@@ -86,6 +86,12 @@ docker-local-db-reset:
 	make run
 db-reset: docker-local-db-reset
 
+docker-dev-setup:
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
+	make m
+	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
+dev-setup: docker-dev-setup
+
 docker-django-shell-plus:
 	@echo "⌛ Launching Django shell-plus..."
 	${DJANGO_CONTAINER_CMD} python manage.py shell_plus --ipython
@@ -96,7 +102,7 @@ docker-test:
 	${DJANGO_CONTAINER_CMD} pytest
 test: docker-test
 
-.PHONY: build run bash s sp m mm mme cbr clean rebuild setup clean-setup db-reset docker-test test
+.PHONY: build run bash s sp m mm mme cbr clean rebuild setup clean-setup db-reset docker-test test dev-setup
 
 
 
