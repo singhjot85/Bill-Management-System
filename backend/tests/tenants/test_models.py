@@ -12,8 +12,9 @@ def test_database_setup():
     ), "Current schema is not correct, it should be private schema"
 
     with schema_context(get_public_schema_name()):
-        assert connection.schema_name == get_public_schema_name(), "Public Schema not created, verify test databse setup."
-
+        assert (
+            connection.schema_name == get_public_schema_name()
+        ), "Public Schema not created, verify test databse setup."
 
         private_tenant_qs = OrganizationTenant.objects.filter(schema_name=settings.TENANT_SCHEMA_NAME)
         assert private_tenant_qs.exists(), "Private Schema not created, verify test databse setup."
