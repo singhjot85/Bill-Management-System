@@ -2,21 +2,22 @@
 This registry file serves as both a constant and a util file.
 It handles all kinds of constants and utilities related to async tasks
 """
-
+import time
 from enum import Enum
 from importlib import import_module
 from typing import TYPE_CHECKING, Optional, TypeAlias, Union
 
+from celery.contrib.django.task import DjangoTask
+
 if TYPE_CHECKING:
-    from celery.contrib.django.task import DjangoTask
     from celery.result import AsyncResult
 
 TaskReference: TypeAlias = Union[str, "TaskNames", "DjangoTask"]
 
-
 class TaskLocation(Enum):
     """Task file path for auto discover_tasks, whenever a new task file is created register it here"""
 
+    TEST_TASKS = "apps.tasks.test_tasks"
     INVOICE_TASK = "apps.tasks.invoice_tasks"
 
     @staticmethod
@@ -29,6 +30,8 @@ class TaskLocation(Enum):
 class TaskNames(Enum):
 
     PDF_GENERATION = "generate_pdf", TaskLocation.INVOICE_TASK.value
+    TEST_TENANT_AWARE_TASK = "test_tenant_awareness", TaskLocation.TEST_TASKS.value
+
 
     def task_label(self) -> str:
         """Returns a user friendly task label for current"""
@@ -112,3 +115,23 @@ def queue_task(
         return task.apply_async(args=task_args, kwargs=task_kwargs, *args, **kwargs)
 
     return None
+
+
+class CeleryTaskExhausted(Exception):
+    """Celery task exhausted after some retries"""
+    pass
+
+
+def get_data_from_task_result(task_result: "AsyncResult"):
+
+    # Required Lazy imports
+    from django.conf import settings
+    _res_retries = settings.TASK_RESULT_CHECK_RETRIES
+    _res_timeout = settings.TASK_RESULT_CHECK_TIMEOUT
+
+    for _ in range(_res_retries):
+        if task_result.ready():
+            return task_result.get()
+        time.sleep(_res_timeout)
+
+    raise CeleryTaskExhausted(f"Celery task exhausted after: {_res_retries*_res_timeout}secs")

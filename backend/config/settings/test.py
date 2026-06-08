@@ -35,7 +35,7 @@ DATABASES = {
 # DATABASE_ROUTERS = ('django_tenants.routers.TenantSyncRouter',)
 # TENANT_MODEL = f"{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
 # TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
-
+TENANT_SCHEMA_NAME = "test_schema"
 
 # -----------------------------------------
 # CELERY CONFIGURATION
@@ -48,7 +48,6 @@ DATABASES = {
 CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously
 CELERY_TASK_EAGER_PROPAGATES = True  # Don't hide exceptions
 CELERY_BROKER_URL = get_broker_url()
-
 
 # -----------------------------------------
 # CACHE CONFIGURATION
@@ -79,8 +78,6 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
-
-TENANT_SCHEMA_NAME = "test_schema"
 
 # TODO: Not sure about this setting, need to revisit this
 LOGGING = {

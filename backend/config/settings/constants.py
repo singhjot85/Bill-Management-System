@@ -84,3 +84,7 @@ VALKEY_CLUSTER_DEFAULT_OPTIONS = {
 VALKEY_DEFAULT_OPTIONS = {
     "CLIENT_CLASS": "django_valkey.client.DefaultClient",
 }
+
+# Custom Celery Settings
+TASK_RESULT_CHECK_RETRIES = 10
+TASK_RESULT_CHECK_TIMEOUT = 10 # Seconds
