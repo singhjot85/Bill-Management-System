@@ -1,13 +1,14 @@
 from typing import TYPE_CHECKING
 
-from django.db import connection
 from django.conf import settings
-from django_tenants.utils import get_public_schema_name, schema_context
+from django.db import connection
+from django_tenants.utils import get_public_schema_name
 
-from apps.tasks.registry import TaskNames, queue_task, get_data_from_task_result
+from apps.tasks.registry import TaskNames, get_data_from_task_result, queue_task
 
 if TYPE_CHECKING:
     from celery.result import AsyncResult
+
     from apps.tasks.base import TenantAwareTask
 
 TENANT_SCHEMA_NAME = settings.TENANT_SCHEMA_NAME
@@ -49,9 +50,7 @@ class TestTenantAwareTask:
     def test__task_queued_from_public_schema__executes_in_public(self, public_db):
         """Task queued under public schema should execute in public schema only"""
 
-        assert (
-            connection.schema_name == PUBLIC_SCHEMA_NAME
-        ), "Test should start in the public schema context"
+        assert connection.schema_name == PUBLIC_SCHEMA_NAME, "Test should start in the public schema context"
 
         task_result: "AsyncResult" = queue_task(self.task, on_commit=False)
         data = get_data_from_task_result(task_result)
@@ -64,5 +63,5 @@ class TestTenantAwareTask:
             task_result: "AsyncResult" = queue_task(self.task, on_commit=False)
             data = get_data_from_task_result(task_result)
             assert data["execution_schema"] == PUBLIC_SCHEMA_NAME
-        
+
         assert connection.schema_name == TENANT_SCHEMA_NAME

@@ -2,6 +2,7 @@
 This registry file serves as both a constant and a util file.
 It handles all kinds of constants and utilities related to async tasks
 """
+
 import time
 from enum import Enum
 from importlib import import_module
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
     from celery.result import AsyncResult
 
 TaskReference: TypeAlias = Union[str, "TaskNames", "DjangoTask"]
+
 
 class TaskLocation(Enum):
     """Task file path for auto discover_tasks, whenever a new task file is created register it here"""
@@ -32,7 +34,6 @@ class TaskNames(Enum):
     PDF_GENERATION = "generate_pdf", TaskLocation.INVOICE_TASK.value
     TEST_TENANT_AWARE_TASK = "test_tenant_awareness", TaskLocation.TEST_TASKS.value
 
-
     def task_label(self) -> str:
         """Returns a user friendly task label for current"""
         return self.value[0].replace("_", " ").title().strip()
@@ -46,7 +47,7 @@ class TaskNames(Enum):
         task_exact_name = self.value[0]
         task_location = self.value[1]
 
-        return f"{task_location}-{task_exact_name}"
+        return f"{task_location}.{task_exact_name}"
 
     def task_id(self, idempotency_key: str) -> str:
         """For idempotency in task queuing use this attribute while queuing task."""
@@ -66,7 +67,7 @@ class FailureModes(Enum):
     DLQ = "dlq"
 
 
-class TaskQueuingException:
+class TaskQueuingException(Exception):
     pass
 
 
@@ -101,7 +102,10 @@ def queue_task(
     task_kwargs = task_kwargs or {}
 
     if isinstance(task, str):
-        task = TaskNames(task).get_task_instance()
+        try:
+            task = TaskNames[task].get_task_instance()
+        except KeyError:
+            raise TaskQueuingException(f"Invalid task name: {task}")
     elif isinstance(task, TaskNames):
         task = task.get_task_instance()
 
@@ -119,6 +123,7 @@ def queue_task(
 
 class CeleryTaskExhausted(Exception):
     """Celery task exhausted after some retries"""
+
     pass
 
 
@@ -126,6 +131,7 @@ def get_data_from_task_result(task_result: "AsyncResult"):
 
     # Required Lazy imports
     from django.conf import settings
+
     _res_retries = settings.TASK_RESULT_CHECK_RETRIES
     _res_timeout = settings.TASK_RESULT_CHECK_TIMEOUT
 
@@ -134,4 +140,4 @@ def get_data_from_task_result(task_result: "AsyncResult"):
             return task_result.get()
         time.sleep(_res_timeout)
 
-    raise CeleryTaskExhausted(f"Celery task exhausted after: {_res_retries*_res_timeout}secs")
+    raise CeleryTaskExhausted(f"Celery task exhausted after: {_res_retries * _res_timeout}secs")
