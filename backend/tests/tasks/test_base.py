@@ -56,3 +56,13 @@ class TestTenantAwareTask:
         task_result: "AsyncResult" = queue_task(self.task, on_commit=False)
         data = get_data_from_task_result(task_result)
         assert data["execution_schema"] == PUBLIC_SCHEMA_NAME
+
+    def test__after_task_queuing_schema_is_restored(self):
+        from django_tenants.utils import schema_context
+
+        with schema_context(PUBLIC_SCHEMA_NAME):
+            task_result: "AsyncResult" = queue_task(self.task, on_commit=False)
+            data = get_data_from_task_result(task_result)
+            assert data["execution_schema"] == PUBLIC_SCHEMA_NAME
+        
+        assert connection.schema_name == TENANT_SCHEMA_NAME
