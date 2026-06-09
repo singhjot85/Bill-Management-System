@@ -9,6 +9,7 @@ TENANT_APP_NAME = "tenants"
 TENANT_MODEL_NAME = "OrganizationTenant"
 DOMAIN_MODEL_NAME = "OrganizationDomain"
 
+# Django runtime app registration
 DEFAULT_DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -34,8 +35,10 @@ PROJECT_APPS = [
     "apps.setup",
     "apps.customer_management",
     "apps.payments_management",
+    "apps.notifications"
 ]
 
+# Database Level app registration
 DJANGO_TENANT_PUBLIC_APPS = [
     *DEFAULT_DJANGO_APPS,
     *SHARED_EXTRA_DEPENDENCIES,
@@ -50,6 +53,7 @@ DJANGO_TENANT_PRIVATE_APPS = [
     "apps.customer_management",
     "apps.payments_management",
     "apps.setup",
+    "apps.notifications"
 ]
 
 CUSTOMER_CUSTOMER = "customer_management.Customer"
