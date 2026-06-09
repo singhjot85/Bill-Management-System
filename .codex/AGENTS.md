@@ -45,7 +45,7 @@ A system that can be used to generate and manage bills/invoices.
    - `compose/` contains all the docker realted settings, each service in seperate directory.
    - Only bake what is required in the image, don't make it bulky.
    - `config/` contains the project configuration settings.
-   - `project_apps` consist all the project applications.
+   - `backend/apps` consist all the project applications.
    - Run `poetry lock` before committing dependency changes
    - Pre-commit hooks run: linting, formatting, import sorting
 

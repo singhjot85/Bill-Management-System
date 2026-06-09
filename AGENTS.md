@@ -23,14 +23,11 @@
 
 ### Key Directories
 
-```
-project_apps/services/ # All external API + orchestration logic
-config/ # Django settings, routers, env
-documentation/ # Specs, architecture decisions, diagrams
-compose/ # Docker Compose files (local & prod)
-frontend/ # Vue 3 SPA (API‑driven, built with Vite)
-templates/ # Legacy Django templates (keep stable, prefer Vue for new features)
-```
+- **`backend/`**: Dedicated directory for the entire Django backend. Docker BuildKit has access *only* to this directory during backend builds to prevent leakage.
+- **`frontend/`**: Dedicated directory for the Vue 3 SPA. Docker BuildKit has access *only* to this directory during frontend builds.
+- **`compose/`**: Shared Docker Compose configurations for local and production environments.
+- **`documentation/`**: Centralized repository for all technical specs, diagrams, and architecture decisions.
+- **Project Root**: Contains all environment (`.env`), CI/CD, and repository-level configurations (e.g., `.pre-commit-config.yaml`, `Makefile`).
 
 ## 3. Backend Rules (Django)
 
@@ -38,11 +35,11 @@ templates/ # Legacy Django templates (keep stable, prefer Vue for new features)
 
 - **Public schema**: `auth`, `tenants` models, platform‑wide settings.
 - **Tenant schemas**: `customer_management`, `payments_management`.
-- **All tenant‑scoped models** must guarantee isolation. Use `BetterModelMixin` from `project_apps.utils` (provides `uuid` PK, `created`, `modified`, `deleted` — soft‑delete enabled).
+- **All tenant‑scoped models** must guarantee isolation. Use `BetterModelMixin` from `apps.utils` (provides `uuid` PK, `created`, `modified`, `deleted` — soft‑delete enabled).
 
 ### Service Layer (strict separation)
 
-1. **`project_apps/services/base.py`** — Generic HTTP wrapper (using `requests.Session`). All external calls go through here.
+1. **`backend/apps/services/base.py`** — Generic HTTP wrapper (using `requests.Session`). All external calls go through here.
 2. **Specific services** (e.g., `razorpay_service.py`) — encapsulate 3rd‑party logic (signature verification, order creation).
 3. **Orchestration** (e.g., `payment_orchestrator.py`) — coordinates services and Django models using:
    - `@transaction.atomic` for data consistency.
