@@ -1,4 +1,3 @@
-import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -49,8 +48,8 @@ class TestTaskNames:
 
     def test_get_task_instance_import_error(self):
         # Create a dummy TaskNames member with invalid path
-        with patch.object(TaskNames.PDF_GENERATION, 'task_path', return_value="invalid.path"):
-             with pytest.raises(ImportError):
+        with patch.object(TaskNames.PDF_GENERATION, "task_path", return_value="invalid.path"):
+            with pytest.raises(ImportError):
                 TaskNames.PDF_GENERATION.get_task_instance()
 
 
@@ -59,9 +58,9 @@ class TestQueueTask:
     def test_queue_task_with_enum(self, mock_get_task):
         mock_task = MagicMock(spec=DjangoTask)
         mock_get_task.return_value = mock_task
-        
+
         queue_task(TaskNames.TEST_TENANT_AWARE_TASK, on_commit=False)
-        
+
         mock_task.apply_async.assert_called_once()
 
     @patch("apps.tasks.registry.TaskNames.get_task_instance")
@@ -70,9 +69,9 @@ class TestQueueTask:
         # TaskNames(task) will be called
         mock_task = MagicMock(spec=DjangoTask)
         mock_get_task.return_value = mock_task
-        
+
         queue_task("PDF_GENERATION", on_commit=False)
-        
+
         mock_task.apply_async.assert_called_once()
 
     def test_queue_task_with_invalid_type(self):
@@ -83,9 +82,9 @@ class TestQueueTask:
     def test_queue_task_on_commit(self, mock_get_task):
         mock_task = MagicMock(spec=DjangoTask)
         mock_get_task.return_value = mock_task
-        
+
         result = queue_task(TaskNames.TEST_TENANT_AWARE_TASK, on_commit=True)
-        
+
         assert result is None
         mock_task.apply_async_on_commit.assert_called_once()
 
@@ -96,9 +95,9 @@ class TestGetDataFromTaskResult:
         mock_result = MagicMock(spec=AsyncResult)
         mock_result.ready.return_value = True
         mock_result.get.return_value = {"status": "success"}
-        
+
         data = get_data_from_task_result(mock_result)
-        
+
         assert data == {"status": "success"}
         mock_sleep.assert_not_called()
 
@@ -106,9 +105,9 @@ class TestGetDataFromTaskResult:
     def test_get_data_exhausted(self, mock_sleep):
         mock_result = MagicMock(spec=AsyncResult)
         mock_result.ready.return_value = False
-        
+
         with pytest.raises(CeleryTaskExhausted):
             get_data_from_task_result(mock_result)
-        
+
         # Should have called sleep and ready() several times based on settings
         assert mock_result.ready.call_count > 0

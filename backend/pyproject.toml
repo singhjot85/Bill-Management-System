@@ -60,7 +60,6 @@ testpaths = ["tests"]
 addopts = [
     "-v",
 	"--strict-markers",
-	"--tb=short",
 	"--reuse-db",
 	"--import-mode=importlib",
 	"-p no:warnings",

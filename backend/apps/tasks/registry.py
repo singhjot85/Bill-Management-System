@@ -128,6 +128,7 @@ class CeleryTaskExhausted(Exception):
 
 
 def get_data_from_task_result(task_result: "AsyncResult"):
+    """Helper to fetch data from AsyncResult instance provided by celery task"""
 
     # Required Lazy imports
     from django.conf import settings
