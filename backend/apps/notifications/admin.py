@@ -5,30 +5,55 @@ from apps.notifications.models import (
     NotificationPreferences,
     NotificationTemplate,
 )
-from utils.admin_utils import private_admin_site
+from utils.admin_utils import private_admin_site, ReadOnlyAdmin
 
 
-@admin.register(NotificationTemplate, site=private_admin_site)
 class NotificationTemplateAdmin(admin.ModelAdmin):
-    list_display = ("template_name", "event_type", "channel", "version", "is_active", "created")
-    list_filter = ("channel", "is_active", "event_type")
-    search_fields = ("template_name", "event_type", "subject")
-    readonly_fields = ("version_major", "version_minor", "version_patch", "version")
+    list_display = ["id", "event_type", "channel", "version"]
+    list_filter = ["event_type", "channel", "language"]
+    readonly_fields = ["created", "modified", "id", "version", "is_removed"]
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ["is_removed", ("event_type", "channel"), ("id", "version")],
+            },
+        ),
+        ("Content", {"fields": ["plain_text", "html"], "classes": ["wide"]}),
+        ("TimeStamps", {"fields": ["created", "modified"], "classes": ["collapse"]}),
+    )
 
 
-@admin.register(NotificationLog, site=private_admin_site)
-class NotificationLogAdmin(admin.ModelAdmin):
-    list_display = ("id", "recipient_user", "event_type", "channel", "status", "sent_at")
-    list_filter = ("status", "channel", "event_type")
-    search_fields = ("recipient_user__email", "event_type", "task_id")
-    readonly_fields = ("id", "created", "modified", "sent_at")
+class NotificationLogAdmin(ReadOnlyAdmin):
+    list_display = ["id", "status", "task_id", "channel", "version"]
+    list_filter = ["status", "channel"]
+
+    fieldsets = (
+        (None, {"fields": [("id", "task_id"), ("status", "channel"), "template"]}),
+        ("Runtime Data", {"fields": ["template_snapshot", "context_data", "errors"], "classes": ["wide"]}),
+    )
 
 
-@admin.register(NotificationPreferences, site=private_admin_site)
 class NotificationPreferenceAdmin(admin.ModelAdmin):
-    list_display = ("user", "event_type", "opted_email", "opted_sms", "is_active")
-    list_filter = ("is_active", "opted_email", "opted_sms")
-    search_fields = ("user__email", "event_type")
+    list_display = ["id", "user", "event_type", "is_removed"]
+    list_filter = ["event_type", "is_removed", "opted_email", "opted_sms", "opted_webhook", "opted_push_notification"]
+    readonly_fields = ["created", "modified", "is_removed"]
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": [
+                    "is_removed",
+                    "user",
+                    "event_type",
+                    ("opted_email", "opted_sms", "opted_webhook", "opted_push_notification"),
+                ]
+            },
+        ),
+        ("TimeStamp", {"fields": [("created", "modified")], "classes": ["collapse"]}),
+    )
 
 
 private_admin_site.register(NotificationPreferences, NotificationPreferenceAdmin)

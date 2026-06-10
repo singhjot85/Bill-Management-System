@@ -3,13 +3,14 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import get_user_model
 
 from apps.notifications.constants import EventTypeChoices, ChannelTypeChoices, LangugeTypeChoices, LogStatusChoices
-from utils.model_utils import UUIDModel, VersionedBetterModelMixin, BetterModelMixin
+from utils.model_utils import VersionedSafeModelMixin, VersionedBetterModelMixin, BetterModelMixin
 
 User = get_user_model()
 
 class NotificationTemplate(VersionedBetterModelMixin):
     """Template model for notifications, Generic model to store a Email or a Message template."""
 
+    # Do we need a template_name, event_type is alreay present ??
     event_type = models.CharField(max_length=124, choices=EventTypeChoices.choices, null=False, blank=False)
     channel = models.CharField(max_length=124, choices=ChannelTypeChoices.choices, null=False, blank=False)
     language = models.CharField(max_length=10, choices=LangugeTypeChoices.choices, null=True, blank=True)
@@ -17,7 +18,7 @@ class NotificationTemplate(VersionedBetterModelMixin):
     html = models.TextField(null=True, blank=True)
 
 
-class NotificationLog(UUIDModel):
+class NotificationLog(VersionedSafeModelMixin):
     """Tracks the history and status of all sent notifications.
     The log is used in two places: During Event creation(at dipatcher),
     and during actual implementation flow(during network IO).
