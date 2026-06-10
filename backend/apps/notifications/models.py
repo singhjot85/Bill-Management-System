@@ -1,11 +1,21 @@
-from django.db import models
-from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth import get_user_model
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import models
 
-from apps.notifications.constants import EventTypeChoices, ChannelTypeChoices, LangugeTypeChoices, LogStatusChoices
-from utils.model_utils import VersionedSafeModelMixin, VersionedBetterModelMixin, BetterModelMixin
+from apps.notifications.constants import (
+    ChannelTypeChoices,
+    EventTypeChoices,
+    LangugeTypeChoices,
+    LogStatusChoices,
+)
+from utils.model_utils import (
+    BetterModelMixin,
+    VersionedBetterModelMixin,
+    VersionedSafeModelMixin,
+)
 
 User = get_user_model()
+
 
 class NotificationTemplate(VersionedBetterModelMixin):
     """Template model for notifications, Generic model to store a Email or a Message template."""
@@ -31,12 +41,12 @@ class NotificationLog(VersionedSafeModelMixin):
 
     # Startegy Log
     template = models.ForeignKey(
-        to=NotificationTemplate, 
-        on_delete=models.SET_NULL, 
-        related_name="notification_logs", 
-        null=True, 
-        blank=True, 
-        default=None
+        to=NotificationTemplate,
+        on_delete=models.SET_NULL,
+        related_name="notification_logs",
+        null=True,
+        blank=True,
+        default=None,
     )
     template_snapshot = models.TextField(null=True, blank=True)
     context_data = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
@@ -45,10 +55,12 @@ class NotificationLog(VersionedSafeModelMixin):
 
 class NotificationPreferences(BetterModelMixin):
     """Store user level prefernce's for notifications."""
-     
-    user = models.ForeignKey(to=User, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False)
+
+    user = models.ForeignKey(
+        to=User, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False
+    )
     event_type = models.CharField(max_length=124, choices=EventTypeChoices.choices, null=False, blank=False)
-    
+
     opted_email = models.BooleanField(default=False)
     opted_sms = models.BooleanField(default=False)
     opted_webhook = models.BooleanField(default=False)

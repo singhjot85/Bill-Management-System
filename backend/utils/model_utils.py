@@ -88,7 +88,6 @@ class SimpleVersionModelMixin(models.Model):
 class SafeModelMixin(SoftDeletableModel, TimeStampedModel):
     """Combination of SoftDeletableModel, TimeStampedModel
     Fields:
-        id (UUID): prinary key
         is_removed (bool): Deleting marks this as false
         created (AutoCreatedField): Date time when object is created
         modified (AutoLastModifiedField): Date time when object is modified

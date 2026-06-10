@@ -35,7 +35,7 @@ PROJECT_APPS = [
     "apps.setup",
     "apps.customer_management",
     "apps.payments_management",
-    "apps.notifications"
+    "apps.notifications",
 ]
 
 # Database Level app registration
@@ -53,7 +53,7 @@ DJANGO_TENANT_PRIVATE_APPS = [
     "apps.customer_management",
     "apps.payments_management",
     "apps.setup",
-    "apps.notifications"
+    "apps.notifications",
 ]
 
 CUSTOMER_CUSTOMER = "customer_management.Customer"

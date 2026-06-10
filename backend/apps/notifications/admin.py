@@ -5,7 +5,7 @@ from apps.notifications.models import (
     NotificationPreferences,
     NotificationTemplate,
 )
-from utils.admin_utils import private_admin_site, ReadOnlyAdmin
+from utils.admin_utils import ReadOnlyAdmin, private_admin_site
 
 
 class NotificationTemplateAdmin(admin.ModelAdmin):

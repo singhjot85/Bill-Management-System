@@ -1,7 +1,10 @@
+from dataclasses import dataclass
+
 from django.db.models import TextChoices
 
 
 class EventTypeChoices(TextChoices):
+    """Event Type Choices, Repersenting template name and event type in general"""
 
     # Invocing events
     INVOICE_CREATED = "invoice_created", "Invoice Created"
@@ -33,3 +36,21 @@ class LogStatusChoices(TextChoices):
     SENT = "sent", "Sent"
     FAILED = "failed", "Failed"
     BOUCED = "bounced", "Bounced"
+
+
+@dataclass
+class NotificationEvent:
+    """An notification event is a specific data, required to initiate a notification flow."""
+
+    event_type: "EventTypeChoices"
+    recipent_list: list = None
+    rendering_context: dict
+
+
+@dataclass
+class ChannelInstruction:
+    "Instructions for dispatcher that resolver will generate."
+
+    template_name: "EventTypeChoices"
+    channel: "ChannelTypeChoices"
+    rendering_context: dict
