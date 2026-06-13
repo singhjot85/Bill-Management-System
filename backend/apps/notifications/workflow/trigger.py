@@ -1,12 +1,13 @@
+import logging
 import typing
 from dataclasses import dataclass, field
 from uuid import UUID
 
 from apps.notifications.constants import EventTypeChoices
-from apps.notifications.workflow.resolvers import ResolverFactory
+from apps.notifications.workflow.resolvers import ResolverFactory, NotificationResolverException
+from apps.notifications.workflow.dispatcher import Dispatcher, NotificationDispatcherException
 
 if typing.TYPE_CHECKING:
-    from apps.notifications.workflow.dispatcher import NotificationDispatcher
     from apps.notifications.workflow.resolvers import ChannelInstruction
 
 
@@ -15,6 +16,7 @@ class InvalidEventException(Exception):
 
     pass
 
+LOGGER = logging.getLogger()
 
 @dataclass(frozen=True)
 class NotificationEvent:
@@ -61,11 +63,17 @@ class NotificationService:
         return NotificationEvent(event_type=event_type, assosciated_party=party, data=data)
 
     def _trigger(self, event_type: str, party: typing.Union[str, UUID], data: dict = None, *args, **kwargs):
-
+        """Handles the atomic trigger logic, so that each trigger is handled gracefully.
+        Args:
+            event_type (str): Event Type to be trigerred.
+            party (str | UUID): Id or reference(s) for parties (customer/user) associated to that event.
+                could be a Customer or a User id.
+            data (dict): Additional data to be passed in notification context.
+        """
         event: "NotificationEvent" = self.build_event(event_type, party, data, *args, **kwargs)
         instructions: list["ChannelInstruction"] = ResolverFactory(event, party).resolve()
         for instruction in instructions:
-
+            Dispatcher(instruction).dispatch()
 
     def trigger(
         self,
@@ -82,7 +90,7 @@ class NotificationService:
             Dispatch individual tasks for each of those instuctions
         Args:
             event_type (str): Event Type to be trigerred.
-            parties (str | UUID): Id or reference(s) for parties (customer/user) associated to that event.
+            parties (str | UUID | list | tuple): Id or reference(s) for parties (customer/user) associated to that event.
                 could be a Customer or a User id.
             data (dict): Additional data to be passed in notification context.
         """
@@ -98,3 +106,47 @@ class NotificationService:
                 self._trigger(event_type, party, data, *args, **kwargs)
         else:
             self._trigger(event_type, parties, data, *args, **kwargs)
+
+
+notification_service = NotificationService()
+
+
+def trigger_notifications(
+    event_type: str, assosciated_parties: list[str], data: dict = None, raise_exception: bool = True
+):
+    """Trigger notification lifecylce from just this method
+    Args:
+        event_type (str): Event Type to trigger, should be a pre-registered event.
+        assosciated_parties (list[str]): All the parties(user's/customer') assossciated with the event.
+        data (dict, optional): Additional context data to pe passed to the Notification flow.
+        raise_exception (bool, optional): Raise caught exceptions.
+            default to True, i.e. trigger will not silently fail
+    Return:
+        (bool): If the notification flow was queued sucessfully, or not.
+    Raises:
+        InvalidEventException: If the issue in trigggering the flow.
+        NotificationResolverException: If the issue is in resolver phase.
+        NotificationDispatcherException: If the issue in dispatch phase
+    """
+    try:
+        notification_service.trigger(
+            event_type=event_type,
+            parties=assosciated_parties,
+            data=data
+        )
+    except InvalidEventException as ieExcp:
+        LOGGER.error("Error in event creation", exc_info=ieExcp)
+        if raise_exception:
+            raise
+    except NotificationResolverException as nrExcp:
+        LOGGER.error("Error in resolving instructions", exc_info=nrExcp)
+        if raise_exception:
+            raise
+    except NotificationDispatcherException as ndExcp:
+        LOGGER.error("Error in dipatching instructions", exc_info=ndExcp)
+        if raise_exception:
+            raise
+    except Exception as e:
+        LOGGER.error("An unkown error occurred in notification flow: %s", str(e), exc_info=e)
+        if raise_exception:
+            raise

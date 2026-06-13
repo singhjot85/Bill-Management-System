@@ -31,7 +31,8 @@ class BaseStratergy(ABC):
         return template_string, context_data
 
     def render_message(self, template_string: str, context_data: dict, *args, **kwargs) -> str:
-        """Render a message from given context data.
+        """
+        Render a message from given context data. This is one of helper method(s)
         Args:
             template_string (str): Template String to render.
             context_data (dict): Context dict to fill data in template.
@@ -51,10 +52,15 @@ class BaseStratergy(ABC):
         self._message = self.post_render_hook(rendered_message, args, kwargs)
 
         return self._message
-
+    
     @classmethod
-    def authenticate(self):
-        pass
+    def post_render_hook(self, rendered_message: str, *args, **kwargs):
+        """Hook to be executed after the rendering logic.
+
+        Args:
+            rendered_message (str): Final rendered message
+        """
+
 
     @abstractmethod
     def _send(self, *args, **kwargs):
@@ -62,7 +68,19 @@ class BaseStratergy(ABC):
         pass
 
     def send(cls, *args, **kwargs):
-        """Main Send caller, that calls the send logic, and also handles logging and error handling"""
+        """
+        Main Send caller, that calls the send logic, and also handles logging and error handling.
+        
+        kwargs:
+            raise_on_exception (bool): Whether to raise exception, or just log it silently.
+        
+        Example Usage:
+            
+            >>> manager = notification_stratergy_registry.get("email")
+            >>> manager.send()
+            >>> manager = notification_stratergy_registry.get("email")
+            >>> manager.send(raise_on_exception=True)
+        """
 
         LOGGER.info("Sending %s notification...", cls.label)
 
@@ -70,6 +88,8 @@ class BaseStratergy(ABC):
             cls._send(args, kwargs)
         except Exception as ex:
             LOGGER.error("Error in sending %s", cls.label, exc_info=ex)
-            raise
+            if kwargs.get("raise_on_exception", False):
+                raise
+            
 
         LOGGER.info("Successfully sent %s notification", cls.label)

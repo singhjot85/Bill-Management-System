@@ -20,7 +20,8 @@ class TaskLocation(Enum):
     """Task file path for auto discover_tasks, whenever a new task file is created register it here"""
 
     TEST_TASKS = "apps.tasks.test_tasks"
-    INVOICE_TASK = "apps.tasks.invoice_tasks"
+    INVOICE_TASKS = "apps.tasks.invoice_tasks"
+    NOTIFICATION_TASKS = "apps.tasks.notification_tasks"
 
     @staticmethod
     def get_autodiscove_tasks():
@@ -31,8 +32,9 @@ class TaskLocation(Enum):
 
 class TaskNames(Enum):
 
-    PDF_GENERATION = "generate_pdf", TaskLocation.INVOICE_TASK.value
+    PDF_GENERATION = "generate_pdf", TaskLocation.INVOICE_TASKS.value
     TEST_TENANT_AWARE_TASK = "test_tenant_awareness", TaskLocation.TEST_TASKS.value
+    NOTIFICATION_TASK = "notification_task", TaskLocation.NOTIFICATION_TASKS.value
 
     def task_label(self) -> str:
         """Returns a user friendly task label for current"""

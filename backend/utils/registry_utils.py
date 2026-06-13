@@ -44,7 +44,7 @@ class ClassRegistry:
         """Current Active Registry"""
         return self._registry
 
-    def get(self, key: str):
+    def get(self, key: str) -> Any:
         """
         Get a class corresponding to registry,
         NOTE: Registry only returns a class, object you have to initiate yourself

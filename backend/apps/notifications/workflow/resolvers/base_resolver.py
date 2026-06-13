@@ -29,7 +29,6 @@ User = get_user_model()
 
 @dataclass
 class ChannelInstruction:
-
     log_id: str
     user_id: str
     channel_type: str
@@ -62,7 +61,9 @@ class ChannelInstruction:
             raise NotificationResolverException("Channel Type not give, its required")
 
         if self.channel_type not in ChannelTypeChoices.values:
-            raise NotificationResolverException(f"Channel type is not valid: [{self.channel_type}]")
+            raise NotificationResolverException(
+                f"Channel type is not valid: [{self.channel_type}]"
+            )
 
     def __post_init__(self):
         """Post intialization validation for dataclass"""
@@ -108,7 +109,11 @@ class ResolverFactory:
         return effective
 
     def __init__(
-        self, event: "NotificationEvent", party: typing.Optional[typing.Union[str, "UUID"]] = None, *args, **kwargs
+        self,
+        event: "NotificationEvent",
+        party: typing.Optional[typing.Union[str, "UUID"]] = None,
+        *args,
+        **kwargs,
     ):
         """
         Resolver init, the job of an initializer is to consume an event and resolve preferences,
@@ -128,13 +133,19 @@ class ResolverFactory:
     def _load_tenant_preferences(self):
         """Load tenant preferences for current tenant. All Configs are cached so don't need to cache this one specifically."""
 
-        config = Configurations.get_latest_config(InterfaceType.NOTIFICATION_CONFIGURATION.value)
+        config = Configurations.get_latest_config(
+            InterfaceType.NOTIFICATION_CONFIGURATION.value
+        )
         if not config:
-            raise NotificationResolverException("Notifications not configured for tenant.")
+            raise NotificationResolverException(
+                "Notifications not configured for tenant."
+            )
 
         tenant_pref = config.details.get("tenant_preferences")
         if not tenant_pref:
-            raise NotificationResolverException("Tenant Preferences not found for current tenant.")
+            raise NotificationResolverException(
+                "Tenant Preferences not found for current tenant."
+            )
 
         self._tenant_pref = tenant_pref
 
@@ -151,13 +162,19 @@ class ResolverFactory:
                 "push_notification": obj.opted_push_notification,
             }
 
-        self._party = User.objects.prefetch_related("notification_preferences").get(self._party_id)
+        self._party = User.objects.prefetch_related("notification_preferences").get(
+            self._party_id
+        )
         if self._party:
             self._user_preferences = resolve_pref(self._party.notification_preferences)
         else:
-            self._party = Customer.objects.prefetch_related("notification_preferences").get(self._party_id)
+            self._party = Customer.objects.prefetch_related(
+                "notification_preferences"
+            ).get(self._party_id)
             if self._party:
-                self._user_preferences = resolve_pref(self._party.notification_preferences)
+                self._user_preferences = resolve_pref(
+                    self._party.notification_preferences
+                )
 
         return self._user_preferences
 
@@ -166,8 +183,8 @@ class ResolverFactory:
 
         instructions = []
         for channel_type in self.preferences:
-            resolver: "BaseResolver" = resolver_registry.get(channel_type)(self._event, channel_type)
-            instruction: "ChannelInstruction" = resolver.resolve()
+            resolver: "BaseResolver" = resolver_registry.get(key=channel_type)
+            instruction: "ChannelInstruction" = resolver(self._event, channel_type).resolve()
             instructions.append(instruction)
 
         return instructions
@@ -195,7 +212,9 @@ class BaseResolver(abc.ABC):
         """
         Initialize a log object and log event data in it, also pass this log_id to celery task,
         """
-        return NotificationLog.objects.create(status=LogStatusChoices.QUEUED, channel=self._channel_type)
+        return NotificationLog.objects.create(
+            status=LogStatusChoices.QUEUED, channel=self._channel_type
+        )
 
     @abc.abstractmethod
     def _get_dataclass_data(self, *args, **kwargs) -> dict:
@@ -215,8 +234,10 @@ class BaseResolver(abc.ABC):
     def resolve(self, *args, **kwargs):
         """
         The actual method that gets called when resolving instructions for dispatcher
-        The flow remains consistent, but the implemenration might differ channel to channel.
+        The flow remains consistent, but the implemenration might differ channel to ch
         """
-        channel_instruction: "ChannelInstruction" = self._get_instruction_dataclass(args, kwargs)
+        channel_instruction: "ChannelInstruction" = self._get_instruction_dataclass(
+            args, kwargs
+        )
         data: dict = self._get_dataclass_data(args, kwargs)
         return channel_instruction(**data)
