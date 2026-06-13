@@ -1,7 +1,8 @@
+import typing
 import logging
 from abc import ABC, abstractmethod
 
-from django.template import Template
+from django.template import Template, context
 
 LOGGER = logging.getLogger()
 
@@ -27,10 +28,12 @@ class BaseStratergy(ABC):
         """
         if not context_data:
             context_data = {}
+        
+        context_data = context.Context(context_data)
 
         return template_string, context_data
 
-    def render_message(self, template_string: str, context_data: dict, *args, **kwargs) -> str:
+    def render_message(self, template_string: str, context_data: dict, *args, **kwargs) -> typing.Optional[str]:
         """
         Render a message from given context data. This is one of helper method(s)
         Args:
@@ -54,7 +57,7 @@ class BaseStratergy(ABC):
         return self._message
     
     @classmethod
-    def post_render_hook(self, rendered_message: str, *args, **kwargs):
+    def post_render_hook(cls, rendered_message: str, *args, **kwargs):
         """Hook to be executed after the rendering logic.
 
         Args:
@@ -67,7 +70,7 @@ class BaseStratergy(ABC):
         """Actual send logic belongs here, this can be overriden in each subclass."""
         pass
 
-    def send(cls, *args, **kwargs):
+    def send(self, *args, **kwargs):
         """
         Main Send caller, that calls the send logic, and also handles logging and error handling.
         
@@ -82,14 +85,14 @@ class BaseStratergy(ABC):
             >>> manager.send(raise_on_exception=True)
         """
 
-        LOGGER.info("Sending %s notification...", cls.label)
+        LOGGER.info("Sending %s notification...", self.label)
 
         try:
-            cls._send(args, kwargs)
+            self._send(args, kwargs)
         except Exception as ex:
-            LOGGER.error("Error in sending %s", cls.label, exc_info=ex)
+            LOGGER.error("Error in sending %s", self.label, exc_info=ex)
             if kwargs.get("raise_on_exception", False):
                 raise
             
 
-        LOGGER.info("Successfully sent %s notification", cls.label)
+        LOGGER.info("Successfully sent %s notification", self.label)

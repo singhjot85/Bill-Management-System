@@ -24,7 +24,6 @@ media/
 staticfiles/
 local_settings.py
 
-.vscode/
 .history/
 *.code-workspace
 
@@ -49,5 +48,5 @@ Thumbs.db
 local_testing/
 source_codes/
 
-pyrightconfig.json
+
 .zed/

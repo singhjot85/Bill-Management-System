@@ -70,3 +70,29 @@ markers = [
     "unit: marks tests for isolated functions",
     "celery: marks tests that involve celery tasks",
 ]
+
+[tool.pyright]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "**/*.pyc",
+    "**/migrations",
+    "**/tests",
+    "**/test_*.py",
+    "**/.venv",
+    "**/venv",
+    "**/env",
+    "**/static",
+    "**/staticfiles",
+    "**/media",
+    "frontend",
+    "project_templating",
+]
+typeCheckingMode = "off"
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportAssignmentType = false
+reportUnusedImport = true
+reportUnusedVariable = true
+pythonVersion = "3.12"
