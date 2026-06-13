@@ -9,15 +9,15 @@ from utils.admin_utils import ReadOnlyAdmin, private_admin_site
 
 
 class NotificationTemplateAdmin(admin.ModelAdmin):
-    list_display = ["id", "event_type", "channel", "version"]
-    list_filter = ["event_type", "channel", "language"]
+    list_display = ["id", "template_name", "event_type", "channel", "version"]
+    list_filter = ["template_name", "event_type", "channel", "language"]
     readonly_fields = ["created", "modified", "id", "version", "is_removed"]
 
     fieldsets = (
         (
             None,
             {
-                "fields": ["is_removed", ("event_type", "channel"), ("id", "version")],
+                "fields": ["is_removed", ("template_name", "version"), ("event_type", "channel")],
             },
         ),
         ("Content", {"fields": ["plain_text", "html"], "classes": ["wide"]}),

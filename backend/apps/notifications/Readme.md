@@ -19,6 +19,8 @@ The lifecycle of a notification follows a strictly defined path:
   (Sync)        (Sync)         (Sync)            (Async)
 ```
 
+![alt text](./workflow/flow.png)
+
 ### 1. Trigger (Synchronous)
 
 Any part of the application can trigger a notification by calling the `NotificationService`.

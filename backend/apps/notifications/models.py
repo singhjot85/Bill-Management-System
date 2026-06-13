@@ -2,11 +2,13 @@ from django.contrib.auth import get_user_model
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
+from apps.customer_management.models import Customer
 from apps.notifications.constants import (
     ChannelTypeChoices,
     EventTypeChoices,
     LangugeTypeChoices,
     LogStatusChoices,
+    NotificationTemplateChoices,
 )
 from utils.model_utils import (
     BetterModelMixin,
@@ -19,6 +21,10 @@ User = get_user_model()
 
 class NotificationTemplate(VersionedBetterModelMixin):
     """Template model for notifications, Generic model to store a Email or a Message template."""
+
+    template_name = models.CharField(
+        max_length=255, choices=NotificationTemplateChoices.choices, null=False, blank=False
+    )
 
     # Do we need a template_name, event_type is alreay present ??
     event_type = models.CharField(max_length=124, choices=EventTypeChoices.choices, null=False, blank=False)
@@ -56,8 +62,11 @@ class NotificationLog(VersionedSafeModelMixin):
 class NotificationPreferences(BetterModelMixin):
     """Store user level prefernce's for notifications."""
 
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         to=User, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False
+    )
+    customer = models.OneToOneField(
+        to=Customer, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False
     )
     event_type = models.CharField(max_length=124, choices=EventTypeChoices.choices, null=False, blank=False)
 
