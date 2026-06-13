@@ -10,6 +10,7 @@ from config.settings.resolvers import (
     get_broker_url,
     get_cache_url,
     get_resolved_cache_options,
+    set_default_email_from,
 )
 from config.settings.variables import *
 
@@ -139,6 +140,8 @@ TIME_ZONE = APPLICATION_TIMEZONE
 
 USE_I18N = True
 LANGUAGE_CODE = "en-us"
+
+set_default_email_from()
 
 if CURRENT_ENV in LOCAL_ENVS:
     DEBUG = True
