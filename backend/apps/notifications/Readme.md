@@ -87,6 +87,8 @@ def resolve_template(event_type, channel, schema_name):
     return GlobalTemplateRegistry.get_default(event_type, channel)
 ```
 
+![alt text](./workflow/detailed-flow.png)
+
 ## 5. Data Models
 
 ### Global Schema (Public)
