@@ -90,9 +90,10 @@ exclude = [
     "project_templating",
 ]
 typeCheckingMode = "off"
-reportMissingImports = true
+reportUndefinedVariable = "error"
+reportMissingImports = "error"
 reportMissingTypeStubs = false
 reportAssignmentType = false
-reportUnusedImport = true
-reportUnusedVariable = true
+reportUnusedImport = "warning"
+reportUnusedVariable = "warning"
 pythonVersion = "3.12"

@@ -4,8 +4,14 @@ from dataclasses import dataclass, field
 from uuid import UUID
 
 from apps.notifications.constants import EventTypeChoices
-from apps.notifications.workflow.resolvers import ResolverFactory, NotificationResolverException
-from apps.notifications.workflow.dispatcher import Dispatcher, NotificationDispatcherException
+from apps.notifications.workflow.dispatcher import (
+    Dispatcher,
+    NotificationDispatcherException,
+)
+from apps.notifications.workflow.resolvers import (
+    NotificationResolverException,
+    ResolverFactory,
+)
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers import ChannelInstruction
@@ -16,7 +22,9 @@ class InvalidEventException(Exception):
 
     pass
 
+
 LOGGER = logging.getLogger()
+
 
 @dataclass(frozen=True)
 class NotificationEvent:
@@ -129,11 +137,7 @@ def trigger_notifications(
         NotificationDispatcherException: If the issue in dispatch phase
     """
     try:
-        notification_service.trigger(
-            event_type=event_type,
-            parties=assosciated_parties,
-            data=data
-        )
+        notification_service.trigger(event_type=event_type, parties=assosciated_parties, data=data)
     except InvalidEventException as ieExcp:
         LOGGER.error("Error in event creation", exc_info=ieExcp)
         if raise_exception:

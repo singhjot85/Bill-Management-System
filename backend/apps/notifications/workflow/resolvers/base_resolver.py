@@ -61,9 +61,7 @@ class ChannelInstruction:
             raise NotificationResolverException("Channel Type not give, its required")
 
         if self.channel_type not in ChannelTypeChoices.values:
-            raise NotificationResolverException(
-                f"Channel type is not valid: [{self.channel_type}]"
-            )
+            raise NotificationResolverException(f"Channel type is not valid: [{self.channel_type}]")
 
     def __post_init__(self):
         """Post intialization validation for dataclass"""
@@ -82,13 +80,13 @@ class ResolverFactory:
         return False
 
     @property
-    def user_preferences(self) -> list:
+    def user_preferences(self) -> typing.Optional[list]:
         if hasattr(self, "_user_preferences"):
             return self._user_preferences
         return None
 
     @property
-    def tenant_preferences(self) -> list:
+    def tenant_preferences(self) -> typing.Optional[list]:
         if hasattr(self, "_tenant_pref"):
             return self._tenant_pref
         return None
@@ -97,7 +95,7 @@ class ResolverFactory:
     def preferences(self) -> set:
         """Resolved preferences based on tenant preferences, user preferences, and event preferences."""
         if not hasattr(self, "_event") or not self._event or not self._event.event_type:
-            return []
+            return set()
 
         event_preferences = EventPreferences(self._event.event_type).get_preferences()
 
@@ -133,19 +131,13 @@ class ResolverFactory:
     def _load_tenant_preferences(self):
         """Load tenant preferences for current tenant. All Configs are cached so don't need to cache this one specifically."""
 
-        config = Configurations.get_latest_config(
-            InterfaceType.NOTIFICATION_CONFIGURATION.value
-        )
+        config = Configurations.get_latest_config(InterfaceType.NOTIFICATION_CONFIGURATION.value)
         if not config:
-            raise NotificationResolverException(
-                "Notifications not configured for tenant."
-            )
+            raise NotificationResolverException("Notifications not configured for tenant.")
 
         tenant_pref = config.details.get("tenant_preferences")
         if not tenant_pref:
-            raise NotificationResolverException(
-                "Tenant Preferences not found for current tenant."
-            )
+            raise NotificationResolverException("Tenant Preferences not found for current tenant.")
 
         self._tenant_pref = tenant_pref
 
@@ -162,19 +154,13 @@ class ResolverFactory:
                 "push_notification": obj.opted_push_notification,
             }
 
-        self._party = User.objects.prefetch_related("notification_preferences").get(
-            self._party_id
-        )
+        self._party = User.objects.prefetch_related("notification_preferences").get(self._party_id)
         if self._party:
             self._user_preferences = resolve_pref(self._party.notification_preferences)
         else:
-            self._party = Customer.objects.prefetch_related(
-                "notification_preferences"
-            ).get(self._party_id)
+            self._party = Customer.objects.prefetch_related("notification_preferences").get(self._party_id)
             if self._party:
-                self._user_preferences = resolve_pref(
-                    self._party.notification_preferences
-                )
+                self._user_preferences = resolve_pref(self._party.notification_preferences)
 
         return self._user_preferences
 
@@ -212,9 +198,7 @@ class BaseResolver(abc.ABC):
         """
         Initialize a log object and log event data in it, also pass this log_id to celery task,
         """
-        return NotificationLog.objects.create(
-            status=LogStatusChoices.QUEUED, channel=self._channel_type
-        )
+        return NotificationLog.objects.create(status=LogStatusChoices.QUEUED, channel=self._channel_type)
 
     @abc.abstractmethod
     def _get_dataclass_data(self, *args, **kwargs) -> dict:
@@ -236,8 +220,6 @@ class BaseResolver(abc.ABC):
         The actual method that gets called when resolving instructions for dispatcher
         The flow remains consistent, but the implemenration might differ channel to ch
         """
-        channel_instruction: "ChannelInstruction" = self._get_instruction_dataclass(
-            args, kwargs
-        )
+        channel_instruction: "ChannelInstruction" = self._get_instruction_dataclass(args, kwargs)
         data: dict = self._get_dataclass_data(args, kwargs)
         return channel_instruction(**data)

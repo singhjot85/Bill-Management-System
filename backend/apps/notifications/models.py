@@ -22,14 +22,16 @@ User = get_user_model()
 class NotificationTemplate(VersionedBetterModelMixin):
     """Template model for notifications, Generic model to store a Email or a Message template."""
 
+    # Template Metadata
     template_name = models.CharField(
         max_length=255, choices=NotificationTemplateChoices.choices, null=False, blank=False
     )
-
-    # Do we need a template_name, event_type is alreay present ??
     event_type = models.CharField(max_length=124, choices=EventTypeChoices.choices, null=False, blank=False)
     channel = models.CharField(max_length=124, choices=ChannelTypeChoices.choices, null=False, blank=False)
     language = models.CharField(max_length=10, choices=LangugeTypeChoices.choices, null=True, blank=True)
+
+    # Template Content
+    subject = models.TextField(null=True, blank=True)
     plain_text = models.TextField(null=True, blank=True)
     html = models.TextField(null=True, blank=True)
 

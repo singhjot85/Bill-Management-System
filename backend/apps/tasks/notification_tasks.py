@@ -10,6 +10,7 @@ LOGGER = logging.getLogger()
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.stratergies import BaseStratergy
 
+
 @shared_task
 def notification_task(*args, **kwargs):
     """
@@ -17,5 +18,5 @@ def notification_task(*args, **kwargs):
     It's just placeholder all the logic is in workflow services.
     """
     manager_key = kwargs.get("channel_type", None)
-    manager: "BaseStratergy" = notification_stratergy_registry.get(manager_key)
-    manager.send(args, kwargs)
+    manager: "BaseStratergy" = notification_stratergy_registry.get(manager_key)(*args, **kwargs)
+    manager.send()

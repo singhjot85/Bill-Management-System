@@ -1,5 +1,6 @@
-from apps.tasks.registry import TaskNames, queue_task
 from apps.notifications.workflow.resolvers import ChannelInstruction
+from apps.tasks.registry import TaskNames, queue_task
+
 
 class NotificationDispatcherException(Exception):
     pass
@@ -11,6 +12,7 @@ class Dispatcher:
     Its responsibilty is to handle and manage task queuing.
     It also logs the event to datbase, by creating a log entry.
     """
+
     _default_task_name = TaskNames.NOTIFICATION_TASK.value
 
     def __init__(self, instuction: "ChannelInstruction", task_name: str = None):
@@ -21,13 +23,13 @@ class Dispatcher:
         """
         self._instruction = instuction
         self._task_name = task_name or self._default_task_name
-    
+
     @property
     def task_kwargs(self):
         if hasattr(self, "_instruction") and self._instruction:
             return self._instruction.__dict__()
         return None
-    
+
     @property
     def task_args(self):
         return None
@@ -38,11 +40,6 @@ class Dispatcher:
         TODO: Handle failure's, retries and re-triggers.
         """
         try:
-            queue_task(
-                task=self._task_name,
-                on_commit=True,
-                task_args=self.task_args,
-                task_kwargs=self.task_kwargs
-            )
+            queue_task(task=self._task_name, on_commit=True, task_args=self.task_args, task_kwargs=self.task_kwargs)
         except Exception as e:
             raise NotificationDispatcherException("Error in queing celery task") from e

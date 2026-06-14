@@ -55,8 +55,8 @@ class EventPreferences(Enum):
     PAYMENT_FAILED = "payment_failed", [ChannelTypeChoices.EMAIL.value]
     PAYMENT_REFUNDED = "payment_refunded", [ChannelTypeChoices.EMAIL.value]
 
-    def get_preferences(self) -> list:
-        return self.value[1]
+    def get_preferences(self) -> set:
+        return {*self.value[1]}
 
 
 class LangugeTypeChoices(TextChoices):
