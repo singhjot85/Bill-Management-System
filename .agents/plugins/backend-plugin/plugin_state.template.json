@@ -1,0 +1,17 @@
+{
+    "feature": "",
+    "feature_type": "new_feature",
+    "current_stage": "",
+    "pipeline": [],
+    "completed_stages": [],
+    "pending_stages": [],
+    "blocked_on": null,
+    "retry_counts": {
+        "pre_coder": 0,
+        "pre_tester": 0,
+        "pre_commit": 0
+    },
+    "files_touched": [],
+    "last_validated_at": null,
+    "architect_notes": ""
+}

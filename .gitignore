@@ -50,3 +50,5 @@ source_codes/
 
 .vscode/
 .zed/
+
+.agents/session_state.json

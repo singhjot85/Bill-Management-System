@@ -1,146 +1,68 @@
-# Notification System - Design & Architecture
+# Notification App — Implementation Guide
 
-The BMA Notification System is built on an **event-driven, asynchronous architecture** designed for high reliability, multi-tenant isolation, and flexible delivery channel management.
+This app manages the lifecycle of all outbound communications (Email, SMS, Webhooks) within the BMA platform. It is designed to be highly decoupled, multi-tenant aware, and asynchronous.
 
-## 1. Architectural Patterns
+For a high-level overview of the design philosophy, see [Notification Architecture](../../documentation/Notfications.md).
 
-The system employs three core design patterns to maintain a clean separation of concerns:
+## Implementation Architecture
 
-- **Observer / Event-Driven:** Application triggers emit events without knowing how they will be delivered.
-- **Strategy Pattern:** Delivery channels (Email, SMS, Push) are resolved at runtime based on configuration.
-- **Command Pattern:** `ChannelInstructions` act as command objects, decoupling the resolution logic from the actual execution in Celery.
+The notification flow is split into four distinct phases to ensure reliability and maintainability:
 
-## 2. Core Components & Flow
+1.  **Trigger**: Capture the intent and data (Synchronous).
+2.  **Resolve**: Intersect tenant permissions with user preferences (Synchronous).
+3.  **Dispatch**: Log the intent and hand off to the worker (Synchronous).
+4.  **Execute**: Render templates and perform network I/O (Asynchronous).
 
-The lifecycle of a notification follows a strictly defined path:
+## Design Patterns in Use
 
-```
-[ Trigger ] → [ Resolver ] → [ Dispatcher ] → [ Celery Worker ]
-  (Sync)        (Sync)         (Sync)            (Async)
-```
+- **Observer / Event-Driven**: Triggers are decoupled from implementation. Emitting an event (`NotificationEvent`) initiates the flow.
+- **Strategy Pattern**: Delivery logic is encapsulated in strategies (e.g., `EmailStrategy`, `SMSStrategy`), allowing different providers for different channels.
+- **Command Pattern**: `ChannelInstruction` acts as a command object that stores all state required for the async task to execute correctly.
+- **Factory Pattern**: `ResolverFactory` dynamically selects the appropriate resolution logic based on the event and party types.
+- **Facade Pattern**: `NotificationService` (and the `trigger_notifications` helper) provides a simplified entry point to the complex internal workflow.
 
-![alt text](./workflow/flow.png)
+## How to Add a New Notification
 
-### 1. Trigger (Synchronous)
+### 1. Register the Event
 
-Any part of the application can trigger a notification by calling the `NotificationService`.
-
-- **Contract:** Defined by `NotificationEvent` (dataclass).
-- **Input:** Event type, Recipient, Context data, Priority.
-
-### 2. Resolver (Synchronous)
-
-The "brain" of the system. It performs database reads to determine _if_ and _how_ a notification should be sent.
-
-- **Logic:** Intersects Tenant configuration with User preferences.
-- **Output:** A list of `ChannelInstruction` objects.
-- **Rule:** The Resolver never performs I/O outside of database reads and never triggers external APIs.
-
-### 3. Dispatcher (Synchronous)
-
-Converts instructions into persistent logs and schedules asynchronous work.
-
-- **Action:** Creates a `NotificationLog` entry in the `QUEUED` state.
-- **Action:** Fires the `send_notification_task` Celery task.
-
-### 4. Celery Task (Asynchronous)
-
-The execution layer that interacts with the outside world.
-
-- **Queue:** Routed to the `fast` queue.
-- **Action:** Renders the template using the stored context.
-- **Action:** Calls the specific channel provider (e.g., SendGrid, Twilio).
-- **Action:** Updates `NotificationLog` with success/failure status.
-
-## 3. Configuration Logic: Ceiling & Floor
-
-We use a "Ceiling and Floor" model to manage preferences in a multi-tenant environment:
-
-- **Tenant Config (The Ceiling):** Defines which channels are permitted for specific events across the entire organization.
-- **User Preference (The Floor):** Allows users to opt-out of specific channels permitted by the tenant.
-
-**Computation:** The final delivery set is a **set intersection** of the Tenant's allowed channels and the User's opted-in channels.
-
-> _Note: A user can only opt-down, never up beyond what the tenant permits._
-
-## 4. Template Resolution & Fallbacks
-
-Templates are resolved during the **Resolution** phase and rendered during the **Execution** phase.
-
-### Resolution Strategy
-
-We follow **Option 1: Seeded Defaults**.
-
-1. **Tenant Provisioning:** When a tenant is created, default templates are seeded into their schema.
-2. **Runtime:** The Resolver queries the tenant's schema directly.
-3. **Isolation:** This ensures tenants are protected from global template changes and allows for full customization per tenant.
-
-### Fallback Logic (Conceptual)
-
-If a tenant-specific template is missing, the system can fallback to a global registry:
+Add the new event to `EventTypeChoices` and define its allowed channels in `EventPreferences` within `backend/apps/notifications/constants.py`.
 
 ```python
-def resolve_template(event_type, channel, schema_name):
-    tenant_template = query_tenant_schema(event_type, channel)
-    if tenant_template:
-        return tenant_template
-    return GlobalTemplateRegistry.get_default(event_type, channel)
+class EventTypeChoices(TextChoices):
+    NEW_INVOICE = "new_invoice", "New Invoice Generated"
+
+class EventPreferences(Enum):
+    NEW_INVOICE = "new_invoice", [ChannelTypeChoices.EMAIL.value, ChannelTypeChoices.SMS.value]
 ```
 
-![alt text](./workflow/detailed-flow.png)
+### 2. Create Templates
 
-## 5. Data Models
+Add the corresponding templates in the `NotificationTemplate` table (usually via seeders or admin). Templates support Django/Jinja-like variable substitution.
 
-### Global Schema (Public)
+### 3. Trigger the Notification
 
-Used for system-wide defaults and infrastructure.
+Call the `trigger_notifications` utility from anywhere in the backend (Views, Services, or Tasks).
 
-#### `GlobalTemplateRegistry`
+```python
+from apps.notifications.workflow.trigger import trigger_notifications
 
-- `template_name`: Unique identifier (e.g., `invoice_generated`).
-- `content`: JSON containing default subject, text, and HTML.
-- `is_active`: Boolean.
+trigger_notifications(
+    event_type=EventTypeChoices.NEW_INVOICE,
+    assosciated_parties=[customer.uuid],
+    data={"invoice_number": "INV-001", "amount": 500}
+)
+```
 
-### Tenant Schema
+## Directory Structure
 
-Isolated data for each organization.
+- `workflow/trigger.py`: Entry point for initiating a notification flow.
+- `workflow/resolvers/`: Brains of the system; handles preference intersections and template selection.
+- `workflow/dispatcher.py`: Handles `NotificationLog` creation and Celery task enqueuing.
+- `workflow/stratergies/`: Implementation of channel-specific delivery logic.
+- `models.py`: Definitions for `NotificationTemplate`, `NotificationLog`, and `NotificationPreferences`.
 
-#### `NotificationTemplate`
+## Critical Rules
 
-- `event_type`: Ties template to a specific trigger (e.g., `INVOICE_GENERATED`).
-- `channel`: `EMAIL`, `SMS`.
-- `subject`: Template for the subject line.
-- `plain_text`: Main content template.
-- `html`: Optional HTML version.
-- `language`: ISO code.
-
-#### `NotificationLog`
-
-Tracks the history and status of all sent notifications.
-
-- `status`: `QUEUED`, `SENT`, `FAILED`, `BOUNCED`.
-- `task_id`: Celery task ID for traceability.
-- `channel`: `EMAIL` or `SMS`.
-- `template_snapshot`: The final rendered content (stored for audit).
-- `context_data`: JSON of variables used at rendering.
-- `errors`: Traceback or error message if failed.
-
-#### `NotificationPreference`
-
-- `user`: FK to User.
-- `event_type`: Per-event granularity.
-- `opted_email`: Boolean.
-- `opted_sms`: Boolean.
-
-## 6. Infrastructure & Reliability
-
-### Async Boundary
-
-All actual sending happens in the `fast` queue using the `bma.notification.*` namespace.
-
-### Failure Handling
-
-Notifications use the **ALERT** or **DLQ** failure tiers defined in the [Asynchronous Architecture](../../documentation/Asynchronus_Architecture.md):
-
-- **ALERT:** Simple log + admin notification for non-critical alerts.
-- **DLQ (Dead Letter Queue):** Used for critical business notifications (e.g., Invoice Sent) to allow for manual replay upon failure.
+1.  **No Network I/O in Resolver**: The resolver must be fast and only perform database reads.
+2.  **Tenant Isolation**: Always ensure `assosciated_parties` belong to the active tenant schema.
+3.  **Atomic Transactions**: Triggers should ideally happen after a database commit to ensure the worker can find the related data.
