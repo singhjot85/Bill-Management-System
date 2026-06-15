@@ -196,7 +196,7 @@
                         "description": "Path relative to project root.",
                         "examples": [
                             "backend/apps/tasks/invoice_tasks.py",
-                            "documentation/Async_Architecture.md"
+                            "docs/architecture/async-system.md"
                         ]
                     },
                     "operation": {

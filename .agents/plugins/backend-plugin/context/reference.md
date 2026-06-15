@@ -44,7 +44,7 @@ inject_for_agents:
   - architect
   - coder
 sources:
-  - file: documentation/Asynchronous_Architecture.md
+  - file: docs/architecture/async-system.md
     sections:
       - "Infrastructure Decisions"
       - "Task File Structure"
@@ -58,7 +58,7 @@ sources:
     required: warn_and_continue
     missing_caveat: >
       backend/apps/tasks/Readme.md is missing. Refer to
-      documentation/Asynchronous_Architecture.md for task implementation patterns.
+      docs/architecture/async-system.md for task implementation patterns.
 ```
 
 ---
@@ -77,19 +77,19 @@ inject_for_agents:
   - architect
   - coder
 sources:
-  - file: documentation/Payment_Service_Architecture.md
+  - file: docs/patterns/payments.md
     sections:
       - All sections
     required: warn_and_continue
     missing_caveat: >
-      documentation/Payment_Service_Architecture.md is missing.
+      docs/patterns/payments.md is missing.
       Do not implement payment flows without it. Flag as a prerequisite gap.
-  - file: documentation/Razorpay_Integration_Spec.md
+  - file: docs/integrations/razorpay.md
     sections:
       - All sections
     required: warn_and_continue
     missing_caveat: >
-      documentation/Razorpay_Integration_Spec.md is missing.
+      docs/integrations/razorpay.md is missing.
       Do not implement Razorpay-specific logic without it. Flag as prerequisite gap.
   - file: backend/apps/payments_management/Readme.md
     required: warn_and_continue
@@ -116,7 +116,7 @@ inject_for_agents:
   - architect
   - coder
 sources:
-  - file: documentation/Models.md
+  - file: docs/architecture/data-models.md
     sections:
       - "Tenants (Public Schema)"
     required: hard_stop
@@ -148,7 +148,7 @@ inject_for_agents:
   - architect
   - coder
 sources:
-  - file: documentation/Models.md
+  - file: docs/architecture/data-models.md
     sections:
       - "Customer Management (Tenant Schema)"
     required: hard_stop
@@ -204,7 +204,7 @@ inject_for_agents:
   - architect
   - coder
 sources:
-  - file: documentation/Models.md
+  - file: docs/architecture/data-models.md
     sections:
       - "Setup (Tenant Schema)"
     required: hard_stop
@@ -215,7 +215,7 @@ sources:
     required: warn_and_continue
     missing_caveat: >
       [CONTEXT WARNING] backend/apps/setup/Readme.md is missing.
-      Conventions for this app are unknown. Refer to documentation/Models.md
+      Conventions for this app are unknown. Refer to docs/architecture/data-models.md
       § "Setup (Tenant Schema)" as the primary reference.
 ```
 
@@ -233,12 +233,12 @@ inject_for_stages:
 inject_for_agents:
   - coder
 sources:
-  - file: documentation/Seeder_Architecture.md
+  - file: docs/operations/seeding.md
     sections:
       - All sections
     required: warn_and_continue
     missing_caveat: >
-      documentation/Seeder_Architecture.md is missing. If this feature requires
+      docs/operations/seeding.md is missing. If this feature requires
       seeded data, flag it in architect_notes and ask the user how to proceed.
 ```
 
@@ -255,7 +255,7 @@ inject_for_stages:
 inject_for_agents:
   - architect
 sources:
-  - file: documentation/Readme.md
+  - file: docs/README.md
     sections:
       - All sections
     required: hard_stop
@@ -269,7 +269,7 @@ sources:
 
 ## Maintenance Note
 
-When a new architecture document is added to `documentation/`, add a corresponding
+When a new architecture document is added to docs/, add a corresponding
 domain entry here. When a new app is added to `backend/apps/`, add it to both
 `conventions.md → known_apps` and create a domain entry here if it has a distinct
 concern. This file and `conventions.md` are the two files that need updating when

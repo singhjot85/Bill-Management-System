@@ -108,12 +108,12 @@ known_apps:
 
 ---
 
-## Source: `documentation/Models.md`
+## Source: `docs/architecture/data-models.md`
 
 ```yaml
 required: warn_and_continue
 missing_caveat: >
-  documentation/Models.md is missing. Data model conventions are unknown.
+  docs/architecture/data-models.md is missing. Data model conventions are unknown.
   Do not introduce new models or fields without user confirmation.
 sections:
   - All sections (this file is already concise — inject in full)

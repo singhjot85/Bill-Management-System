@@ -50,7 +50,7 @@ Append to it — never contradict or overwrite.
 
 You are at the `architecture` stage. Produce a complete architectural plan for
 `{{feature}}`. Your output will be used by the Coder subagent and written to
-`documentation/` — it must be precise enough that the Coder needs no further
+`docs/` — it must be precise enough that the Coder needs no further
 design decisions.
 
 ### Step 1 — Classify the Feature

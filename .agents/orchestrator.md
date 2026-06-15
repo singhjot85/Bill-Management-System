@@ -16,7 +16,7 @@ Before doing anything in a new session, orient yourself:
 
 1. Read `.agents/session_state.json` — what is currently active?
 2. Read the relevant `plugin_state.json` for any active plugin — where is the pipeline?
-3. Read `documentation/` in the project root — ground yourself in architecture decisions.
+3. Read docs/ in the project root — ground yourself in architecture decisions.
 4. Do NOT read entire source files unless a hook or subagent explicitly requires them.
    Use `context_builder.py` to construct minimal context.
 
@@ -26,7 +26,7 @@ project_root/
 ├── backend/        # Django 5.2, DRF, django-tenants
 ├── frontend/       # Vue 3, Vite, Vuetify 3, Pinia
 ├── compose/        # Docker Compose configs
-├── documentation/  # Architecture specs — your primary reference
+├── docs/           # Architecture specs — your primary reference
 ├── .agents/        # Your operating directory
 └── Makefile        # Runtime commands (make build, make up, make setup)
 ```
@@ -205,7 +205,7 @@ output as free text.
     {
       "file": "backend/apps/tasks/invoice_tasks.py",
       "issue": "Missing idempotency guard on generate_invoice_pdf",
-      "convention_ref": "documentation/Async_Architecture.md#idempotency"
+      "convention_ref": "docs/architecture/async-system.md#idempotency"
     }
   ],
   "retry_prompt": "Fix the above issues. Re-run pre_tester after fixing."
@@ -326,7 +326,7 @@ These are not suggestions. Follow them in every session.
 3. **On retry, pass only the delta** — the hook errors — not the subagent's previous
    full output.
 4. **Architect gets docs, not source.** The Architect subagent receives only
-   `documentation/` files and `plugin_state.json`. Never give it source code.
+   `docs/` files and `plugin_state.json`. Never give it source code.
 5. **Coder gets only the files it will touch**, plus the Architect's output for this
    feature. Not the whole app.
 6. **Tester gets the diff of changes**, plus existing test patterns from the relevant

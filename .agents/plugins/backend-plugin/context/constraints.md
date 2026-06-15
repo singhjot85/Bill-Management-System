@@ -29,7 +29,7 @@ inject_as: >
 
 ## 1. Multi-Tenancy Invariants
 
-**Source:** `documentation/Asynchronous_Architecture.md`, `backend/Readme.md`
+**Source:** `docs/architecture/async-system.md`, `backend/Readme.md`
 
 These constraints exist because BMA uses `django-tenants` with schema-per-tenant
 isolation. Violating them causes data leakage across tenants — a silent, catastrophic bug.
@@ -46,7 +46,7 @@ isolation. Violating them causes data leakage across tenants — a silent, catas
 
 ## 2. Async Task Invariants
 
-**Source:** `documentation/Asynchronous_Architecture.md`
+**Source:** `docs/architecture/async-system.md`
 
 - Every task that touches external systems or produces side effects must have an
   idempotency guard. No exceptions.
@@ -88,7 +88,7 @@ isolation. Violating them causes data leakage across tenants — a silent, catas
 
 ## 5. Data Model Invariants
 
-**Source:** `documentation/Models.md`
+**Source:** `docs/architecture/data-models.md`
 
 - All models must use UUID primary keys. Never use auto-incrementing integer IDs.
 - All models must implement `created_at`, `updated_at`, and `is_deleted` (soft delete).
@@ -107,7 +107,7 @@ isolation. Violating them causes data leakage across tenants — a silent, catas
 - Never introduce a new Docker service without a corresponding update to the relevant
   `compose/` file.
 - Never add a dependency that duplicates functionality already in the stack.
-  Check the existing tech stack in `documentation/Readme.md` before proposing anything new.
+  Check the existing tech stack in `docs/architecture/overview.md` before proposing anything new.
 
 ---
 
