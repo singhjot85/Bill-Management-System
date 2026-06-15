@@ -59,26 +59,28 @@ The frontend is a Vue 3 Single Page Application (SPA) that follows a strict hier
 | **Infrastructure**  | Docker, Compose, Make                                  |
 | **Tooling**         | Poetry (Python), Pre-commit (Black/Isort/Lint), Pytest |
 
-## Documentation Roadmap
+## Documentation Index
 
-Dive deeper into specific architectural components:
+### Core Architecture
 
-### Infrastructure & Core
+- [**Data Modeling & Base Mixins**](./Models.md) — Database relationships and auditing.
+- [**Asynchronous Task System**](./Asynchronus_Architecture.md) — Celery, Valkey, and task registry.
+- [**Notification Design**](./Notfications.md) — Multi-channel delivery and preference logic.
+- [**Payment Service Architecture**](./Payment_Service_Architecture.md) — Orchestrator and service layer logic.
+- [**Razorpay Integration Spec**](./Razorpay_Integration_Spec.md) — Security and signature verification.
+- [**Seeder Architecture**](./Seeder_Architecture.md) — Idempotent data provisioning.
+- [**Frontend Architecture**](./Frontend_Architecture.md) — Vue 3, Pinia, and component boundaries.
 
-- [**Data Modeling & Architecture**](./Models.md) — Database relationships and mixins.
-- [**Multi-Tenancy Deep Dive**](./Readme.md#multi-tenancy) — Schema strategy and isolation rules.
-- [**Seeder Architecture**](./Seeder_Architecture.md) — Local development and demo data setup.
+### Implementation Guides (Backend)
 
-### Backend Logic
-
-- [**Asynchronous Architecture**](./Asynchronus_Architecture.md) — Celery workers, task registry, and Valkey setup.
-- [**Notification System**](./Notfications.md) — Workflow strategies for email and SMS.
-- [**Payment Service Architecture**](./Payment_Service_Architecture.md) — Orchestrating payment verification.
-- [**Razorpay Integration Spec**](./Razorpay_Integration_Spec.md) — Secure signature verification and order flows.
-
-### Frontend
-
-- [**Frontend Architecture**](./Frontend_Architecture.md) — Component boundaries, styling priorities, and state management.
+- [**Notifications App**](../backend/apps/notifications/Readme.md) — Triggering and resolving notifications.
+- [**Customer Management**](../backend/apps/customer_management/Readme.md) — Public checkouts and customer profiles.
+- [**Payments Management**](../backend/apps/payments_management/Readme.md) — Invoices and payment verification flows.
+- [**Tenants & Branding**](../backend/apps/tenants/Readme.md) — Multi-tenant isolation and UI customization.
+- [**Service Layer**](../backend/apps/services/Readme.md) — 3rd-party integrations and orchestrators.
+- [**Setup & Configuration**](../backend/apps/setup/Readme.md) — Dynamic settings and environment setup.
+- [**Core System Config**](../backend/config/Readme.md) — Celery, WSGI, and routing configuration.
+- [**Utility Mixins**](../backend/utils/Readme.md) — Reusable backend helpers and base classes.
 
 ## Future Roadmap
 
