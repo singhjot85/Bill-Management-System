@@ -1,105 +1,55 @@
-# Tasks App
+---
+title: Async Tasks & Celery
+type: implementation
+app: tasks
+last_updated: 2025-01-24
+tags: [django, celery, tasks, valkey]
+---
 
-This is not a Django registered app. Instead, this app will be consumed by celery to generate asynchronous tasks.
-As we are using django-tenants to isolate tenant databases, the celery module doesn't have a direct support for that, so we are using some custom defined logic to make the tasks tenant aware.
+# Async Tasks & Celery
 
-## Directory Structure
-```
-tasks\
-    |- base.py         # Configuration and Celery Overrides
-    |- registry.py     # Constants and Utils for celery tasks
-    |- invoice_tasks.py # Invoice related tasks
-    |- test_tasks.py    # Test/Utility tasks
-```
+## Purpose
+Enables asynchronous task processing with native support for multi-tenancy.
 
-- **base.py**: Configuration and Celery Overrides. Defines the `TenantAwareCeleryApp` and `TenantAwareTask` to ensure tenant context is maintained.
-- **registry.py**: Constants and Utils for celery tasks. Provides a central registry for task names, locations, and a standardized `queue_task` wrapper.
+This app overrides standard Celery behavior to ensure that background tasks are tenant-aware, automatically switching database schemas and maintaining context across worker threads.
 
-
-## TenantAwareCeleryApp
-*Path*: `backend/apps/tasks/base.py::TenantAwareCeleryApp`
-
-Overrides the `celery.app.Celery` class to register the celery application with custom `TenantAwareTask` class. This is the entry point for the Celery application in the project.
-
-## TenantAwareTask
-*Path*: `backend/apps/tasks/base.py::TenantAwareTask`
-
-Uses `celery.contrib.django.task.DjangoTask` as base, and overrides `apply_async`, `apply`, to add current schema name, so that user doesn't have to manually add schema_name every time they queue a task.
-
-So a common user use case would look like:
-
-- `asyn_task.apply_async(...)`, and this will automatically have schema name under `_schema_name` kwargs.
-
-### Why `celery.contrib.django.task.DjangoTask`?
-Because we are using a django application, tasks are often queued within database transactions. If a task starts before the transaction is committed, it won't see the database changes.
-
-- `DjangoTask` has an `apply_async_on_commit` method which queues the task only after the database transaction is successfully committed.
-
-**Example:**
+## Quick Start
 ```python
 from apps.tasks.registry import TaskNames
 
-def generate_invoice(invoice_id):
-    # Within a view or service
-    task = TaskNames.PDF_GENERATION.get_task_instance()
-
-    # Automatically includes _schema_name and waits for DB commit
-    task.apply_async_on_commit(task_args=(invoice_id,))
+# Queuing a task with automatic tenant context
+task = TaskNames.PDF_GENERATION.get_task_instance()
+task.apply_async_on_commit(task_args=(invoice_id,))
 ```
 
-# Signals
+## Key Concepts
+- **TenantAwareTask**: Overrides standard Celery tasks to automatically inject and extract `_schema_name` from task arguments.
+- **Task Registry**: Centralized enum (`TaskNames`) that maps logical names to dotted-path task implementations.
+- **On-Commit Queuing**: `apply_async_on_commit` ensures tasks only run after database transactions are finalized.
+- **Schema Switching**: `task_prerun` and `task_postrun` signals handle the switching of PostgreSQL search paths before and after task execution.
 
-Signals are essentially a way for decoupled parts of an application to communicate with each other. They are a direct implementation of the Observer Design Pattern (often referred to as Publish-Subscribe).
+## Celery Worker Structure
+- **Worker**: Processes tasks from Valkey queues.
+- **Beat**: Handles scheduled tasks (e.g., recurring bill generation).
+- **Concurrency**: Managed via Celery's standard pool settings, with schema switching ensuring isolation within threads.
 
-## task_prerun
-*Path*: `backend/apps/tasks/base.py::switch_schema_context`
+## Task Registry
+All tasks must be registered in `registry.py`:
+1. Add module to `TaskLocation`.
+2. Define task name and mapping in `TaskNames`.
+3. Use `queue_task` or `get_task_instance` for consistent invocation.
 
-Added a `switch_schema_context` to `celery.signals.task_prerun` signal.
+## Configuration
+- `CELERY_BROKER_URL`: Connection string for Valkey.
+- `CELERY_TASK_ALWAYS_EAGER`: Set to `True` during testing for synchronous execution.
+- `TASK_RESULT_CHECK_TIMEOUT`: Time to wait for task results when polling.
 
-**Usecase**: Before a task starts, it extracts `_schema_name` from the task's keyword arguments. It then uses `django-tenants` to switch the database connection to that specific tenant's schema. This ensures that any ORM calls within the task target the correct tenant database.
+## Testing
+```bash
+# Run tasks-specific tests
+pytest backend/tests/tasks/
+```
 
-## task_postrun
-*Path*: `backend/apps/tasks/base.py::restore_schema_context`
-
-Added a `restore_schema_context` to `celery.signals.task_postrun` signal.
-
-**Usecase**: After a task completes (successfully or not), it restores the database connection to the schema it was using before the task started. This is crucial for preventing schema "leakage" between different task executions on the same Celery worker thread.
-
-## TaskLocation
-*Path*: `backend/apps/tasks/registry.py::TaskLocation`
-Register all your celery task modules here. This Enum is used by `autodiscover_tasks` during Celery initialization and for importing tasks dynamically.
-
-**Usecase**: When adding a new file like `apps/tasks/report_tasks.py`, add a member `REPORTS = "apps.tasks.report_tasks"` to this Enum.
-
-## TaskNames
-*Path*: `backend/apps/tasks/registry.py::TaskNames`
-Centralized registry for all task definitions. It maps a logical name to the function name and its location.
-
-**Features**:
-- `task_label()`: Returns a human-readable name.
-- `celery_name()`: Returns the full dotted path (e.g., `apps.tasks.invoice_tasks.generate_pdf`).
-- `task_id(idempotency_key)`: Generates a unique task ID to ensure idempotency.
-- `get_task_instance()`: Dynamically imports the task function.
-
-## FailureModes
-*Path*: `backend/apps/tasks/registry.py::FailureModes`
-
-Failure Mode constants:
-- `SILENT`: Log but don't re-raise.
-- `ALERT`: Trigger alerts/notifications.
-- `DLQ`: Move to Dead Letter Queue (future implementation).
-
-## queue_task
-A wrapper over celery's `task.delay`/`task.apply_async` to standardize task queuing.
-
-**Benefits**:
-- Standardizes how tasks are called across the codebase.
-- Handles `on_commit` logic automatically.
-- Validates task references (can pass string name, `TaskNames` member, or task instance).
-
-## get_data_from_task_result
-Helper to fetch data from `AsyncResult` instance provided by celery task.
-
-**Usecase**: Used when you need to wait for a task result in a synchronous manner (e.g., in a test or a specific CLI command). It polls the result based on `TASK_RESULT_CHECK_RETRIES` and `TASK_RESULT_CHECK_TIMEOUT` settings.
-
-**Note**: Avoid using this in web views as it blocks the worker/thread.
+## Related Documentation
+- [Asynchronous Architecture](../../../docs/architecture/async-system.md)
+- [Infrastructure Overview](../../../docs/architecture/overview.md)

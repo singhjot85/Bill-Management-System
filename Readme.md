@@ -54,22 +54,24 @@ This structure is designed to leverage **Docker BuildKit's** context isolation:
 
 This eliminates accidental leakage of irrelevant code (e.g., frontend source in the backend image) and ensures that changes in one domain do not unnecessarily invalidate the build cache of the other.
 
-## Documentation Index
+## Documentation Hub
 
-- [**Architectural Guides**](./documentation/Readme.md): This guide is overall application architecture, and also gives and index to individual architecture.
-- [**Backend Guide and Conventions**](./backend/Readme.md): Guide to overall backend, its module(s) and backend coding conventions.
-- [**Backend Configuration**](./backend/config/Readme.md): Guide to Django Configuration and backend settings.
-- [**Tests**](./backend/tests/Readme.md): Guide to Backend pytest directory for unit and integration testing.
-- [**Utils**](./backend/utils/Readme.md): Common backend utilities.
-- **Django App wise documentation:**
-  - [**Customer Management**](./backend/apps/customer_management/Readme.md): Customer Managemet application, handle(s) non-user customer's and related parties.
-  - [**Payments Management**](./backend/apps/payments_management/Readme.md): Payment Management application, handle(s) application payment flow.
-  - [**Services**](./backend/apps/services/Readme.md): External Service handling, to be deprecated soon, we can move this logic to **Payments Management**, **Notifications**, i.e. each app can have its servicing logic inside that app only, common logic like wrapper(s) can be moved to **backend/utils**
-  - [**Tenants**](./backend/apps/tenants/Readme.md): Multi tenancy related configuration(s) and stuff.
-  - [**Setup**](./backend/apps/setup/Readme.md): Tenant setup and configuration realted stuff
-  - [**Notifications**](./backend/apps/notifications/Readme.md): Notification flow and pipeline.
-  - [**Tasks**](./backend/apps/tasks/Readme.md): Asynchronous Task and pipeline.
-- [**Frontend Guide and Conventions**](./frontend/README.md):  Guide to overall frontend, its module(s) and frontend coding conventions.
+We maintain a hybrid documentation system: centralized architecture guides and distributed implementation READMEs.
+
+### 🏛️ [Centralized Documentation Hub](./docs/README.md)
+Start here for system-wide architecture, design patterns, and cross-cutting concerns.
+- [Architecture Overview](./docs/architecture/overview.md)
+- [Data Modeling](./docs/architecture/data-models.md)
+- [Multi-Tenancy Strategy](./docs/architecture/multi-tenancy.md)
+- [Async Task System](./docs/architecture/async-system.md)
+
+### 🛠️ Distributed Implementation Guides
+Each application module contains its own `README.md` with specific implementation details, API references, and testing instructions.
+- [Notifications](./backend/apps/notifications/Readme.md)
+- [Payments](./backend/apps/payments_management/Readme.md)
+- [Customer Management](./backend/apps/customer_management/Readme.md)
+- [Tenants & Branding](./backend/apps/tenants/Readme.md)
+- [Services (Deprecated)](./backend/apps/services/Readme.md)
 
 _For legacy UI documentation, see [Project Templating](./project_templating/Readme.md)._
 
