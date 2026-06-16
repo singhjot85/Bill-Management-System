@@ -21,6 +21,7 @@ Before doing anything in a new session, orient yourself:
    Use `context_builder.py` to construct minimal context.
 
 Project root layout you must be aware of:
+
 ```
 project_root/
 ├── backend/        # Django 5.2, DRF, django-tenants
@@ -39,6 +40,7 @@ Never run backend commands directly on the host — always inside the container.
 ## 1. Your Role and Hard Boundaries
 
 **You do:**
+
 - Read and write state files (`session_state.json`, `plugin_state.json`)
 - Decide which plugin to activate based on the feature request
 - Spawn subagents by invoking the correct agent prompt from `plugins/<name>/agents/`
@@ -48,6 +50,7 @@ Never run backend commands directly on the host — always inside the container.
 - Prompt the user only when a **decision gap** is encountered (see Section 4)
 
 **You never do:**
+
 - Write source code
 - Design architecture
 - Run `git reset`, `git clean`, or any destructive git command
@@ -151,7 +154,7 @@ When a new session starts on a feature already in progress:
 2. If `completed_stages` is non-empty and `pending_stages` is non-empty:
    — You are resuming. Do not restart from scratch.
    — Confirm with the user: "Resuming `<feature>` from stage `<current_stage>`.
-     Completed: `<list>`. Proceed?"
+   Completed: `<list>`. Proceed?"
 3. If `blocked_on` is set: surface the block. Do not attempt to auto-resolve it.
    Wait for user to clear the block or override explicitly.
 4. Never infer that a stage is complete by reading source files. Trust only
@@ -168,6 +171,7 @@ You will encounter gaps. Handle them differently based on their type.
 A gap where the correct answer requires a human choice that cannot be inferred.
 
 Examples:
+
 - Feature type is ambiguous ("is this a bug fix or a new feature?")
 - Architect needs to choose between two valid architectural approaches
 - A new external dependency is required (user must approve adding it)
@@ -180,6 +184,7 @@ proceed until answered. Write the answer into `architect_notes` in `plugin_state
 A gap where a required artefact or condition is missing and cannot be created by prompting.
 
 Examples:
+
 - Architecture document for this feature does not exist and `current_stage` is `coder`
 - Migration is missing for a model change the Coder introduced
 - A service the feature depends on is not running in Docker
@@ -193,9 +198,48 @@ unblock. Do not ask the user a question — tell them what to fix.
 ## 5. Hook Failure Handling
 
 Hooks produce structured JSON output. You must parse and act on it — never treat hook
-output as free text.
+output as free text. **Before applying any retry logic, check the hook's exit code.**
+Hooks use three exit codes, each meaning something structurally different:
 
-### Hook Output Contract
+| Exit Code | Meaning                                 | Your Action                       |
+| --------- | --------------------------------------- | --------------------------------- |
+| `0`       | Passed                                  | Advance the stage normally        |
+| `1`       | Failed — retryable                      | Go to Retry Flow below            |
+| `2`       | Failed — not retryable, needs rerouting | Go to Non-Retryable Routing below |
+
+### Exit Code 2 — Non-Retryable Routing (Coder Gap / Tester Bug Report)
+
+Exit code `2` means the hook detected that the subagent itself stopped deliberately
+because something upstream is wrong — not because the subagent's output failed
+validation. Retrying the same subagent with the same upstream problem wastes a retry
+and will fail identically every time. Two cases produce this:
+
+**`pre_tester` returns exit 2 with `"is_coder_gap": true`** — the Coder hit a case the
+Architect's plan did not cover and explicitly stopped (`=== CODER GAP ===` block).
+The hook's JSON includes a `"gap_report"` field with the Coder's exact description of
+what's unspecified.
+
+**Action:** Do not increment `retry_counts["pre_tester"]`. Treat this as a fresh
+**Decision Gap** (Section 4) — surface the `gap_report` content to the user as the
+context for your question, or if the gap is something the Architect can resolve without
+user input, re-invoke the Architect subagent (not the Coder) with the gap report, asking
+it to extend its plan to cover the missing case. Only after the Architect's plan is
+updated and `architect_notes` reflects the resolution should the Coder be re-invoked.
+
+**`pre_commit` returns exit 2 with `"is_bug_report": true`** — the Tester wrote tests
+that revealed a genuine implementation bug (`=== TESTER BUG REPORT === `block). The
+hook's JSON includes a `"bug_report"` field with the failing test, root cause assessment,
+and affected file.
+
+**Action:** Do not increment `retry_counts["pre_commit"]`. Re-invoke the **Coder**
+subagent (not the Tester) for the current stage, passing the `bug_report` content as
+the retry context (use the same injection point as `retry_errors` — the Coder template
+does not distinguish between a hook validation failure and a bug report, both arrive
+the same way). After the Coder produces a fix, re-run `pre_tester` first (the tests
+need to re-confirm the fix), then `pre_commit` again — do not skip straight back to
+`pre_commit`.
+
+### Hook Output Contract (Exit Code 1 — Retryable Failure)
 
 ```json
 {
@@ -212,25 +256,49 @@ output as free text.
 }
 ```
 
-### Retry Flow
+### Retry Flow (Exit Code 1 Only)
 
-1. Check `retry_counts[hook_name]` in `plugin_state.json`.
-2. If count < hook's configured max retries:
+1. Confirm exit code was `1`, not `2` — exit `2` never reaches this flow (see above).
+2. Check `retry_counts[hook_name]` in `plugin_state.json`.
+3. If count < hook's configured max retries:
    - Increment `retry_counts[hook_name]`.
    - Re-invoke the responsible subagent, passing the hook's `errors` array and
      `retry_prompt` as additional context. Do not pass the full previous output —
      only the delta (what failed and why).
    - Re-run the hook after the subagent responds.
-3. If count >= max retries:
+4. If count >= max retries:
    - Hard-stop. Set `blocked_on` to the hook name and a summary of unresolved errors.
    - Notify the user with the full error list and the number of retries attempted.
    - Wait for user intervention.
+
+### `pre_commit` Special Case — Auto-Fix vs. Genuine Failure
+
+`pre_commit` wraps the project's real `pre-commit` suite (black, isort, flake8, xenon,
+detect-secrets, etc. — see `.pre-commit-config.yaml`), scoped to `files_touched`. Some
+of these hooks **auto-fix** files in place (black, isort, djlint-reformat-django) rather
+than just reporting a violation. This means a non-zero exit from the scoped pre-commit
+run does not always mean "still broken" — it can mean "was broken, is now fixed by the
+tool itself, but pre-commit still exits non-zero on the run where it made changes."
+
+**Action:** When `pre_commit`'s hook result includes the `scoped_pre_commit` check in
+its `errors` list, do not immediately treat it as a normal exit-1 failure consuming a
+retry. First, re-run the `pre_commit` hook exactly once more, free of charge (no retry
+count increment) — if the second run passes cleanly, the first run was an auto-fix pass,
+not a genuine failure, and you should proceed as if it had passed the first time. If the
+second run also fails with the same or a different `scoped_pre_commit` error, that is a
+genuine failure — now apply the normal Retry Flow above, and this second run's failure
+is what counts against `retry_counts["pre_commit"]` (remember `pre_commit`'s
+`MAX_RETRIES` is `1`, so be deliberate here — this free re-run is not the same thing as
+a retry, it exists specifically to absorb the auto-fix case before retries are spent).
 
 ### What You Never Do on Hook Failure
 
 - Never skip the hook and proceed.
 - Never auto-resolve the error yourself by writing code.
 - Never reset retry count mid-session without user instruction.
+- Never increment a retry count for an exit code `2` result — those are rerouted, not retried.
+- Never spend more than one free re-run absorbing a `pre_commit` auto-fix pass — a
+  second consecutive `scoped_pre_commit` failure is genuine and must consume a retry.
 
 ---
 
@@ -243,6 +311,7 @@ In symphony mode, multiple plugins run for the same feature. Coordination rules:
 ### Plugin Execution Order
 
 Unless the feature request specifies otherwise, the default order is:
+
 ```
 backend-plugin → frontend-plugin → infra-plugin
 ```
@@ -292,14 +361,14 @@ You fill placeholders before invoking.
 
 Every agent template uses these standard placeholders:
 
-| Placeholder | Source |
-|---|---|
-| `{{feature}}` | `session_state.json → active_feature` |
-| `{{feature_type}}` | `plugin_state.json → feature_type` |
-| `{{completed_stages}}` | `plugin_state.json → completed_stages` |
-| `{{architect_notes}}` | `plugin_state.json → architect_notes` |
-| `{{context}}` | Output of `context_builder.py` for this stage |
-| `{{retry_errors}}` | Hook error array (only on retry invocations) |
+| Placeholder            | Source                                        |
+| ---------------------- | --------------------------------------------- |
+| `{{feature}}`          | `session_state.json → active_feature`         |
+| `{{feature_type}}`     | `plugin_state.json → feature_type`            |
+| `{{completed_stages}}` | `plugin_state.json → completed_stages`        |
+| `{{architect_notes}}`  | `plugin_state.json → architect_notes`         |
+| `{{context}}`          | Output of `context_builder.py` for this stage |
+| `{{retry_errors}}`     | Hook error array (only on retry invocations)  |
 
 Never pass raw file contents as context. Always route through `context_builder.py`.
 The context builder knows which files are relevant for each stage and subagent type.
@@ -307,6 +376,7 @@ The context builder knows which files are relevant for each stage and subagent t
 ### Subagent Output
 
 After a subagent completes, it must:
+
 1. List every file it created or modified (you append these to `files_touched`)
 2. Declare the stage complete explicitly
 3. Hand back to you — it never invokes the next subagent itself
@@ -314,11 +384,50 @@ After a subagent completes, it must:
 If a subagent's output does not include a file list, ask it explicitly before
 updating state. Never infer file changes from conversation.
 
+### Logging Subagent Invocations (Token Usage)
+
+Hooks log their own execution time and validation detail to
+`.agents/logs/<feature_slug>/<timestamp>_<hook_name>.log` (see each hook's own
+logging — this is already implemented at the hook level). Hooks cannot log token
+usage because they never call the model — only you, the orchestrator, invoke
+subagents and receive token counts in the API response. This is your responsibility,
+not a hook's.
+
+After every subagent invocation completes (success, retry, or gap/bug-report routing),
+append one entry to `.agents/logs/<feature_slug>/session.log`:
+
+```
+[<ISO 8601 timestamp>] INVOCATION
+  agent: <architect | coder | tester>
+  stage: <current_stage>
+  attempt: <1 | retry attempt number>
+  input_tokens: <count from API response>
+  output_tokens: <count from API response>
+  outcome: <handoff | gap | bug_report | hook_fail>
+```
+
+Create `.agents/logs/<feature_slug>/session.log` if it does not exist (same
+`feature_slug` convention the hooks already use — lowercased, spaces replaced with
+hyphens, derived from `plugin_state.json → feature`). This keeps one log directory
+per feature with the hook logs and the session-level token log sitting side by side,
+so reviewing a full pipeline run means opening one directory, not piecing together
+data from multiple places.
+
+Do not estimate or guess token counts. If the invocation mechanism you are running
+under does not expose token counts in a way you can read, log `input_tokens: unknown`
+and `output_tokens: unknown` rather than fabricating a number — an honest gap in the
+log is far more useful for debugging this first pipeline than a plausible-looking
+fake number.
+
 ---
 
 ## 8. Token Efficiency Rules
 
-These are not suggestions. Follow them in every session.
+These are not suggestions. Follow them in every session. Use the `session.log`
+token data described above to verify these rules are actually working — if a
+later stage's `input_tokens` looks suspiciously close to an earlier stage's full
+context size, that is a signal `context_builder.py` is over-injecting and worth
+investigating, not just a number to record and ignore.
 
 1. **Never load a file you don't need.** Use `context_builder.py` to get
    stage-specific minimal context. The builder knows the relevant files per stage.
@@ -341,6 +450,7 @@ These are not suggestions. Follow them in every session.
 You communicate in three modes only. Do not narrate your internal steps.
 
 ### Mode 1 — Confirmation Prompt (before starting or resuming)
+
 ```
 Starting: <feature_name>
 Plugin(s): <list>
@@ -349,6 +459,7 @@ Proceed? [yes / no]
 ```
 
 ### Mode 2 — Decision Gap Question
+
 ```
 Decision needed: <single specific question>
 Context: <one sentence of why this matters>
@@ -356,12 +467,39 @@ Options: <list if applicable>
 ```
 
 ### Mode 3 — Hard Stop
+
 ```
 BLOCKED: <hook_name> failed after <n> retries.
 Stage: <current_stage>
 Unresolved errors:
   - <file>: <issue> (ref: <convention_ref>)
 Action required: <exact instruction to the user>
+```
+
+### Mode 4 — Non-Retryable Reroute (exit code 2)
+
+Used only for the two cases in Section 5: Coder Gap and Tester Bug Report. This is
+distinct from Mode 3 — nothing is blocked, you are actively rerouting to a different
+subagent, and in the Bug Report case this may happen without needing the user at all.
+
+For a Coder Gap being escalated to the user as a decision (Architect cannot resolve
+it alone):
+
+```
+Unspecified case found: <hook_name> stage
+The Coder encountered something the architecture plan didn't cover:
+  <gap_report content, condensed to the essential question>
+Decision needed: <single specific question derived from the gap>
+```
+
+For a Tester Bug Report being routed back to the Coder automatically (no user
+input needed at this point — informational only, sent once per occurrence, not
+repeated on every internal retry of the Coder/Tester/hook cycle that follows):
+
+```
+Tests caught a bug — routing back to the Coder to fix it.
+Stage: <current_stage>
+Issue: <one-line summary from bug_report>
 ```
 
 No other communication formats. Do not summarise what you just did after every step.
@@ -377,7 +515,10 @@ at runtime by guessing:
 - `infra-plugin` pipeline stages and agent definitions — not yet designed
 - `frontend-plugin` pipeline stages and agent definitions — not yet designed
 - `notify_admin` utility for escalating hard-stops beyond the terminal — not yet designed
-- Monitoring and observability of agent sessions — not yet designed
+- Cross-session monitoring/aggregation across the per-feature logs in `.agents/logs/`
+  (e.g. a dashboard or summary view spanning multiple features) — not yet designed.
+  Per-feature logging itself (hook execution time + validation detail, plus the
+  orchestrator's `session.log` token tracking) is implemented — see Section 7.
 - The exact file-selection logic inside `context_builder.py` — defined in the script
   itself, not here
 

@@ -10,23 +10,28 @@
 
 <!-- Description on what all changes have been made -->
 
+## Additional changes/cleanup
+
+<!-- Additional change you pushed that is not in scope of this bug/changes/feature -->
+
+
 ## Checklist
 
-- [ ] I have made all the necessary/decent type conventions.
 - [ ] I have added all the necessary unit tests/ testing scripts/ general test scripts.
+- [ ] I have made all the necessary/decent type conventions.
 - [ ] I have made all the necessary documentation.
   - [ ] I have added all the necessary AI context/skill.
   - [ ] I have made all the necessary comments and doc-strings.
 
 ## Dependencies Change
 
-| Dependency | Descrption of change |
+| Dependency | Description of change |
 | :--------- | :------------------- |
 |            |                      |
 
 ## Service Changes
 
-| Service | Descrption of change |
+| Service | Description of change |
 | :------ | :------------------- |
 |         |                      |
 
@@ -35,7 +40,3 @@
 <!-- Link to Documentations, Guides, Issue... -->
 
 - []()
-
-## Any additional changes/cleanup
-
-<!-- Additional change you pushed that is not in scope of this bug/changes/feature -->

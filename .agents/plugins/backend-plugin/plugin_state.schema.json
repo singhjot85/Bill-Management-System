@@ -15,7 +15,9 @@
         "retry_counts",
         "files_touched",
         "last_validated_at",
-        "architect_notes"
+        "architect_notes",
+        "domains_touched",
+        "apps_touched"
     ],
     "additionalProperties": false,
     "properties": {
@@ -196,7 +198,7 @@
                         "description": "Path relative to project root.",
                         "examples": [
                             "backend/apps/tasks/invoice_tasks.py",
-                            "docs/architecture/async-system.md"
+                            "documentation/Async_Architecture.md"
                         ]
                     },
                     "operation": {
@@ -237,6 +239,46 @@
             "type": "string",
             "description": "Free-form notes written by the Architect subagent or captured from user decision-gap answers. Injected as context into Coder and Tester subagents. Append-only — never overwrite previous notes.",
             "default": ""
+        },
+        "domains_touched": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Structured domain list parsed by the orchestrator from the Architect's '=== ARCHITECT SUMMARY ===' block (domains_touched field). Persisted here as the single source of truth so context_builder.py can resolve reference.md domain blocks for Coder/Tester stages without re-parsing free-text architect_notes. Set once at architecture stage, by the orchestrator only — never written by subagents directly. Must stay in sync with the most recent Architect summary; if the Architect revises domains mid-feature (rare), the orchestrator overwrites this field entirely rather than appending.",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "async_tasks",
+                    "payments",
+                    "tenants",
+                    "customers",
+                    "notifications",
+                    "setup_and_config",
+                    "seeders",
+                    "architecture_index"
+                ]
+            },
+            "default": [],
+            "examples": [
+                [
+                    "async_tasks",
+                    "payments"
+                ]
+            ]
+        },
+        "apps_touched": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Structured app list parsed by the orchestrator from the Architect's '=== ARCHITECT SUMMARY ===' block (apps_touched field). Persisted here for the same reason as domains_touched — context_builder.py's resolve_app_readme_sections() needs this list directly, not scraped from free text. pre_coder.py's check_apps_exist validates these against backend/apps/ on disk; this field stores the validated result for downstream consumption. Set once at architecture stage, by the orchestrator only.",
+            "items": {
+                "type": "string"
+            },
+            "default": [],
+            "examples": [
+                [
+                    "tasks",
+                    "payments_management"
+                ]
+            ]
         }
     }
-}
+} 

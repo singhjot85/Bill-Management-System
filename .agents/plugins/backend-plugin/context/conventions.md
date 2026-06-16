@@ -20,10 +20,10 @@ reason: >
   This is the primary backend convention source. If it is missing, the agent
   has no grounding for any backend work. Do not proceed without it.
 sections:
+  - "Directory Structure"
   - "Clean Code"
   - "URL Patterns"
   - "Views"
-  - "Directory Structure"
 inject_for_stages:
   - architecture
   - dependency_setup
@@ -45,9 +45,13 @@ missing_caveat: >
   Follow Django/DRF standard testing patterns strictly. Do not invent
   project-specific test structures. Flag this gap in architect_notes.
 sections:
+  - "Purpose"
+  - "Quick Start"
+  - "Key Concepts"
   - "Testing Conventions"
-  - "Directory Structure"
-  - "Test Patterns"
+  - "Configuration"
+  - "Testing"
+  - "Related Documentation"
 inject_for_stages:
   - happy_path_tests
   - full_implementation_tests
@@ -72,10 +76,13 @@ missing_caveat_template: >
   internal structure. Stick strictly to project-wide conventions from
   backend/Readme.md until this file exists.
 sections:
-  - "Architecture"
-  - "Directory Structure"
-  - "Conventions"
-  - "Implementation Details"
+  - "Purpose"
+  - "Quick Start"
+  - "Key Concepts"
+  - "API Reference"
+  - "Configuration"
+  - "Testing"
+  - "Related Documentation"
 inject_for_stages:
   - happy_path
   - happy_path_tests

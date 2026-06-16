@@ -1,34 +1,41 @@
 """
-pre_coder.py — BMA Backend Plugin Hook
-=======================================
+pre_coder.py — BMA Backend Pipeline Hook
 Validates Architect subagent output before the Coder is invoked.
 
-Position in pipeline: architecture stage exit → before coder stage entry
-Max retries: 3
-On exceed: hard-stop, set plugin_state.json → blocked_on
+MAX_RETRIES: 3
+Scope: Architect output validation only. Does not touch source files.
 
-Logs to: .agents/logs/<feature_slug>/<timestamp>_pre_coder.log
-Stdout:   Structured JSON (read by orchestrator)
+Invoked by: orchestrator, after Architect handoff, before Coder invocation.
+Input:      Path to architect output (text file written by orchestrator from
+            Architect's response), path to plugin_state.json.
+Output:     Structured JSON to stdout. Orchestrator parses this — do not print
+            anything else to stdout. Use stderr for debug output only.
+Log:        .agents/logs/<feature_slug>/<timestamp>_pre_coder.log
 
-Usage:
-    python .agents/plugins/backend-plugin/hooks/pre_coder.py \
-        --architect-output <path_to_architect_output_file> \
-        --plugin-state <path_to_plugin_state_json> \
-        --log-dir <path_to_feature_log_dir>
+POST-PASS ORCHESTRATOR RESPONSIBILITY (not done by this hook):
+On a passing result, the orchestrator must write the validated
+domains_touched and apps_touched lists (already parsed here via
+extract_architect_summary) into plugin_state.json's domains_touched and
+apps_touched fields, via checkpoint.py, BEFORE invoking the Coder. This
+hook only validates — it does not mutate state. context_builder.py's
+resolve_app_readme_sections() and the reference:{{domains}} injection
+marker both depend on those fields being populated by this point.
 """
 
-# ── Imports ───────────────────────────────────────────────────────────────────
-import argparse
 import json
+import os
 import re
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
 
 MAX_RETRIES = 3
+HOOK_NAME = "pre_coder"
 
 VALID_PIPELINE_STAGES = {
     "architecture",
@@ -53,13 +60,6 @@ VALID_DOMAINS = {
     "architecture_index",
 }
 
-VALID_FEATURE_TYPES = {
-    "new_feature",
-    "bug_fix",
-    "refactor",
-    "infra_change",
-}
-
 KNOWN_APPS = {
     "customer_management",
     "notifications",
@@ -70,498 +70,315 @@ KNOWN_APPS = {
     "tenants",
 }
 
-# ── Logging Setup ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
 
-
-class HookLogger:
+def init_logger(feature_slug: str, logs_root: Path) -> Path:
     """
-    Writes structured, human-readable logs to a per-run log file.
-    Each log entry is timestamped. Timing is tracked from hook start.
-
-    Log file naming: <ISO8601_timestamp>_pre_coder.log
-    Example:         2026-06-14T10-32-00_pre_coder.log
+    Creates the log file for this hook run.
+    Returns the log file path.
+    Format: .agents/logs/<feature_slug>/<timestamp>_pre_coder.log
     """
-
-    def __init__(self, log_dir: Path, hook_start_time: float):
-        self.hook_start_time = hook_start_time
-        log_dir.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
-        self.log_path = log_dir / f"{timestamp}_pre_coder.log"
-        self._lines = []
-        self._write_header()
-
-    def _write_header(self):
-        self._append("=" * 70)
-        self._append("BMA BACKEND PLUGIN — pre_coder HOOK")
-        self._append(f"Run started : {datetime.now(timezone.utc).isoformat()}")
-        self._append(f"Log file    : {self.log_path}")
-        self._append("=" * 70)
-        self._append("")
-
-    def _append(self, line: str):
-        self._lines.append(line)
-        # Write immediately so partial logs survive crashes
-        with open(self.log_path, "a") as f:
-            f.write(line + "\n")
-
-    def section(self, title: str):
-        self._append("")
-        self._append(f"── {title} {'─' * max(0, 60 - len(title))}")
-
-    def info(self, msg: str):
-        elapsed = round(time.time() - self.hook_start_time, 3)
-        self._append(f"  [{elapsed:>8.3f}s] INFO  {msg}")
-
-    def warn(self, msg: str):
-        elapsed = round(time.time() - self.hook_start_time, 3)
-        self._append(f"  [{elapsed:>8.3f}s] WARN  {msg}")
-
-    def error(self, msg: str):
-        elapsed = round(time.time() - self.hook_start_time, 3)
-        self._append(f"  [{elapsed:>8.3f}s] ERROR {msg}")
-
-    def write_footer(self, passed: bool, error_count: int, total_elapsed: float):
-        self._append("")
-        self._append("=" * 70)
-        self._append(f"Result      : {'PASSED' if passed else 'FAILED'}")
-        self._append(f"Errors      : {error_count}")
-        self._append(f"Total time  : {total_elapsed:.3f}s")
-        self._append(f"Run ended   : {datetime.now(timezone.utc).isoformat()}")
-        self._append("=" * 70)
+    log_dir = logs_root / feature_slug
+    log_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
+    log_path = log_dir / f"{timestamp}_{HOOK_NAME}.log"
+    return log_path
 
 
-# ── Validation Checks ─────────────────────────────────────────────────────────
+def log(log_path: Path, message: str):
+    """Append a timestamped line to the log file and echo to stderr."""
+    ts = datetime.now(timezone.utc).isoformat()
+    line = f"[{ts}] {message}\n"
+    with open(log_path, "a") as f:
+        f.write(line)
+    print(line, end="", file=sys.stderr)
 
 
-def check_summary_block_present(
-    architect_output: str, logger: HookLogger
-) -> tuple[bool, dict]:
+# ---------------------------------------------------------------------------
+# Parsing
+# ---------------------------------------------------------------------------
+
+def extract_architect_summary(architect_output: str) -> dict | None:
     """
-    Check 1: Architect output contains a parseable ARCHITECT SUMMARY block.
-    This block is the machine-readable contract between Architect and orchestrator.
-    Without it, no downstream state can be updated reliably.
+    Extracts the === ARCHITECT SUMMARY === block from the Architect's output.
+    Returns a dict of parsed fields, or None if the block is missing/malformed.
     """
-    logger.section("Check 1 — ARCHITECT SUMMARY block")
-
     pattern = r"=== ARCHITECT SUMMARY ===(.*?)=== END ARCHITECT SUMMARY ==="
     match = re.search(pattern, architect_output, re.DOTALL)
-
     if not match:
-        logger.error("ARCHITECT SUMMARY block not found in output.")
-        logger.error(
-            "Architect must end output with a correctly formatted summary block."
-        )
-        return False, {}
+        return None
 
     raw = match.group(1).strip()
-    logger.info("ARCHITECT SUMMARY block found.")
-    logger.info(f"Raw block ({len(raw)} chars):\n{raw}")
-
-    # Attempt to parse key fields from the YAML-like block
-    # context_builder.py does full parsing; we do a structural check here only
     parsed = {}
-    for field in [
-        "domains_touched",
-        "apps_touched",
-        "pipeline",
-        "feature_type",
-        "inter_plugin_contracts",
-    ]:
-        field_match = re.search(rf"^{field}:\s*(.+)$", raw, re.MULTILINE)
-        if field_match:
-            parsed[field] = field_match.group(1).strip()
-            logger.info(f"  Found field: {field} = {parsed[field]}")
+
+    # Extract list fields
+    for field in ["domains_touched", "apps_touched", "pipeline"]:
+        list_match = re.search(rf"{field}:\s*\[([^\]]*)\]", raw)
+        if list_match:
+            items = [i.strip() for i in list_match.group(1).split(",") if i.strip()]
+            parsed[field] = items
         else:
-            logger.error(f"  Missing required field in summary block: {field}")
+            parsed[field] = None
 
-    missing = [
-        f
-        for f in ["domains_touched", "apps_touched", "pipeline", "feature_type"]
-        if f not in parsed
-    ]
-    if missing:
-        return False, parsed
+    # Extract inter_plugin_contracts
+    contract_match = re.search(r"inter_plugin_contracts:\s*(\S+)", raw)
+    parsed["inter_plugin_contracts"] = contract_match.group(1) if contract_match else None
 
-    logger.info("ARCHITECT SUMMARY block is structurally valid.")
-    return True, parsed
+    # Presence checks
+    parsed["has_decision_gaps_section"] = "decision_gaps:" in raw
+    parsed["has_architect_notes"] = "architect_notes_append:" in raw
 
-
-def check_domains_valid(
-    parsed_summary: dict, logger: HookLogger
-) -> tuple[bool, list[str]]:
-    """
-    Check 2: All declared domains exist in the known domain registry (reference.md).
-    An unknown domain means context_builder.py will silently skip it,
-    producing a Coder with missing context.
-    """
-    logger.section("Check 2 — Domain validity")
-
-    raw_domains = parsed_summary.get("domains_touched", "[]")
-    # Parse list-like string: [async_tasks, payments] or async_tasks, payments
-    domains = re.findall(r"[\w_]+", raw_domains)
-    logger.info(f"Declared domains: {domains}")
-
-    invalid = [d for d in domains if d not in VALID_DOMAINS]
-    if invalid:
-        for d in invalid:
-            logger.error(
-                f"  Unknown domain: '{d}'. Valid domains: {sorted(VALID_DOMAINS)}"
-            )
-        return False, domains
-
-    logger.info(f"All {len(domains)} domains are valid.")
-    return True, domains
+    return parsed
 
 
-def check_apps_exist(
-    parsed_summary: dict, project_root: Path, logger: HookLogger
-) -> bool:
-    """
-    Check 3: All declared apps exist under backend/apps/.
-    A declared app that doesn't exist means the Coder will try to write to
-    a non-existent directory and produce broken paths.
-    """
-    logger.section("Check 3 — App existence")
+# ---------------------------------------------------------------------------
+# Validation Steps
+# ---------------------------------------------------------------------------
 
-    raw_apps = parsed_summary.get("apps_touched", "[]")
-    apps = re.findall(r"[\w_]+", raw_apps)
-    logger.info(f"Declared apps: {apps}")
-
-    all_exist = True
-    for app in apps:
-        app_path = project_root / "backend" / "apps" / app
-        if not app_path.exists():
-            logger.error(f"  App directory not found: {app_path}")
-            all_exist = False
-        else:
-            readme_path = app_path / "Readme.md"
-            if not readme_path.exists():
-                # Warn only — not a hard failure (matches warn_and_continue policy)
-                logger.warn(
-                    f"  App '{app}' exists but Readme.md is missing. "
-                    f"Coder will receive a CONTEXT WARNING for this app."
-                )
-            else:
-                logger.info(f"  App '{app}': exists, Readme.md present.")
-
-    return all_exist
-
-
-def check_pipeline_stages_valid(parsed_summary: dict, logger: HookLogger) -> bool:
-    """
-    Check 4: All declared pipeline stages are valid enum values.
-    Invalid stage names will cause the orchestrator to try to invoke
-    a subagent that doesn't exist.
-    """
-    logger.section("Check 4 — Pipeline stage validity")
-
-    raw_pipeline = parsed_summary.get("pipeline", "[]")
-    stages = re.findall(r"[\w_]+", raw_pipeline)
-    logger.info(f"Declared pipeline: {stages}")
-
-    if not stages:
-        logger.error("Pipeline is empty. Architect must declare at least one stage.")
-        return False
-
-    invalid = [s for s in stages if s not in VALID_PIPELINE_STAGES]
-    if invalid:
-        for s in invalid:
-            logger.error(
-                f"  Invalid stage: '{s}'. Valid stages: {sorted(VALID_PIPELINE_STAGES)}"
-            )
-        return False
-
-    logger.info(f"All {len(stages)} pipeline stages are valid.")
-    return True
-
-
-def check_decision_gaps_resolved(
-    architect_output: str, plugin_state: dict, logger: HookLogger
-) -> bool:
-    """
-    Check 5: No unresolved decision gaps remain.
-    If the Architect declared decision gaps, the orchestrator must have
-    collected user answers and written them into architect_notes before
-    this hook runs. If gaps are still open, the Coder will be missing
-    critical decisions.
-    """
-    logger.section("Check 5 — Decision gap resolution")
-
-    gap_pattern = (
-        r"decision_gaps:(.*?)(?:architect_notes_append:|=== END ARCHITECT SUMMARY ===)"
-    )
-    gap_match = re.search(gap_pattern, architect_output, re.DOTALL)
-
-    if not gap_match:
-        logger.info("No decision_gaps field found in summary. Assuming none declared.")
-        return True
-
-    gap_block = gap_match.group(1).strip()
-    if gap_block in ("none", "[]", ""):
-        logger.info("No decision gaps declared by Architect.")
-        return True
-
-    # Gaps were declared — check architect_notes contains answers
-    architect_notes = plugin_state.get("architect_notes", "")
-    if not architect_notes:
-        logger.error("Decision gaps were declared but architect_notes is empty.")
-        logger.error(
-            "Orchestrator must collect user answers and write them to "
-            "plugin_state.json → architect_notes before re-running this hook."
-        )
-        return False
-
-    logger.info("Decision gaps declared and architect_notes is populated.")
-    logger.info(
-        "Assuming gaps are resolved — orchestrator is responsible for verifying answers."
-    )
-    return True
-
-
-def check_handoff_block_present(architect_output: str, logger: HookLogger) -> bool:
-    """
-    Check 6: Architect output contains a ARCHITECT HANDOFF block.
-    Without an explicit handoff, the Architect may not have completed its task —
-    the output could be truncated or abandoned mid-generation.
-    """
-    logger.section("Check 6 — ARCHITECT HANDOFF block")
-
-    if "=== ARCHITECT HANDOFF ===" not in architect_output:
-        logger.error("ARCHITECT HANDOFF block not found.")
-        logger.error("Architect output may be incomplete or truncated.")
-        return False
-
-    logger.info("ARCHITECT HANDOFF block present.")
-    return True
-
-
-def check_feature_type_valid(
-    parsed_summary: dict, plugin_state: dict, logger: HookLogger
-) -> bool:
-    """
-    Check 7: feature_type in summary matches plugin_state.json.
-    If they disagree, the orchestrator and Architect are operating on
-    different assumptions about what kind of work this is.
-    """
-    logger.section("Check 7 — Feature type consistency")
-
-    summary_type = parsed_summary.get("feature_type", "").strip()
-    state_type = plugin_state.get("feature_type", "").strip()
-
-    logger.info(f"Summary declares feature_type: '{summary_type}'")
-    logger.info(f"plugin_state.json has feature_type: '{state_type}'")
-
-    if summary_type not in VALID_FEATURE_TYPES:
-        logger.error(
-            f"feature_type '{summary_type}' is not a valid value. "
-            f"Must be one of: {sorted(VALID_FEATURE_TYPES)}"
-        )
-        return False
-
-    if state_type and summary_type != state_type:
-        logger.error(
-            f"feature_type mismatch: summary says '{summary_type}', "
-            f"plugin_state.json says '{state_type}'."
-        )
-        logger.error("Architect must match the feature_type set at session start.")
-        return False
-
-    logger.info("feature_type is valid and consistent.")
-    return True
-
-
-# ── Output Builder ────────────────────────────────────────────────────────────
-
-
-def build_output(passed: bool, errors: list[dict], domains: list[str]) -> dict:
-    """
-    Builds the structured JSON output the orchestrator reads from stdout.
-    Format matches the hook output contract defined in orchestrator.md.
-    """
-    output = {
-        "passed": passed,
-        "hook_name": "pre_coder",
-    }
-
-    if passed:
-        output["validated_domains"] = domains
+def check_summary_present(architect_output: str, log_path: Path) -> list[dict]:
+    """Step 1 — Architect summary block must be present and parseable."""
+    errors = []
+    log(log_path, "CHECK: Architect summary block presence")
+    summary = extract_architect_summary(architect_output)
+    if summary is None:
+        errors.append({
+            "check": "summary_block_present",
+            "issue": "=== ARCHITECT SUMMARY === block is missing or malformed in Architect output.",
+            "convention_ref": ".agents/plugins/backend-plugin/agents/architect.txt § Step 6",
+        })
+        log(log_path, "  FAIL: Summary block missing or malformed")
     else:
-        output["errors"] = errors
-        output["retry_prompt"] = (
-            "The Architect output failed validation. "
-            "Re-invoke the Architect subagent with these errors as context. "
-            "The Architect must fix its output and re-produce the ARCHITECT SUMMARY "
-            "and ARCHITECT HANDOFF blocks correctly."
-        )
-
-    return output
+        log(log_path, "  PASS: Summary block found and parseable")
+    return errors
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+def check_domains_valid(summary: dict, log_path: Path) -> list[dict]:
+    """Step 2 — All declared domains must be known to the reference context."""
+    errors = []
+    log(log_path, "CHECK: Declared domains validity")
+    domains = summary.get("domains_touched")
 
+    if not domains:
+        errors.append({
+            "check": "domains_declared",
+            "issue": "domains_touched is empty or missing. Architect must declare at least one domain.",
+            "convention_ref": ".agents/plugins/backend-plugin/agents/architect.txt § Step 1",
+        })
+        log(log_path, "  FAIL: domains_touched is empty")
+        return errors
+
+    unknown = [d for d in domains if d not in VALID_DOMAINS]
+    if unknown:
+        errors.append({
+            "check": "domains_valid",
+            "issue": f"Unknown domains declared: {unknown}. Valid domains: {sorted(VALID_DOMAINS)}",
+            "convention_ref": ".agents/plugins/backend-plugin/context/reference.md",
+        })
+        log(log_path, f"  FAIL: Unknown domains: {unknown}")
+    else:
+        log(log_path, f"  PASS: All domains valid: {domains}")
+    return errors
+
+
+def check_apps_exist(summary: dict, backend_root: Path, log_path: Path) -> list[dict]:
+    """Step 3 — All declared apps must exist under backend/apps/."""
+    errors = []
+    log(log_path, "CHECK: Declared apps existence on disk")
+    apps = summary.get("apps_touched")
+
+    if not apps:
+        errors.append({
+            "check": "apps_declared",
+            "issue": "apps_touched is empty or missing. Architect must declare which apps are affected.",
+            "convention_ref": ".agents/plugins/backend-plugin/agents/architect.txt § Step 1",
+        })
+        log(log_path, "  FAIL: apps_touched is empty")
+        return errors
+
+    apps_root = backend_root / "apps"
+    for app in apps:
+        app_path = apps_root / app
+        if not app_path.exists():
+            errors.append({
+                "check": "app_exists",
+                "issue": f"Declared app '{app}' does not exist at {app_path}.",
+                "convention_ref": "backend/Readme.md § Directory Structure",
+            })
+            log(log_path, f"  FAIL: App not found on disk: {app}")
+        elif app not in KNOWN_APPS:
+            errors.append({
+                "check": "app_known",
+                "issue": (
+                    f"App '{app}' exists on disk but is not in KNOWN_APPS. "
+                    "If this is a new app, it must be discussed with the user before proceeding. "
+                    "Update KNOWN_APPS in this hook and add the app Readme before retrying."
+                ),
+                "convention_ref": "constraints.md § Data Model Invariants",
+            })
+            log(log_path, f"  FAIL: App '{app}' not in KNOWN_APPS")
+        else:
+            log(log_path, f"  PASS: App '{app}' exists")
+    return errors
+
+
+def check_pipeline_valid(summary: dict, log_path: Path) -> list[dict]:
+    """Step 4 — Pipeline stages must be valid enum values and non-empty."""
+    errors = []
+    log(log_path, "CHECK: Pipeline stage validity")
+    pipeline = summary.get("pipeline")
+
+    if not pipeline:
+        errors.append({
+            "check": "pipeline_declared",
+            "issue": "pipeline is empty or missing. Architect must declare at least one stage.",
+            "convention_ref": ".agents/plugins/backend-plugin/agents/architect.txt § Step 2",
+        })
+        log(log_path, "  FAIL: pipeline is empty")
+        return errors
+
+    invalid = [s for s in pipeline if s not in VALID_PIPELINE_STAGES]
+    if invalid:
+        errors.append({
+            "check": "pipeline_stages_valid",
+            "issue": f"Invalid pipeline stages declared: {invalid}. Valid stages: {sorted(VALID_PIPELINE_STAGES)}",
+            "convention_ref": ".agents/plugins/backend-plugin/agents/architect.txt § Step 2",
+        })
+        log(log_path, f"  FAIL: Invalid stages: {invalid}")
+    else:
+        log(log_path, f"  PASS: All pipeline stages valid: {pipeline}")
+    return errors
+
+
+def check_decision_gaps_resolved(architect_output: str, plugin_state: dict, log_path: Path) -> list[dict]:
+    """Step 5 — All decision gaps must be resolved before the Coder starts."""
+    errors = []
+    log(log_path, "CHECK: Decision gaps resolution")
+
+    gap_pattern = r"=== ARCHITECT SUMMARY ===(.*?)=== END ARCHITECT SUMMARY ==="
+    match = re.search(gap_pattern, architect_output, re.DOTALL)
+    if not match:
+        return errors
+
+    raw = match.group(1)
+    gap_questions = re.findall(r'question:\s*"([^"]+)"', raw)
+
+    if not gap_questions:
+        log(log_path, "  PASS: No decision gaps declared")
+        return errors
+
+    architect_notes = plugin_state.get("architect_notes", "").strip()
+    if not architect_notes:
+        errors.append({
+            "check": "decision_gaps_resolved",
+            "issue": (
+                f"{len(gap_questions)} decision gap(s) declared but architect_notes is empty. "
+                "Orchestrator must collect user answers and write them to architect_notes before "
+                "invoking the Coder. Gaps: " + "; ".join(gap_questions)
+            ),
+            "convention_ref": "orchestrator.md § 4. Decision Gaps vs. Prerequisite Gaps",
+        })
+        log(log_path, f"  FAIL: {len(gap_questions)} unresolved gap(s), architect_notes empty")
+    else:
+        log(log_path, f"  PASS: {len(gap_questions)} gap(s) declared, architect_notes populated")
+    return errors
+
+
+def check_handoff_block_present(architect_output: str, log_path: Path) -> list[dict]:
+    """Step 6 — Architect handoff block must be present."""
+    errors = []
+    log(log_path, "CHECK: Architect handoff block presence")
+    if "=== ARCHITECT HANDOFF ===" not in architect_output:
+        errors.append({
+            "check": "handoff_block_present",
+            "issue": "=== ARCHITECT HANDOFF === block is missing. Architect did not complete its handoff.",
+            "convention_ref": ".agents/plugins/backend-plugin/agents/architect.txt § Handoff",
+        })
+        log(log_path, "  FAIL: Handoff block missing")
+    else:
+        log(log_path, "  PASS: Handoff block present")
+    return errors
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main():
-    hook_start = time.time()
+    start_time = time.time()
 
-    parser = argparse.ArgumentParser(
-        description="pre_coder hook — validates Architect output"
-    )
-    parser.add_argument(
-        "--architect-output",
-        required=True,
-        help="Path to file containing Architect subagent output",
-    )
-    parser.add_argument(
-        "--plugin-state", required=True, help="Path to plugin_state.json"
-    )
-    parser.add_argument(
-        "--log-dir",
-        required=True,
-        help="Path to feature log directory (.agents/logs/<feature_slug>/)",
-    )
-    parser.add_argument(
-        "--project-root",
-        default=".",
-        help="Path to project root (default: current directory)",
-    )
-    args = parser.parse_args()
-
-    log_dir = Path(args.log_dir)
-    project_root = Path(args.project_root).resolve()
-    logger = HookLogger(log_dir, hook_start)
-
-    logger.section("Inputs")
-    logger.info(f"Architect output file : {args.architect_output}")
-    logger.info(f"Plugin state file     : {args.plugin_state}")
-    logger.info(f"Project root          : {project_root}")
-
-    # ── Load inputs ───────────────────────────────────────────────────────────
-    try:
-        architect_output = Path(args.architect_output).read_text(encoding="utf-8")
-        logger.info(f"Architect output loaded ({len(architect_output)} chars).")
-    except Exception as e:
-        logger.error(f"Failed to read architect output: {e}")
-        output = build_output(
-            False,
-            [
-                {
-                    "issue": f"Cannot read architect output file: {e}",
-                    "convention_ref": "orchestrator.md#subagent-invocation",
-                }
-            ],
-            [],
-        )
-        logger.write_footer(False, 1, time.time() - hook_start)
-        print(json.dumps(output, indent=2))
+    if len(sys.argv) != 5:
+        print(json.dumps({
+            "passed": False,
+            "hook_name": HOOK_NAME,
+            "errors": [{
+                "check": "invocation",
+                "issue": f"Expected 4 arguments: architect_output_path, plugin_state_path, backend_root, logs_root. Got {len(sys.argv) - 1}.",
+                "convention_ref": "hooks/pre_coder.py",
+            }],
+            "retry_prompt": "Fix hook invocation arguments.",
+        }))
         sys.exit(1)
 
-    try:
-        plugin_state = json.loads(Path(args.plugin_state).read_text(encoding="utf-8"))
-        logger.info("plugin_state.json loaded.")
-    except Exception as e:
-        logger.error(f"Failed to read plugin_state.json: {e}")
-        output = build_output(
-            False,
-            [
-                {
-                    "issue": f"Cannot read plugin_state.json: {e}",
-                    "convention_ref": "orchestrator.md#state-files",
-                }
-            ],
-            [],
-        )
-        logger.write_footer(False, 1, time.time() - hook_start)
-        print(json.dumps(output, indent=2))
-        sys.exit(1)
+    architect_output_path = Path(sys.argv[1])
+    plugin_state_path = Path(sys.argv[2])
+    backend_root = Path(sys.argv[3])
+    logs_root = Path(sys.argv[4])
 
-    # ── Run checks ────────────────────────────────────────────────────────────
-    errors = []
-    domains = []
+    architect_output = architect_output_path.read_text(encoding="utf-8")
+    plugin_state = json.loads(plugin_state_path.read_text(encoding="utf-8"))
+    feature_slug = plugin_state.get("feature", "unknown-feature").replace(" ", "-").lower()
 
-    summary_ok, parsed_summary = check_summary_block_present(architect_output, logger)
-    if not summary_ok:
-        errors.append(
-            {
-                "file": args.architect_output,
-                "issue": "ARCHITECT SUMMARY block missing or incomplete.",
-                "convention_ref": "agents/architect.txt#step-6-summarise-for-state",
-            }
-        )
+    log_path = init_logger(feature_slug, logs_root)
+    log(log_path, f"=== {HOOK_NAME.upper()} START ===")
+    log(log_path, f"Feature:            {plugin_state.get('feature')}")
+    log(log_path, f"Current stage:      {plugin_state.get('current_stage')}")
+    log(log_path, f"Architect output:   {architect_output_path}")
+    log(log_path, f"Max retries:        {MAX_RETRIES}")
+    log(log_path, f"Retry count so far: {plugin_state.get('retry_counts', {}).get(HOOK_NAME, 0)}")
 
-    if parsed_summary:
-        domains_ok, domains = check_domains_valid(parsed_summary, logger)
-        if not domains_ok:
-            errors.append(
-                {
-                    "file": args.architect_output,
-                    "issue": "One or more declared domains are not in the known domain registry.",
-                    "convention_ref": "context/reference.md#domain-registry",
-                }
-            )
+    all_errors = []
+    all_errors += check_summary_present(architect_output, log_path)
 
-        apps_ok = check_apps_exist(parsed_summary, project_root, logger)
-        if not apps_ok:
-            errors.append(
-                {
-                    "file": args.architect_output,
-                    "issue": "One or more declared apps do not exist under backend/apps/.",
-                    "convention_ref": "backend/Readme.md#directory-structure",
-                }
-            )
+    summary = extract_architect_summary(architect_output)
+    if summary:
+        all_errors += check_domains_valid(summary, log_path)
+        all_errors += check_apps_exist(summary, backend_root, log_path)
+        all_errors += check_pipeline_valid(summary, log_path)
+        all_errors += check_decision_gaps_resolved(architect_output, plugin_state, log_path)
 
-        pipeline_ok = check_pipeline_stages_valid(parsed_summary, logger)
-        if not pipeline_ok:
-            errors.append(
-                {
-                    "file": args.architect_output,
-                    "issue": "One or more pipeline stages are not valid enum values.",
-                    "convention_ref": "plugins/backend-plugin/plugin_state.schema.json#pipeline",
-                }
-            )
+    all_errors += check_handoff_block_present(architect_output, log_path)
 
-        feature_type_ok = check_feature_type_valid(parsed_summary, plugin_state, logger)
-        if not feature_type_ok:
-            errors.append(
-                {
-                    "file": args.architect_output,
-                    "issue": "feature_type in ARCHITECT SUMMARY does not match plugin_state.json.",
-                    "convention_ref": "orchestrator.md#state-files",
-                }
-            )
+    elapsed = round(time.time() - start_time, 3)
+    passed = len(all_errors) == 0
+    retry_count = plugin_state.get("retry_counts", {}).get(HOOK_NAME, 0)
+    will_hard_stop = not passed and retry_count >= MAX_RETRIES
 
-    gaps_ok = check_decision_gaps_resolved(architect_output, plugin_state, logger)
-    if not gaps_ok:
-        errors.append(
-            {
-                "file": args.plugin_state,
-                "issue": "Decision gaps declared but architect_notes is empty. "
-                "Orchestrator must collect user answers before Coder is invoked.",
-                "convention_ref": "orchestrator.md#decision-gaps-vs-prerequisite-gaps",
-            }
-        )
+    result = {
+        "passed": passed,
+        "hook_name": HOOK_NAME,
+        "max_retries": MAX_RETRIES,
+        "retry_count": retry_count,
+        "will_hard_stop": will_hard_stop,
+        "execution_time_seconds": elapsed,
+        "errors": all_errors,
+        "parsed_domains_touched": summary.get("domains_touched") if summary else None,
+        "parsed_apps_touched": summary.get("apps_touched") if summary else None,
+        "retry_prompt": (
+            "Fix the above issues in the Architect output and resubmit."
+            if not passed else None
+        ),
+    }
 
-    handoff_ok = check_handoff_block_present(architect_output, logger)
-    if not handoff_ok:
-        errors.append(
-            {
-                "file": args.architect_output,
-                "issue": "ARCHITECT HANDOFF block missing. Output may be incomplete.",
-                "convention_ref": "agents/architect.txt#handoff",
-            }
-        )
+    log(log_path, "--- RESULT ---")
+    log(log_path, f"Passed:           {passed}")
+    log(log_path, f"Error count:      {len(all_errors)}")
+    log(log_path, f"Will hard stop:   {will_hard_stop}")
+    log(log_path, f"Execution time:   {elapsed}s")
+    log(log_path, f"=== {HOOK_NAME.upper()} END ===")
 
-    # ── Result ────────────────────────────────────────────────────────────────
-    passed = len(errors) == 0
-    total_elapsed = time.time() - hook_start
-
-    logger.section("Summary")
-    logger.info(f"Checks run    : 7")
-    logger.info(f"Errors found  : {len(errors)}")
-    logger.info(f"Result        : {'PASSED' if passed else 'FAILED'}")
-    logger.write_footer(passed, len(errors), total_elapsed)
-
-    output = build_output(passed, errors, domains)
-    print(json.dumps(output, indent=2))
+    print(json.dumps(result, indent=2))
     sys.exit(0 if passed else 1)
 
 
