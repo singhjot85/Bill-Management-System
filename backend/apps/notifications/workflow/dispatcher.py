@@ -15,13 +15,13 @@ class Dispatcher:
 
     _default_task_name = TaskNames.NOTIFICATION_TASK.value
 
-    def __init__(self, instuction: "ChannelInstruction", task_name: str = None):
+    def __init__(self, instruction: "ChannelInstruction", task_name: str = None):
         """
         Args:
-            instuction (ChannelInstruction): instructions for dispatcher and celery task.
+            instruction (ChannelInstruction): instructions for dispatcher and celery task.
             task_name (str, optional): Celery task name to be used.
         """
-        self._instruction = instuction
+        self._instruction = instruction
         self._task_name = task_name or self._default_task_name
 
     @property

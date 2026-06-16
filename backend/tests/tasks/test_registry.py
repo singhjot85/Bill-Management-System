@@ -29,11 +29,11 @@ class TestTaskNames:
         assert TaskNames.TEST_TENANT_AWARE_TASK.task_label() == "Test Tenant Awareness"
 
     def test_task_path(self):
-        assert TaskNames.PDF_GENERATION.task_path() == TaskLocation.INVOICE_TASK.value
+        assert TaskNames.PDF_GENERATION.task_path() == TaskLocation.INVOICE_TASKS.value
         assert TaskNames.TEST_TENANT_AWARE_TASK.task_path() == TaskLocation.TEST_TASKS.value
 
     def test_celery_name(self):
-        expected = f"{TaskLocation.INVOICE_TASK.value}.generate_pdf"
+        expected = f"{TaskLocation.INVOICE_TASKS.value}.generate_pdf"
         assert TaskNames.PDF_GENERATION.celery_name() == expected
 
     def test_task_id(self):
@@ -88,6 +88,33 @@ class TestQueueTask:
         assert result is None
         mock_task.apply_async_on_commit.assert_called_once()
 
+    @patch("apps.tasks.registry.TaskNames.get_task_instance")
+    def test__queue_task__task_args_works(self, mock_get_task):
+        mock_task = MagicMock(spec=DjangoTask)
+        mock_get_task.return_value = mock_task
+
+        _args = ("A", "B", "C")
+        _kwargs = {"1": "x", "2": "y", "3": "z"}
+
+        queue_task(TaskNames.TEST_TENANT_AWARE_TASK, on_commit=False, task_args=_args, task_kwargs=_kwargs)
+
+        mock_task.apply_async.assert_called_once_with(args=_args, kwargs=_kwargs)
+
+    def test__queue_task__queue_name_works(self):
+        # TODO: Need to implement task_queue's for this
+        pass
+
+    @patch("apps.tasks.registry.TaskNames.get_task_instance")
+    def test__queue_task__idempotency_key_works(self, mock_get_task):
+        mock_task = MagicMock(spec=DjangoTask)
+        mock_get_task.return_value = mock_task
+
+        idempotency_key = "1234567"
+
+        queue_task(TaskNames.TEST_TENANT_AWARE_TASK, on_commit=False, idempotency_key=idempotency_key)
+
+        expected = TaskNames.TEST_TENANT_AWARE_TASK.task_id(idempotency_key)
+        mock_task.apply_async.assert_called_once_with(args=(), kwargs={}, task_id=expected)
 
 class TestGetDataFromTaskResult:
     @patch("time.sleep", return_value=None)

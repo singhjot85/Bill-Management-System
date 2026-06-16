@@ -72,16 +72,21 @@ class NotificationService:
 
     def _trigger(self, event_type: str, party: typing.Union[str, UUID], data: dict = None, *args, **kwargs):
         """Handles the atomic trigger logic, so that each trigger is handled gracefully.
+
         Args:
             event_type (str): Event Type to be trigerred.
             party (str | UUID): Id or reference(s) for parties (customer/user) associated to that event.
                 could be a Customer or a User id.
             data (dict): Additional data to be passed in notification context.
+        
+        Kwargs:
+            celery_task_name (str, optional): Celery Task Name, to be executed.
         """
         event: "NotificationEvent" = self.build_event(event_type, party, data, *args, **kwargs)
         instructions: list["ChannelInstruction"] = ResolverFactory(event, party).resolve()
         for instruction in instructions:
-            Dispatcher(instruction).dispatch()
+            celery_task_name = kwargs.get("celery_task_name")
+            Dispatcher(instruction, task_name=celery_task_name).dispatch()
 
     def trigger(
         self,
@@ -96,11 +101,15 @@ class NotificationService:
             Creates a Notification event
             Create instructions for disaptcher from those events
             Dispatch individual tasks for each of those instuctions
+
         Args:
             event_type (str): Event Type to be trigerred.
             parties (str | UUID | list | tuple): Id or reference(s) for parties (customer/user) associated to that event.
                 could be a Customer or a User id.
             data (dict): Additional data to be passed in notification context.
+        
+        Kwargs:
+            celery_task_name (str, optional): Celery Task Name, to be executed.
         """
         many = False
         if isinstance(parties, list) or isinstance(parties, tuple):
@@ -123,18 +132,25 @@ def trigger_notifications(
     event_type: str, assosciated_parties: list[str], data: dict = None, raise_exception: bool = True
 ):
     """Trigger notification lifecylce from just this method
+
     Args:
         event_type (str): Event Type to trigger, should be a pre-registered event.
         assosciated_parties (list[str]): All the parties(user's/customer') assossciated with the event.
         data (dict, optional): Additional context data to pe passed to the Notification flow.
         raise_exception (bool, optional): Raise caught exceptions.
             default to True, i.e. trigger will not silently fail
+    
+    Kwargs:
+        celery_task_name (str, optional): Celery Task Name, to be executed.
+
     Return:
         (bool): If the notification flow was queued sucessfully, or not.
+        
     Raises:
         InvalidEventException: If the issue in trigggering the flow.
         NotificationResolverException: If the issue is in resolver phase.
         NotificationDispatcherException: If the issue in dispatch phase
+
     """
     try:
         notification_service.trigger(event_type=event_type, parties=assosciated_parties, data=data)
