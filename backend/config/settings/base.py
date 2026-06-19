@@ -10,7 +10,7 @@ from config.settings.resolvers import (
     get_broker_url,
     get_cache_url,
     get_resolved_cache_options,
-    set_default_email_from,
+    get_default_email_from
 )
 from config.settings.variables import *
 
@@ -119,8 +119,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-REST_AUTH = {"USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER}
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -136,20 +134,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_AUTH = {"USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER}
+
+DEFAULT_FROM_EMAIL = get_default_email_from()
+EMAIL_BACKEND = DJANGO_CONSOLE_BACKEND
+
 # ------------------
 #  django-constance
 # ------------------
-print(">>>> "*10, get_cache_url())
 CONSTANCE_REDIS_CONNECTION = get_cache_url()
-CONSTANCE_ADDITIONAL_FIELDS = {RADIO_BUTTON_CONSTANCE[0]: RADIO_BUTTON_CONSTANCE[1]}
-
-CONSTANCE_CONFIG = {
-    # "KEY": ("default_value", "description")
-    "USE_MOCK_INTEGRATIONS": (True, "Use Mock Integrtion or Real One's")
-}
-
-CONSTANCE_CONFIG_FIELDSETS = {"Integrations": {"fields": ("USE_MOCK_INTEGRATIONS",), "collapse": False}}
-
+from config.settings.constances import (
+    CONSTANCE_ADDITIONAL_FIELDS,
+    CONSTANCE_CONFIG,
+    CONSTANCE_CONFIG_FIELDSETS
+)
 
 USE_TZ = True
 TIME_ZONE = APPLICATION_TIMEZONE
@@ -157,7 +155,6 @@ TIME_ZONE = APPLICATION_TIMEZONE
 USE_I18N = True
 LANGUAGE_CODE = "en-us"
 
-set_default_email_from()
 
 if CURRENT_ENV in LOCAL_ENVS:
     DEBUG = True

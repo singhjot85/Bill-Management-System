@@ -7,7 +7,7 @@ from .constants import (
     REDIS_DEFAULT_OPTIONS,
     VALKEY_CLUSTER_DEFAULT_OPTIONS,
     VALKEY_DEFAULT_BACKEND,
-    VALKEY_DEFAULT_OPTIONS,
+    VALKEY_DEFAULT_OPTIONS
 )
 from .variables import (
     BROKER_HOST,
@@ -82,8 +82,8 @@ def get_resolved_cache_options_cluster():
     return CACHE_BACKEND, RESOLVED_CACHE_OPTIONS
 
 
-def set_default_email_from():
+def get_default_email_from():
     if CURRENT_ENV in LOCAL_ENVS:
-        return "dev@mailig.com"
+        return "dev@mailing.com"
 
     return DEFAULT_FROM_EMAIL

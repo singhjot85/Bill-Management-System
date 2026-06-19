@@ -1,16 +1,18 @@
 import typing
 
+from constance import config
 from django.conf import settings
-from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 
+from config.settings.constances import ConstanceFields
+from config.settings.constants import DJANGO_SMTP_BACKEND
 from apps.notifications.constants import ChannelTypeChoices
+from apps.notifications.exceptions import NotificationStratergyException
 from apps.notifications.workflow.stratergies import (
     BaseStratergy,
     TemplateHelperMixin,
     notification_stratergy_registry,
 )
-
-from apps.notifications.exceptions import NotificationStratergyException
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers.email_resolver import EmailInstructions
@@ -21,6 +23,8 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
     Email Stratergy for notification flow
     TODO: Implement Attachement support.
     """
+    _email_be_setting_name = ConstanceFields.EMAIL_BE_CHOICES.field_name
+    _use_mock_email_setting_name = ConstanceFields.MOCK_EMAIL_SERV.field_name
 
     _instructions: "EmailInstructions"
     _channel_type: str = ChannelTypeChoices.EMAIL.value
@@ -35,6 +39,14 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
             return from_email
 
         return settings.EMAIL_HOST_USER
+    
+    @property
+    def get_connection(self):
+        if not getattr(config, self._use_mock_email_setting_name):
+            return get_connection(DJANGO_SMTP_BACKEND)
+        
+        backend_name = getattr(config, self._email_be_setting_name)
+        return get_connection(backend_name)
 
     @property
     def from_email(self):
@@ -56,6 +68,7 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
         html = self.render_html(self._instructions.context_data, args, kwargs)
 
         message = EmailMultiAlternatives(
+            connection=self.get_connection,
             subject=subject,
             body=plain_text or "",
             from_email=self.from_email,
@@ -76,6 +89,7 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
         plain_text = self.render_plain_text(self._instructions.context_data, args, kwargs)
 
         return EmailMessage(
+            connection=self.get_connection,
             subject=subject,
             body=plain_text or "",
             from_email=self.from_email,

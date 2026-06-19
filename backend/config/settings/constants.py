@@ -124,16 +124,11 @@ VALKEY_DEFAULT_OPTIONS = {
 
 
 # -----------------------------
-#   django-constance Constants
+#   Django Mail Constants
 # -----------------------------
-    
-RADIO_BUTTON_CONSTANCE: tuple[str, list[str, dict]] = (
-    "yes_no_null_select",
-    [
-        "django.forms.fields.ChoiceField",
-        {"widget": "django.forms.Select", "choices": ((None, "----"), (True, "Activate"), (False, "Deactivate"))},
-    ],
-)
+DJANGO_SMTP_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+DJANGO_FILE_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+DJANGO_CONSOLE_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 # -----------------------------
