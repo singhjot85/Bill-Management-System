@@ -135,6 +135,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# ------------------
+#  django-constance
+# ------------------
+
+CONSTANCE_ADDITIONAL_FIELDS = {RADIO_BUTTON_CONSTANCE[0]: RADIO_BUTTON_CONSTANCE[1]}
+
+CONSTANCE_CONFIG = {
+    # "KEY": ("default_value", "description")
+    "USE_MOCK_INTEGRATIONS": (True, "Use Mock Integrtion or Real One's")
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    "Integrations": {
+        "fields": ("USE_MOCK_INTEGRATIONS",),
+        "collapse": False
+    }
+}
+
+
 USE_TZ = True
 TIME_ZONE = APPLICATION_TIMEZONE
 

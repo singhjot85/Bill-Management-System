@@ -24,6 +24,7 @@ SHARED_EXTRA_DEPENDENCIES = [
     "django_tenants",
     "rest_framework.authtoken",
     "dj_rest_auth",
+    "constance",
 ]
 
 PUBLIC_ONLY_EXTRA_DEPENDENCIES = [
@@ -89,6 +90,22 @@ VALKEY_DEFAULT_OPTIONS = {
     "CLIENT_CLASS": "django_valkey.client.DefaultClient",
 }
 
-# Custom Celery Settings
+
+# -----------------------------
+#   django-constance Constants
+# -----------------------------
+    
+RADIO_BUTTON_CONSTANCE: tuple[str, list[str, dict]] = (
+    "yes_no_null_select",
+    [
+        "django.forms.fields.ChoiceField",
+        {"widget": "django.forms.Select", "choices": ((None, "----"), (True, "Activate"), (False, "Deactivate"))},
+    ],
+)
+
+
+# -----------------------------
+#   Custom Constants
+# -----------------------------
 TASK_RESULT_CHECK_RETRIES = 10
 TASK_RESULT_CHECK_TIMEOUT = 10  # Seconds

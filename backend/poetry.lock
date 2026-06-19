@@ -500,6 +500,21 @@ celery = ">=5.2.7,<6.0"
 Django = ">=3.2.25"
 
 [[package]]
+name = "django-constance"
+version = "4.3.5"
+description = "Django live settings with pluggable backends, including Redis."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "django_constance-4.3.5-py3-none-any.whl", hash = "sha256:c28f360c2822112772a3e4caf02db758c82cca8de7d0b9f648fef371bf4b8bc6"},
+    {file = "django_constance-4.3.5.tar.gz", hash = "sha256:081177483d272b664cf768deae76fc2fbb0a777076f45620b6fde4d9075ee2b3"},
+]
+
+[package.extras]
+redis = ["redis"]
+
+[[package]]
 name = "django-model-utils"
 version = "5.0.0"
 description = "Django model mixins and utilities"
@@ -1895,4 +1910,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4"
-content-hash = "195c712b503c9088f9c41f7a579dad71ac8470b02994df78309f72e49037bfb4"
+content-hash = "50c2ca483e0bc61093d785f7ce956f0a91b7536ed0fa209f3b367428e91c3b36"
