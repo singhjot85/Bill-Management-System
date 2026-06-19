@@ -6,10 +6,11 @@ from django.core.mail import EmailMessage, EmailMultiAlternatives
 from apps.notifications.constants import ChannelTypeChoices
 from apps.notifications.workflow.stratergies import (
     BaseStratergy,
-    NotificationStrategyException,
     TemplateHelperMixin,
     notification_stratergy_registry,
 )
+
+from apps.notifications.exceptions import NotificationStratergyException
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers.email_resolver import EmailInstructions
@@ -97,7 +98,7 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
             message = self.email_message()
 
         if not message:
-            raise NotificationStrategyException("Unable to build a email message from given instructions.")
+            raise NotificationStratergyException("Unable to build a email message from given instructions.")
 
         message.send()
 

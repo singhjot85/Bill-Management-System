@@ -6,21 +6,18 @@ from uuid import UUID
 from apps.notifications.constants import EventTypeChoices
 from apps.notifications.workflow.dispatcher import (
     Dispatcher,
-    NotificationDispatcherException,
 )
 from apps.notifications.workflow.resolvers import (
-    NotificationResolverException,
     ResolverFactory,
+)
+from apps.notifications.exceptions import (
+    NotificationDispatcherException,
+    NotificationResolverException,
+    InvalidEventException,
 )
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers import ChannelInstruction
-
-
-class InvalidEventException(Exception):
-    """General Exception for any issue(s) in Trigger"""
-
-    pass
 
 
 LOGGER = logging.getLogger()
@@ -78,7 +75,7 @@ class NotificationService:
             party (str | UUID): Id or reference(s) for parties (customer/user) associated to that event.
                 could be a Customer or a User id.
             data (dict): Additional data to be passed in notification context.
-        
+
         Kwargs:
             celery_task_name (str, optional): Celery Task Name, to be executed.
         """
@@ -107,7 +104,7 @@ class NotificationService:
             parties (str | UUID | list | tuple): Id or reference(s) for parties (customer/user) associated to that event.
                 could be a Customer or a User id.
             data (dict): Additional data to be passed in notification context.
-        
+
         Kwargs:
             celery_task_name (str, optional): Celery Task Name, to be executed.
         """
@@ -139,13 +136,13 @@ def trigger_notifications(
         data (dict, optional): Additional context data to pe passed to the Notification flow.
         raise_exception (bool, optional): Raise caught exceptions.
             default to True, i.e. trigger will not silently fail
-    
+
     Kwargs:
         celery_task_name (str, optional): Celery Task Name, to be executed.
 
     Return:
         (bool): If the notification flow was queued sucessfully, or not.
-        
+
     Raises:
         InvalidEventException: If the issue in trigggering the flow.
         NotificationResolverException: If the issue is in resolver phase.

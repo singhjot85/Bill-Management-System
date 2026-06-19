@@ -4,9 +4,10 @@ from apps.notifications.constants import ChannelTypeChoices, NotificationTemplat
 from apps.notifications.workflow.resolvers import (
     BaseResolver,
     ChannelInstruction,
-    NotificationResolverException,
     resolver_registry,
 )
+
+from apps.notifications.exceptions import NotificationResolverException
 
 
 @dataclass(frozen=True)

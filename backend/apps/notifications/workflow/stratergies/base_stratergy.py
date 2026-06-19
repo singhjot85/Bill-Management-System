@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 from django.contrib.auth import get_user_model
 
+from utils.registry_utils import ClassRegistry
 from apps.customer_management.models import Customer
 from apps.notifications.workflow.resolvers import resolver_registry
 
@@ -123,3 +124,6 @@ class BaseStratergy(ABC):
                 raise NotificationStrategyException from ex
 
         LOGGER.info("Successfully sent %s notification", self.label)
+
+
+notification_stratergy_registry = ClassRegistry()

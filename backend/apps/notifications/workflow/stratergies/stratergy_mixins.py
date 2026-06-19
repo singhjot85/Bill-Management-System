@@ -4,17 +4,12 @@ import typing
 from django.template import Template, context
 
 from apps.notifications.models import NotificationTemplate
+from apps.notifications.exceptions import TemplateHelperException
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers import ChannelInstruction
 
 LOGGER = logging.getLogger()
-
-
-class TemplateHelperException(Exception):
-    """Template Helper Mixin related exceptions."""
-
-    pass
 
 
 class TemplateHelperMixin:

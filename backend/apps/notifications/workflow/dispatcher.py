@@ -1,9 +1,7 @@
 from apps.notifications.workflow.resolvers import ChannelInstruction
 from apps.tasks.registry import TaskNames, queue_task
 
-
-class NotificationDispatcherException(Exception):
-    pass
+from apps.notifications.exceptions import NotificationDispatcherException
 
 
 class Dispatcher:
@@ -26,13 +24,22 @@ class Dispatcher:
 
     @property
     def task_kwargs(self):
+        """Cached Getter task_kwargs, currently keeping empty"""
         if hasattr(self, "_instruction") and self._instruction:
             return self._instruction.__dict__()
         return None
 
     @property
     def task_args(self):
+        """Cached Getter task_args, currently keeping empty"""
         return None
+
+    def get_idempotency_key(self):
+        """
+        Cached Getter an idempotency to ensure uique task is queued.
+        Assuming resolver exceute sync, this should not lead to deadlock/race condition,
+        """
+        return f"{self._instruction.channel_type}-{self._instruction.log_id}"
 
     def dispatch(self):
         """
@@ -40,6 +47,12 @@ class Dispatcher:
         TODO: Handle failure's, retries and re-triggers.
         """
         try:
-            queue_task(task=self._task_name, on_commit=True, task_args=self.task_args, task_kwargs=self.task_kwargs)
+            queue_task(
+                task=self._task_name,
+                on_commit=True,
+                task_args=self.task_args,
+                task_kwargs=self.task_kwargs,
+                idempotency_key=self.get_idempotency_key(),
+            )
         except Exception as e:
             raise NotificationDispatcherException("Error in queing celery task") from e

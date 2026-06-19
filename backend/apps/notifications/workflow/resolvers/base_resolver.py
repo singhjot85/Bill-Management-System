@@ -11,12 +11,10 @@ from apps.notifications.constants import (
     LogStatusChoices,
 )
 from apps.notifications.models import NotificationLog
-from apps.notifications.workflow.resolvers import (
-    NotificationResolverException,
-    resolver_registry,
-)
+from apps.notifications.exceptions import NotificationResolverException
 from apps.setup.constants import ConfigurationInterfaceChoices as InterfaceType
 from apps.setup.models import Configurations
+from utils.registry_utils import ClassRegistry
 
 if typing.TYPE_CHECKING:
     from uuid import UUID
@@ -223,3 +221,6 @@ class BaseResolver(abc.ABC):
         channel_instruction: "ChannelInstruction" = self._get_instruction_dataclass(args, kwargs)
         data: dict = self._get_dataclass_data(args, kwargs)
         return channel_instruction(**data)
+
+
+resolver_registry = ClassRegistry()

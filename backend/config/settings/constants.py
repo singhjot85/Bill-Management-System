@@ -5,11 +5,37 @@ This file list all the apps that are used in the project, this keep the settings
 PROJECT_NAME = "bill-management-application"
 PROJECT_LABEL = "Bill Management Application"
 
-TENANT_APP_NAME = "tenants"
-TENANT_MODEL_NAME = "OrganizationTenant"
-DOMAIN_MODEL_NAME = "OrganizationDomain"
 
-# Django runtime app registration
+# ----------------------------
+#   Model(s) and their Apps
+# ----------------------------
+
+APP_CUSTOMERS = "apps.customer_management"
+CUSTOMER_CUSTOMER = "customer_management.Customer"
+CUSTOMER_ADDRESS = "customer_management.CustomerAddress"
+
+APP_NOTIFICATIONS = "apps.notifications"
+NOTIFICATION_TEMPLATE = "notifications.NotificationTemplate"
+NOTIFICATION_LOGS = "notifications.NotificationLog"
+NOTIFICATION_PREFERENCES = "notifications.NotificationPreferences"
+
+APP_PAYMENTS = "apps.payments_management"
+PAYMENT_INVOICE = "payments_management.Invoice"
+PAYMENT_TEMPLATES = "payments_management.Templates"
+PAYMENT_PAYMENTS = "payments_management.Payment"
+
+APP_SETUP = "apps.setup"
+SETUP_CONFIGURATION = "setup.Configurations"
+
+APP_TENANTS = "apps.tenants"
+TENANTS_ORGANIZATION_TENANT = "tenants.OrganizationTenant"
+TENANTS_ORGANIZATION_DOMAIN = "tenants.OrganizationDomain"
+TENANTS_ORGANIZATION_BRANDING = "tenants.OrganizationBranding"
+
+
+# ----------------------------
+#   Runtime App Classification
+# ----------------------------
 DEFAULT_DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -39,7 +65,10 @@ PROJECT_APPS = [
     "apps.notifications",
 ]
 
-# Database Level app registration
+
+# -----------------------------
+#   Database App Classification
+# -----------------------------
 DJANGO_TENANT_PUBLIC_APPS = [
     *DEFAULT_DJANGO_APPS,
     *SHARED_EXTRA_DEPENDENCIES,
@@ -57,16 +86,16 @@ DJANGO_TENANT_PRIVATE_APPS = [
     "apps.notifications",
 ]
 
-CUSTOMER_CUSTOMER = "customer_management.Customer"
-CUSTOMER_ADDRESS = "customer_management.CustomerAddress"
-PAYMENT_INVOICE = "payments_management.Invoice"
-PAYMENT_TEMPLATES = "payments_management.Templates"
 
-LOCAL_ENVS = ["local", "dev", "devlopment"]
-
+# -----------------------------
+#   dj-rest-auth Constants
+# -----------------------------
 USER_DETAIL_SERIALIZER = "apps.tenants.serializers.UserSerializer"
 
-# Default Redis, and Redis Cluster Settings
+
+# -----------------------------
+#   Redis Constants
+# -----------------------------
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 REDIS_DEFAULT_BACKEND = "django_redis.cache.RedisCache"
 REDIS_CLUSTER_DEFAULT_OPTIONS = {
@@ -77,7 +106,10 @@ REDIS_DEFAULT_OPTIONS = {
     "CLIENT_CLASS": "django_redis.client.DefaultClient",
 }
 
-# Default Valkey, and Valkey Cluster Settings
+
+# -----------------------------
+#   Valkey Constants
+# -----------------------------
 VALKEY_DEFAULT_BACKEND = "django_valkey.cluster_cache.cache.ClusterValkeyCache"
 VALKEY_CLUSTER_DEFAULT_OPTIONS = {
     "CLIENT_CLASS": "config.valkey_cluster_client.PatchedClusterClient",
@@ -109,3 +141,5 @@ RADIO_BUTTON_CONSTANCE: tuple[str, list[str, dict]] = (
 # -----------------------------
 TASK_RESULT_CHECK_RETRIES = 10
 TASK_RESULT_CHECK_TIMEOUT = 10  # Seconds
+
+LOCAL_ENVS = ["local", "dev", "devlopment"]
