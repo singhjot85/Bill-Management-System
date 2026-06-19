@@ -15,6 +15,7 @@ from config.settings.resolvers import (
 from config.settings.variables import *
 
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
+STATIC_ROOT = COLLECTED_STATIC_FILES
 STATIC_URL = "static/"
 
 ROOT_URLCONF = "config.routers"
@@ -138,7 +139,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------
 #  django-constance
 # ------------------
-
+print(">>>> "*10, get_cache_url())
+CONSTANCE_REDIS_CONNECTION = get_cache_url()
 CONSTANCE_ADDITIONAL_FIELDS = {RADIO_BUTTON_CONSTANCE[0]: RADIO_BUTTON_CONSTANCE[1]}
 
 CONSTANCE_CONFIG = {
@@ -146,12 +148,7 @@ CONSTANCE_CONFIG = {
     "USE_MOCK_INTEGRATIONS": (True, "Use Mock Integrtion or Real One's")
 }
 
-CONSTANCE_CONFIG_FIELDSETS = {
-    "Integrations": {
-        "fields": ("USE_MOCK_INTEGRATIONS",),
-        "collapse": False
-    }
-}
+CONSTANCE_CONFIG_FIELDSETS = {"Integrations": {"fields": ("USE_MOCK_INTEGRATIONS",), "collapse": False}}
 
 
 USE_TZ = True

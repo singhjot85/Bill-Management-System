@@ -2,10 +2,11 @@ import os
 from pathlib import Path
 
 APP_NAME = "apps"
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-APP_DIR = os.path.join(BASE_DIR, APP_NAME)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent # Path to /backend
+APP_DIR = os.path.join(BASE_DIR, APP_NAME) # Path to /backend/apps
 
 PROJECT_STATIC_PATH = os.path.join(BASE_DIR, "django_templates", "static")
+COLLECTED_STATIC_FILES = os.path.join(BASE_DIR, "django_templates", "staticfiles")
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, "django_templates", "templates")
 
@@ -24,13 +25,15 @@ DEFAULT_AUTO_FIELD = os.getenv("DJANGO_DEFAULT_ID", "django.db.models.BigAutoFie
 
 CURRENT_ENV = os.getenv("DJANGO_ENV", "devlopment")
 
-CACHE_PROVIDER = os.getenv("CACHE_PROVIDER", "valkey")
+CACHE_PROTCOL = os.getenv("CACHE_PROTCOL", "redis")
 CACHE_HOST = os.getenv("CACHE_HOST", "bma_cache")
 CACHE_PORT = os.getenv("CACHE_PORT", "6379")
+CACHE_DATABASE = os.getenv("CACHE_DATABASE", 0)
 
-BROKER_PROVIDER = os.getenv("BROKER_PROVIDER", "redis")
+BROKER_PROTOCOL = os.getenv("BROKER_PROTOCOL", "redis")
 BROKER_HOST = os.getenv("BROKER_HOST", "bma_valkey_broker")
 BROKER_PORT = os.getenv("BROKER_PORT", "6378")
+BROKER_DATABASE = os.getenv("BROKER_DATABASE", 0)
 
 DEFAULT_TASK_QUEUE_NAME = os.getenv("CELERY_DEFAULT_TASK_QUEUE", "celery_default_queue")
 RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "django-db")
