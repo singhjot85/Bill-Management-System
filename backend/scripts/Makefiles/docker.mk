@@ -1,3 +1,12 @@
+# Default variable values, will be overriden in main project Markdown
+BASE_COMPOSE_CMD:=docker compose -f ../compose/compose.local.yaml
+DJANGO_CONTAINER_CMD:=&& docker compose -f ../compose/compose.local.yaml run --rm django
+
+app:=setup
+schema_name:=public
+emn:=default_empty_migration
+make_migrations:=true
+
 #####################################
 ## Make target for docker commands ##
 #####################################
@@ -52,14 +61,24 @@ docker-clean-build-run:
 	make run
 cbr: docker-clean-build-run
 
-docker-clean-local-setup:
+docker-clean-light-setup:
 	make clean
 	make build
 	make m
 	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
 	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
 	make run
-clean-setup: docker-clean-local-setup
+clean-light-setup: docker-clean-light-setup
+
+docker-clean-setup:
+	make clean
+	make build
+	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
+clean-setup: docker-clean-setup
+
+docker-run-seeder:
+	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
+run-seeder: docker-run-seeder
 
 docker-rebuild:
 	@echo "⌛ Putting down containers build process..."
@@ -77,13 +96,12 @@ docker-clean-local-setup-fast:
 	make run
 setup: docker-clean-local-setup-fast
 
+
 docker-local-db-reset:
 	${BASE_COMPOSE_CMD} down --volumes
-	make m
-	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
-	${DJANGO_CONTAINER_CMD} python manage.py migrate_schemas --shared
-	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
-	make run
+	if [ "${make_migrations}" = "true" ]; then \
+		make mm; \
+	fi
 db-reset: docker-local-db-reset
 
 docker-dev-setup:
@@ -100,10 +118,13 @@ sp: docker-django-shell-plus
 docker-test:
 	@echo "⌛ Running tests in container..."
 	${DJANGO_CONTAINER_CMD} pytest
-test: docker-test
+t: docker-test
 
-.PHONY: build run bash s sp m mm mme cbr clean rebuild setup clean-setup db-reset docker-test test dev-setup
+# Essentials
+.PHONY: build run bash s sp m mm mme setup t
 
+# Utilities
+.PHONY: cbr clean rebuild clean-setup clean-light-setup db-reset run-seeder
 
 
 docker-service-state-check:

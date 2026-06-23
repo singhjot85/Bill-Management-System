@@ -1,0 +1,7 @@
+Hi {{ customer.name }},
+Welcome to our platform {{ organization_branding.organization.name }},
+If you have any queries or issue's you can reach us at {{ organization_branding.email }}
+
+Thanks and Regards,
+{{ organization_branding.organization.name }}
+{{ organization_branding.phone }}

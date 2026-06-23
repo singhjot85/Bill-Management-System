@@ -2,6 +2,14 @@ from typing import Any
 
 
 class AlreadyRegisteredException(Exception):
+    """Raise when re-registring something to registry."""
+
+    pass
+
+
+class InvalidRegistryKey(Exception):
+    """Raise for invalid format of registry key."""
+
     pass
 
 
@@ -17,6 +25,9 @@ class ClassRegistry:
             key (str, optional): Key corresponding to which the class should register.
         """
         if not key and hasattr(cls, "REGISTERY_KEY"):
+            if key and not isinstance(key, str):
+                raise InvalidRegistryKey from None
+
             key = getattr(cls, "REGISTERY_KEY")
 
         if not key:
@@ -41,8 +52,11 @@ class ClassRegistry:
 
     @property
     def registry(self) -> dict:
-        """Current Active Registry"""
-        return self._registry
+        """Current Active Registry and all its values"""
+        if hasattr(self, "_registry"):
+            return self._registry
+
+        return None
 
     def get(self, key: str) -> Any:
         """
@@ -56,4 +70,7 @@ class ClassRegistry:
         Args:
             key (str): Key corresponding to which the class is registerd
         """
+        if key and not isinstance(key, str):
+            raise InvalidRegistryKey from None
+
         return self._registry.get(key)

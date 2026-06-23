@@ -54,5 +54,16 @@
             "password": "qwerty@123",
             "create_superuser": false
         }
+    ],
+    "NotificationTemplate": [
+        {
+            "plain_text": "apps/setup/fixtures/notification_templates/welcome_user/welcome_user.txt",
+            "html": "apps/setup/fixtures/notification_templates/welcome_user/welcome_user.html",
+            "subject": "apps/setup/fixtures/notification_templates/welcome_user/welcome_user-subject.txt",
+            "template_name": "welcome_new_user",
+            "event_type": "welcome_user",
+            "channel": "email",
+            "language": "en"
+        }
     ]
 }

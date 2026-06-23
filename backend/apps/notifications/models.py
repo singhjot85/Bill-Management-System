@@ -64,15 +64,13 @@ class NotificationLog(VersionedSafeModelMixin):
 class NotificationPreferences(BetterModelMixin):
     """Store user level prefernce's for notifications."""
 
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         to=User, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False
     )
-    customer = models.OneToOneField(
+    customer = models.ForeignKey(
         to=Customer, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False
     )
     event_type = models.CharField(max_length=124, choices=EventTypeChoices.choices, null=False, blank=False)
 
-    opted_email = models.BooleanField(default=False)
-    opted_sms = models.BooleanField(default=False)
-    opted_webhook = models.BooleanField(default=False)
-    opted_push_notification = models.BooleanField(default=False)
+    preference_type = models.CharField(max_length=124, choices=ChannelTypeChoices.choices, null=True, blank=True)
+    opted_in = models.BooleanField(default=False)

@@ -28,8 +28,11 @@ repos:
     rev: 7.2.0
     hooks:
       - id: flake8
-        args: ["--ignore=E501,W503,F403,F405,E203"]
-        additional_dependencies: [flake8-isort, flake8-print]
+        # args: ["--ignore=E501,W503,F403,F405,E203"]
+        # additional_dependencies: [flake8-isort, flake8-print]
+        # E501: line too long (98 > 79 characters)
+        args: ["--ignore=E501"]
+        additional_dependencies: [flake8-print]
 
   - repo: https://github.com/PyCQA/isort
     rev: 5.13.2

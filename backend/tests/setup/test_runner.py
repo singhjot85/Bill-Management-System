@@ -16,23 +16,34 @@ class TestRunner:
     @patch("apps.setup.local_setup.runner.is_local_env")
     @patch("apps.setup.local_setup.runner.TenantSeeder")
     @patch("apps.setup.local_setup.runner.UserSeeder")
+    @patch("apps.setup.local_setup.runner.NotificationSeeder")
+    @patch("apps.setup.local_setup.runner.ConfigSeeder")
     def test_run_local_setup_success(
-        self, mock_user_seeder: MagicMock, mock_tenant_seeder: MagicMock, mock_is_local: MagicMock
+        self,
+        mock_config_seeder: MagicMock,
+        mock_notification_seeder: MagicMock,
+        mock_user_seeder: MagicMock,
+        mock_tenant_seeder: MagicMock,
+        mock_is_local: MagicMock,
     ):
         """
-        Test that run_local_setup executes both tenant and user seeders
+        Test that run_local_setup executes all registered seeders
         when the environment is identified as local.
         """
         mock_is_local.return_value = True
 
         run_local_setup()
 
-        # Verify both seeders were instantiated and run() was called on their instances
+        # Verify all seeders were instantiated and run() was called on their instances
         assert mock_tenant_seeder.call_count > 0
         assert mock_user_seeder.call_count > 0
+        assert mock_notification_seeder.call_count > 0
+        assert mock_config_seeder.call_count > 0
 
         mock_tenant_seeder.return_value.run.assert_called()
         mock_user_seeder.return_value.run.assert_called()
+        mock_notification_seeder.return_value.run.assert_called()
+        mock_config_seeder.return_value.run.assert_called()
 
     @patch("apps.setup.local_setup.runner.is_local_env")
     @patch("apps.setup.local_setup.runner.TenantSeeder")

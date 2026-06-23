@@ -36,8 +36,8 @@ class NotificationLogAdmin(ReadOnlyAdmin):
 
 
 class NotificationPreferenceAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "event_type", "is_removed"]
-    list_filter = ["event_type", "is_removed", "opted_email", "opted_sms", "opted_webhook", "opted_push_notification"]
+    list_display = ["id", "user", "customer", "event_type", "preference_type", "opted_in", "is_removed"]
+    list_filter = ["event_type", "preference_type", "opted_in", "is_removed"]
     readonly_fields = ["created", "modified", "is_removed"]
 
     fieldsets = (
@@ -47,8 +47,9 @@ class NotificationPreferenceAdmin(admin.ModelAdmin):
                 "fields": [
                     "is_removed",
                     "user",
+                    "customer",
                     "event_type",
-                    ("opted_email", "opted_sms", "opted_webhook", "opted_push_notification"),
+                    ("preference_type", "opted_in"),
                 ]
             },
         ),

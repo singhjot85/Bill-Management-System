@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
 from django.db.models import Field, Model
+from django_tenants.utils import schema_context
 
 LOGGER = logging.getLogger()
 
@@ -21,20 +22,40 @@ class BaseSeeder(ABC):
 
     label: str = ""
     DATA_FILES_PATH = "setup/local_setup/data"
+    REGISTERY_KEY = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+        if not hasattr(self, "REGISTERY_KEY"):
+            raise SeederException("Register the seeder before using it.")
+
+        if not hasattr(self, "label"):
+            raise SeederException("Seeder must have a label attribute")
 
     @abstractmethod
     def seed(self, *args, **kwargs):
         """Abstract seed functionality, that houses the seeding logic, to be overriden for specific seeder."""
         pass
 
+    def run_in_schema(self) -> str:
+        """Specify the tenant in which the seeder should run
+
+        Override for seeder specific tenant switching.
+        """
+
+        return "public"
+
     def run(self, *args, **kwargs):
         """Main caller for each seeder, stays in base, rarely overriden"""
         LOGGER.info("[%s] Running Seeder...", self.label)
 
         try:
-            with transaction.atomic():  # Atomicity
-                # Idempotency, inside the seed (to be taken care of always).
-                self.seed(args, kwargs)
+            schema_name = self.run_in_schema()
+            with schema_context(schema_name):
+                with transaction.atomic():  # Atomicity
+                    # Idempotency, inside the seed (to be taken care of always).
+                    self.seed(args, kwargs)
 
         except Exception as e:
             LOGGER.error("[%s] Seeder run failed.", self.label)

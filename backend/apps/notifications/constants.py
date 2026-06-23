@@ -47,13 +47,16 @@ class EventPreferences(Enum):
         preferences: list of channels allowed by event.
     """
 
-    WELCOME_USER = "welcome_user", [ChannelTypeChoices.EMAIL.value]
+    WELCOME_USER = EventTypeChoices.WELCOME_USER.value, [ChannelTypeChoices.EMAIL.value]
 
-    INVOICE_CREATED = "invoice_created", [ChannelTypeChoices.EMAIL.value, ChannelTypeChoices.SMS.value]
+    INVOICE_CREATED = EventTypeChoices.INVOICE_CREATED.value, [
+        ChannelTypeChoices.EMAIL.value,
+        ChannelTypeChoices.SMS.value,
+    ]
 
-    PAYMENT_RECEIVED = "payment_received", [ChannelTypeChoices.EMAIL.value]
-    PAYMENT_FAILED = "payment_failed", [ChannelTypeChoices.EMAIL.value]
-    PAYMENT_REFUNDED = "payment_refunded", [ChannelTypeChoices.EMAIL.value]
+    PAYMENT_RECEIVED = EventTypeChoices.PAYMENT_RECEIVED.value, [ChannelTypeChoices.EMAIL.value]
+    PAYMENT_FAILED = EventTypeChoices.PAYMENT_FAILED.value, [ChannelTypeChoices.EMAIL.value]
+    PAYMENT_REFUNDED = EventTypeChoices.PAYMENT_REFUNDED.value, [ChannelTypeChoices.EMAIL.value]
 
     def get_preferences(self) -> set:
         return {*self.value[1]}

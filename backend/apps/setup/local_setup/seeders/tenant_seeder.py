@@ -14,6 +14,7 @@ LOGGER = logging.getLogger()
 class TenantSeeder(BaseSeeder):
     label = "Tenant Seeder"
     tenant_seeder_data: dict = None
+    REGISTERY_KEY = "organization_tenants"
 
     def __init__(self, data_file_name: str):
         super().__init__()
@@ -73,6 +74,3 @@ class TenantSeeder(BaseSeeder):
             self._create_branding(tenant)
 
         return tenant
-
-    def get_tenant_schema(self, *args, **kwargs):
-        return self.tenant_seeder_data.get("OrganizationTenant").get("schema_name")

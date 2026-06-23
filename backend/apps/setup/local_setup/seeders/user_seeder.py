@@ -2,7 +2,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
-from django_tenants.utils import schema_context
 
 from .base_seeder import BaseSeeder, SeederException
 
@@ -15,6 +14,7 @@ User = get_user_model()  # noqa F811
 
 class UserSeeder(BaseSeeder):
     label = "User Seeder"
+    REGISTERY_KEY = "auth_user"
     user_seeder_data: dict = None
 
     def __init__(self, file_name: str):
@@ -46,12 +46,7 @@ class UserSeeder(BaseSeeder):
                 LOGGER.error("User creation failed >>> %s", str(e))
                 raise SeederException(str(e)) from e
 
-    def run(self, *args, **kwargs):
-        schema_name: str = self.user_seeder_data.get("OrganizationTenant").get("schema_name")
-
-        if not schema_name:
-            LOGGER.error("[%s] Schema name is required for proper seeder functionality...", self.label)
-            return
-
-        with schema_context(schema_name):
-            super().run()
+    def run_in_schema(self) -> str:
+        if not self.user_seeder_data:
+            return "public"
+        return self.user_seeder_data.get("OrganizationTenant", {}).get("schema_name", "public")

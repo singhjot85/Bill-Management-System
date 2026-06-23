@@ -10,8 +10,8 @@ from apps.notifications.constants import (
     EventPreferences,
     LogStatusChoices,
 )
-from apps.notifications.models import NotificationLog
 from apps.notifications.exceptions import NotificationResolverException
+from apps.notifications.models import NotificationLog
 from apps.setup.constants import ConfigurationInterfaceChoices as InterfaceType
 from apps.setup.models import Configurations
 from utils.registry_utils import ClassRegistry
@@ -19,7 +19,8 @@ from utils.registry_utils import ClassRegistry
 if typing.TYPE_CHECKING:
     from uuid import UUID
 
-    from apps.notifications.models import NotificationPreferences
+    from django.contrib.auth.models import AbstractUser
+
     from apps.notifications.workflow.trigger import NotificationEvent
 
 User = get_user_model()
@@ -91,11 +92,21 @@ class ResolverFactory:
 
     @property
     def preferences(self) -> set:
-        """Resolved preferences based on tenant preferences, user preferences, and event preferences."""
+        """
+        Resolved preferences based on tenant preferences, user preferences, and event preferences.
+
+        Current Resolution Logic (Precdence hight-to-low):
+            - Event Preferences (Optional)
+                - Tenant Preferences
+                    - User Preferences
+        """
         if not hasattr(self, "_event") or not self._event or not self._event.event_type:
             return set()
 
-        event_preferences = EventPreferences(self._event.event_type).get_preferences()
+        try:
+            event_preferences = EventPreferences(self._event.event_type).get_preferences()
+        except Exception:
+            event_preferences = None
 
         effective = set(self.tenant_preferences) & set(self.user_preferences)
 
@@ -143,22 +154,21 @@ class ResolverFactory:
         """Load user preferences from NotificationPreference Model"""
         self._user_preferences = []
 
-        def resolve_pref(obj: "NotificationPreferences"):
-            # TODO: Use obj._meta.fields instead of manual field fetching
-            return {
-                "email": obj.opted_email,
-                "sms": obj.opted_sms,
-                "webhook": obj.opted_webhook,
-                "push_notification": obj.opted_push_notification,
-            }
+        def fetch_pref(associated_party: typing.Union["Customer", "AbstractUser"]):
+            """Fetch Preferences from the database."""
+            return list(
+                associated_party.notification_preferences.filter(
+                    event_type=self._event.event_type, opted_in=True
+                ).values_list("preference_type", flat=True)
+            )
 
         self._party = User.objects.prefetch_related("notification_preferences").get(self._party_id)
         if self._party:
-            self._user_preferences = resolve_pref(self._party.notification_preferences)
+            self._user_preferences = fetch_pref(self._party)
         else:
             self._party = Customer.objects.prefetch_related("notification_preferences").get(self._party_id)
             if self._party:
-                self._user_preferences = resolve_pref(self._party.notification_preferences)
+                self._user_preferences = fetch_pref(self._party)
 
         return self._user_preferences
 
