@@ -74,3 +74,40 @@ class ClassRegistry:
             raise InvalidRegistryKey from None
 
         return self._registry.get(key)
+
+
+class UnorderedClassRegistry:
+
+    def __init__(self):
+        self._registry = set()
+
+    @property
+    def registry(self):
+        if hasattr(self, "_registry"):
+            return self._registry
+
+        return None
+
+    def register(self, kls: Any):
+        """
+        Register a Class to the Registry
+
+        Args:
+            kls: Class that needs to be registered.
+        """
+
+        if kls in self._registry:
+            raise AlreadyRegisteredException(f"{kls.__name__} has been already registered")
+
+        self._registry.add(kls)
+
+    def unregister(self, kls: Any):
+        """
+        Un-Register a Class to the Registry
+
+        Args:
+            kls: Class that needs to be un-registered.
+        """
+
+        if kls in self._registry:
+            self._registry.pop(kls)
