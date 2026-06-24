@@ -33,9 +33,13 @@ def django_db_setup(django_db_setup, django_db_blocker):
 @pytest.fixture
 def tenant(db):
     """
-    Fetches the pre-created test tenant for use in tests.
+    Fetches or recreates the test tenant for use in tests.
     """
-    return get_tenant_model().objects.get(schema_name=TEST_SCHEMA)
+    Tenant = get_tenant_model()
+    tenant, created = Tenant.objects.get_or_create(
+        schema_name=TEST_SCHEMA, defaults={"name": TEST_SCHEMA.replace("_", " ").title()}
+    )
+    return tenant
 
 
 @pytest.fixture(autouse=True)

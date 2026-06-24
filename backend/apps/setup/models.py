@@ -33,15 +33,16 @@ class Configurations(VersionedBetterModelMixin):
         """
         config = None
 
-        if config := cache.get(self.cache_key):
+        cache_key = self._get_cache_key(interface_type)
+        if config := cache.get(cache_key):
             return config
 
         try:
-            config = self.objects.get(interface_type=interface_type).order_by(self.DEFAULT_ORDERING).first()
+            config = self.objects.filter(interface_type=interface_type).order_by(*self.DEFAULT_ORDERING).first()
         except Exception as e:
             raise ImproperlyConfigured(str(e)) from e
 
         if config:
-            cache.set(self.cache_key, config)
+            cache.set(cache_key, config)
 
         return config

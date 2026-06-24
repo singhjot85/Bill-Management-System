@@ -10,18 +10,18 @@ from apps.notifications.workflow.resolvers import (
 from apps.notifications.exceptions import NotificationResolverException
 
 
-@dataclass(frozen=True)
+@dataclass
 class SmsInstructions(ChannelInstruction):
     """Channel Instructions specific to SMS Channel"""
 
-    template_name: str
+    template_name: str = ""
 
     def validate_template_name(self):
         if not self.template_name:
             raise NotificationResolverException("Template name is required")
 
         if self.template_name not in NotificationTemplateChoices.values:
-            raise NotificationTemplateChoices(f"Invalid Template name: {self.template_name}")
+            raise NotificationResolverException(f"Invalid Template name: {self.template_name}")
 
     def __post_init__(self):
         super().__post_init__()
@@ -43,6 +43,7 @@ class SMSResolver(BaseResolver):
         """
         data = super()._get_dataclass_data(*args, **kwargs)
         data.update({"template_name": self._event.data.get("template_name")})
+        return data
 
 
 resolver_registry.register(SMSResolver)

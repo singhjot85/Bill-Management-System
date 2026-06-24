@@ -36,6 +36,8 @@ class ClassRegistry:
             )
 
         if key in self._registry:
+            if self._registry[key] is cls:
+                return
             raise AlreadyRegisteredException(
                 f"Key: [{key}] is already registered for [{self._registry[key].__name__}] class"
             )
@@ -97,7 +99,7 @@ class UnorderedClassRegistry:
         """
 
         if kls in self._registry:
-            raise AlreadyRegisteredException(f"{kls.__name__} has been already registered")
+            return
 
         self._registry.add(kls)
 

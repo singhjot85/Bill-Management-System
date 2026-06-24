@@ -53,8 +53,8 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
         return self.get_host()
 
     @property
-    def to_email(self):
-        self.associated_party.email
+    def to_email(self) -> list[str]:
+        return [self.associated_party.email]
 
     def mulipart_email_message(self, *args, **kwargs) -> "EmailMultiAlternatives":
         """

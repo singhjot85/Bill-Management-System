@@ -2,7 +2,13 @@ import logging
 
 from .constants import TENANT_DATA_FILE_NAMES, seeder_registry
 from .guards import is_local_env
-from .seeders import SeederException
+from .seeders import (
+    ConfigSeeder,
+    NotificationSeeder,
+    SeederException,
+    TenantSeeder,
+    UserSeeder,
+)
 
 LOGGER = logging.getLogger()
 
@@ -59,12 +65,15 @@ def bootstrap_users():
             return
 
         for file_name in TENANT_DATA_FILE_NAMES:
-            seeder_registry.get("auth_user").run(file_name)
+            seeder_cls = seeder_registry.get("auth_user")
+            if seeder_cls:
+                resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
+                resolved_seeder_cls(file_name).run()
 
     except SeederException as se:
         raise se
     except Exception as e:
-        LOGGER.error("An unknown exception has occurred >>> ", str(e))
+        LOGGER.error("An unknown exception has occurred >>> %s", str(e))
         raise e
 
 
@@ -75,10 +84,13 @@ def bootstrap_tenants():
             return
 
         for file_name in TENANT_DATA_FILE_NAMES:
-            seeder_registry.get("organization_tenants").run(file_name)
+            seeder_cls = seeder_registry.get("organization_tenants")
+            if seeder_cls:
+                resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
+                resolved_seeder_cls(file_name).run()
 
     except SeederException as se:
         raise se
     except Exception as e:
-        LOGGER.error("An unknown exception has occurred >>> ", str(e))
+        LOGGER.error("An unknown exception has occurred >>> %s", str(e))
         raise e

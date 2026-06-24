@@ -234,7 +234,7 @@ class TemplateHelperMixin:
                 raise TemplateHelperException(
                     f"Invalid type for render given: {type}, expected: {self.TEMPLATE_DB_FIELDS}"
                 )
-            string = getattr(self.template(), type)
+            string = getattr(self.template, type)
 
         if hasattr(self, f"{type}_pre_render_hook"):
             LOGGER.info(f"Executing pre-processing hook for [{type}]")
@@ -244,6 +244,6 @@ class TemplateHelperMixin:
 
         if hasattr(self, f"{type}_post_render_hook"):
             LOGGER.info(f"Executing post-processing hook for [{type}]")
-            getattr(self, f"{type}_post_render_hook")(render * args, **kwargs)
+            getattr(self, f"{type}_post_render_hook")(render, *args, **kwargs)
 
         return render

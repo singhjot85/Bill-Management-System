@@ -41,13 +41,19 @@ class NotificationEvent:
         if not id:
             return
 
-        if not isinstance(id, str):
-            raise InvalidEventException(f"Invalid id: {id}")
+        if isinstance(id, int):
+            return
 
-        try:
-            UUID(id)
-        except ValueError:
-            raise InvalidEventException(f"Invalid id: {id}")
+        if isinstance(id, str):
+            if id.isdigit():
+                return
+            try:
+                UUID(id)
+                return
+            except ValueError:
+                pass
+
+        raise InvalidEventException(f"Invalid id: {id}")
 
     def __post_init__(self):
         self.validate_event_type()

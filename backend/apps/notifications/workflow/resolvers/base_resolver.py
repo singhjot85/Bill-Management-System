@@ -2,6 +2,8 @@ import abc
 import typing
 from dataclasses import dataclass, field
 
+from uuid import UUID
+
 from django.contrib.auth import get_user_model
 
 from apps.customer_management.models import Customer
@@ -17,8 +19,6 @@ from apps.setup.models import Configurations
 from utils.registry_utils import ClassRegistry
 
 if typing.TYPE_CHECKING:
-    from uuid import UUID
-
     from django.contrib.auth.models import AbstractUser
 
     from apps.notifications.workflow.trigger import NotificationEvent
@@ -38,13 +38,19 @@ class ChannelInstruction:
         if not id:
             return
 
-        if not isinstance(id, str):
-            raise NotificationResolverException(f"Invalid id: {id}")
+        if isinstance(id, int):
+            return
 
-        try:
-            UUID(id)
-        except ValueError:
-            raise NotificationResolverException(f"Invalid id: {id}")
+        if isinstance(id, str):
+            if id.isdigit():
+                return
+            try:
+                UUID(id)
+                return
+            except ValueError:
+                pass
+
+        raise NotificationResolverException(f"Invalid id: {id}")
 
     def validate_user_id(self):
         """User id Validations"""
@@ -71,6 +77,28 @@ class ChannelInstruction:
 
 class ResolverFactory:
     _preferences = ChannelTypeChoices.values
+
+    def __init__(
+        self,
+        event: "NotificationEvent",
+        party: typing.Optional[typing.Union[str, "UUID"]] = None,
+        *args,
+        **kwargs,
+    ):
+        """
+        Resolver init, the job of an initializer is to consume an event and resolve preferences,
+        It Checks what all channels the user or event are allowed and generate instructions for same.
+        Args:
+            event (NotificationEvent): event for which we need to resolve channel instructions.
+            party (str, UUID, optional): The Customer or user to be attached with the channel.
+                TODO: Currently we are allowing party=None, but we need to revisit this
+        """
+        self._party_id = party
+        self._event = event
+
+        self._load_tenant_preferences()
+        if not self.skip_user_pref:
+            self._load_user_preferences()
 
     @property
     def skip_user_pref(self):
@@ -103,39 +131,42 @@ class ResolverFactory:
         if not hasattr(self, "_event") or not self._event or not self._event.event_type:
             return set()
 
-        try:
-            event_preferences = EventPreferences(self._event.event_type).get_preferences()
-        except Exception:
-            event_preferences = None
+        event_preferences = None
+        for member in EventPreferences:
+            if member.value[0] == self._event.event_type:
+                event_preferences = member.get_preferences()
+                break
 
-        effective = set(self.tenant_preferences) & set(self.user_preferences)
+        if self.skip_user_pref:
+            effective = set(self.tenant_preferences)
+        else:
+            effective = set(self.tenant_preferences) & set(self.user_preferences)
 
         if event_preferences is not None:  # explicitly configured — further restrict
             effective &= event_preferences
 
         return effective
 
-    def __init__(
-        self,
-        event: "NotificationEvent",
-        party: typing.Optional[typing.Union[str, "UUID"]] = None,
-        *args,
-        **kwargs,
-    ):
-        """
-        Resolver init, the job of an initializer is to consume an event and resolve preferences,
-        It Checks what all channels the user or event are allowed and generate instructions for same.
-        Args:
-            event (NotificationEvent): event for which we need to resolve channel instructions.
-            party (str, UUID, optional): The Customer or user to be attached with the channel.
-                TODO: Currently we are allowing party=None, but we need to revisit this
-        """
-        self._party_id = party
-        self._event = event
+    @property
+    def party(self):
+        if hasattr(self, "_party"):
+            return getattr(self, "_party")
 
-        self._load_tenant_preferences()
-        if not self.skip_user_pref:
-            self._load_user_preferences()
+        return self._get_party()
+    
+    def _get_party(self):
+        try:
+            if isinstance(self._party_id, int) or (isinstance(self._party_id, str) and self._party_id.isdigit()):
+                self._party = User.objects.prefetch_related("notification_preferences").get(pk=self._party_id)
+            else:
+                raise User.DoesNotExist
+        except User.DoesNotExist:
+            try:
+                self._party = Customer.objects.prefetch_related("notification_preferences").get(pk=self._party_id)
+            except Customer.DoesNotExist:
+                self._party = None
+
+        return self._party
 
     def _load_tenant_preferences(self):
         """Load tenant preferences for current tenant. All Configs are cached so don't need to cache this one specifically."""
@@ -153,22 +184,12 @@ class ResolverFactory:
     def _load_user_preferences(self):
         """Load user preferences from NotificationPreference Model"""
         self._user_preferences = []
+        if not self.party:
+            return self._user_preferences
 
-        def fetch_pref(associated_party: typing.Union["Customer", "AbstractUser"]):
-            """Fetch Preferences from the database."""
-            return list(
-                associated_party.notification_preferences.filter(
-                    event_type=self._event.event_type, opted_in=True
-                ).values_list("preference_type", flat=True)
-            )
-
-        self._party = User.objects.prefetch_related("notification_preferences").get(self._party_id)
-        if self._party:
-            self._user_preferences = fetch_pref(self._party)
-        else:
-            self._party = Customer.objects.prefetch_related("notification_preferences").get(self._party_id)
-            if self._party:
-                self._user_preferences = fetch_pref(self._party)
+        self._user_preferences = list(self.party.notification_preferences.filter(
+            event_type=self._event.event_type, opted_in=True
+        ).values_list("preference_type", flat=True))
 
         return self._user_preferences
 
@@ -206,7 +227,11 @@ class BaseResolver(abc.ABC):
         """
         Initialize a log object and log event data in it, also pass this log_id to celery task,
         """
-        return NotificationLog.objects.create(status=LogStatusChoices.QUEUED, channel=self._channel_type)
+        return NotificationLog.objects.create(
+            status=LogStatusChoices.QUEUED,
+            channel=self._channel_type,
+            context_data=self._event.data or {},
+        )
 
     @abc.abstractmethod
     def _get_dataclass_data(self, *args, **kwargs) -> dict:

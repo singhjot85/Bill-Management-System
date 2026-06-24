@@ -6,14 +6,17 @@ from django.contrib.auth import get_user_model
 
 from utils.registry_utils import ClassRegistry
 from apps.customer_management.models import Customer
-from apps.notifications.workflow.resolvers import resolver_registry
+from apps.notifications.workflow.resolvers import (
+    ChannelInstruction,
+    resolver_registry,
+)
 
 LOGGER = logging.getLogger()
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth.models import User as UserModel
 
-    from apps.notifications.workflow.resolvers import BaseResolver, ChannelInstruction
+    from apps.notifications.workflow.resolvers import BaseResolver
 
 User = get_user_model()
 
@@ -29,7 +32,7 @@ class BaseStratergy(ABC):
     _instructions: "ChannelInstruction" = None
 
     def __init__(self, *args, **kwargs) -> None:
-        self._instructions = self.reconstruct_instructions(args, kwargs)
+        self._instructions = self.reconstruct_instructions(*args, **kwargs)
 
     @property
     def associated_party(self) -> typing.Optional[typing.Union["User", "Customer"]]:
@@ -59,7 +62,10 @@ class BaseStratergy(ABC):
         """
         _user_id = self._instructions.user_id
         try:
-            self.self._associated_party = User.objects.get(id=_user_id)
+            if isinstance(_user_id, int) or (isinstance(_user_id, str) and _user_id.isdigit()):
+                self._associated_party = User.objects.get(id=_user_id)
+            else:
+                raise User.DoesNotExist
         except User.DoesNotExist:
             try:
                 self._associated_party = Customer.objects.get(id=_user_id)
@@ -80,16 +86,17 @@ class BaseStratergy(ABC):
             *args (type): Description.
             **kwargs (type): Keyword arguments from celery-task directly.
         """
+        from dataclasses import fields
 
         def filter_kwargs(data_cls):
-            filtered_kwargs = {k: v for k, v in kwargs.items() if hasattr(data_cls, k)}
-            return filtered_kwargs
+            field_names = {f.name for f in fields(data_cls)}
+            return {k: v for k, v in kwargs.items() if k in field_names}
 
         channel_type = kwargs.get("channel_type")
         resolver: "BaseResolver" = resolver_registry.get(key=channel_type)
         if hasattr(resolver, "_get_instruction_dataclass"):
-            instruction_cls = resolver._get_instruction_dataclass()
-            return instruction_cls(filter_kwargs(kwargs))
+            instruction_cls = resolver._get_instruction_dataclass(None)
+            return instruction_cls(**filter_kwargs(instruction_cls))
 
         return ChannelInstruction(**kwargs)
 

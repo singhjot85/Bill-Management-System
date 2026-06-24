@@ -11,7 +11,7 @@ class Dispatcher:
     It also logs the event to datbase, by creating a log entry.
     """
 
-    _default_task_name = TaskNames.NOTIFICATION_TASK.value
+    _default_task_name = TaskNames.NOTIFICATION_TASK
 
     def __init__(self, instruction: "ChannelInstruction", task_name: str = None):
         """
@@ -26,7 +26,7 @@ class Dispatcher:
     def task_kwargs(self):
         """Cached Getter task_kwargs, currently keeping empty"""
         if hasattr(self, "_instruction") and self._instruction:
-            return self._instruction.__dict__()
+            return self._instruction.__dict__
         return None
 
     @property

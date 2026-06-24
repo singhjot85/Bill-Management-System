@@ -14,7 +14,7 @@ from apps.notifications.workflow.resolvers import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass
 class WebhookInstructions(ChannelInstruction):
     """Webhook Instuctions dataclass for webhook channel"""
 
