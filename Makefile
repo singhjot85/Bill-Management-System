@@ -6,6 +6,8 @@ BASE_COMPOSE_CMD:=docker compose -f ${COMPOSE_NAME}
 DJANGO_CONTAINER_CMD:=${BASE_COMPOSE_CMD} run --rm django
 
 BACKEND_DIR=backend
+TEST_DIR:=tests/
+TEST_FILTER:=""
 
 default_target_app:=setup
 default_target_schema:=public
