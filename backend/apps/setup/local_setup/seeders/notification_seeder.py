@@ -1,7 +1,5 @@
 import logging
-import os
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from apps.customer_management.models import Customer, CustomerTypeChoices
@@ -18,56 +16,30 @@ User = get_user_model()
 class NotificationSeeder(BaseSeeder):
     label = "Notification Seeder"
     REGISTERY_KEY = "notifications"
+    data_cache_key = "notification_seeder_data"
     notification_seeder_data: dict = None
-
-    def __init__(self, file_name: str = None):
-        super().__init__(file_name)
-        if file_name:
-            self.load_data(file_name, "notification_seeder_data")
 
     def run_in_schema(self) -> str:
         if not self.notification_seeder_data:
             return "public"
         return self.notification_seeder_data.get("OrganizationTenant", {}).get("schema_name", "public")
 
-    def _get_field_from_file(val, field, resolved_fields):
-        if val and isinstance(val, str) and (val.startswith("apps/") or val.startswith("setup/")):
-            file_path = os.path.join(settings.BASE_DIR, val)
-            if os.path.exists(file_path):
-                try:
-                    with open(file_path, encoding="utf-8") as f:
-                        resolved_fields[field] = f.read()
-                except Exception as e:
-                    LOGGER.error("Failed to read template file [%s]: %s", file_path, str(e))
-                    resolved_fields[field] = val
-            else:
-                LOGGER.warning("Template file not found at [%s]", file_path)
-                resolved_fields[field] = val
-        else:
-            resolved_fields[field] = val
-
     def _seed_templates(self):
+        """Seed NotificationTemplate"""
         templates_data = self.notification_seeder_data.get("NotificationTemplate", [])
         for data in templates_data:
             resolved_fields = {}
             for field in ["plain_text", "html", "subject"]:
                 val = data.get(field)
-                self._get_field_from_file(val, field, resolved_fields)
+                self.load_file_fields(val, field, resolved_fields)
 
             # Filter model fields
             filtered_fields = self.filter_model_fields(NotificationTemplate, data)
             filtered_fields.update(resolved_fields)
 
             # Idempotency
-            unique_keys = {
-                "template_name": filtered_fields.get("template_name"),
-                "event_type": filtered_fields.get("event_type"),
-                "channel": filtered_fields.get("channel"),
-                "language": filtered_fields.get("language"),
-            }
-            defaults = {k: v for k, v in filtered_fields.items() if k not in unique_keys}
-
-            template, created = NotificationTemplate.objects.get_or_create(**unique_keys, defaults=defaults)
+            uniques, defaults = self.classify_fields(NotificationTemplate, filtered_fields)
+            template, created = NotificationTemplate.objects.get_or_create(**uniques, defaults=defaults)
             if not created:
                 for k, v in defaults.items():
                     setattr(template, k, v)
@@ -77,6 +49,7 @@ class NotificationSeeder(BaseSeeder):
                 LOGGER.info("Created NotificationTemplate: %s (%s)", template.template_name, template.channel)
 
     def _seed_preferences(self):
+        """Seed NotificationPreferences"""
         user_data = self.notification_seeder_data.get("Users", [])
         for u_data in user_data:
             username = u_data.get("username")

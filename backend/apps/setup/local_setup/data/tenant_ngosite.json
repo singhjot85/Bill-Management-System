@@ -65,5 +65,6 @@
             "channel": "email",
             "language": "en"
         }
-    ]
+    ],
+    "NotificationTemplate__UNIQUE_KEYS": ["template_name", "event_type", "channel", "language"]
 }
