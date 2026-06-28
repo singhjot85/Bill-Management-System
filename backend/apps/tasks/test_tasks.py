@@ -9,8 +9,4 @@ LOGGER = logging.getLogger()
 @shared_task
 def test_tenant_awareness(*args, **kwargs):
 
-    return {
-        "execution_schema": connection.schema_name,
-        "args": args,
-        "kwargs": kwargs
-    }
+    return {"execution_schema": connection.schema_name, "args": args, "kwargs": kwargs}

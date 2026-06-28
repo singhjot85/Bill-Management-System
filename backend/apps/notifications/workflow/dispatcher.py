@@ -1,7 +1,6 @@
+from apps.notifications.exceptions import NotificationDispatcherException
 from apps.notifications.workflow.resolvers import ChannelInstruction
 from apps.tasks.registry import TaskNames, queue_task
-
-from apps.notifications.exceptions import NotificationDispatcherException
 
 
 class Dispatcher:

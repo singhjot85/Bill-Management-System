@@ -4,8 +4,6 @@ from constance import config
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 
-from config.settings.constances import ConstanceFields
-from config.settings.constants import DJANGO_SMTP_BACKEND
 from apps.notifications.constants import ChannelTypeChoices
 from apps.notifications.exceptions import NotificationStratergyException
 from apps.notifications.workflow.stratergies import (
@@ -13,6 +11,8 @@ from apps.notifications.workflow.stratergies import (
     TemplateHelperMixin,
     notification_stratergy_registry,
 )
+from config.settings.constances import ConstanceFields
+from config.settings.constants import DJANGO_SMTP_BACKEND
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers.email_resolver import EmailInstructions
@@ -23,6 +23,7 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
     Email Stratergy for notification flow
     TODO: Implement Attachement support.
     """
+
     _email_be_setting_name = ConstanceFields.EMAIL_BE_CHOICES.field_name
     _use_mock_email_setting_name = ConstanceFields.MOCK_EMAIL_SERV.field_name
 
@@ -39,12 +40,12 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
             return from_email
 
         return settings.EMAIL_HOST_USER
-    
+
     @property
     def get_connection(self):
         if not getattr(config, self._use_mock_email_setting_name):
             return get_connection(DJANGO_SMTP_BACKEND)
-        
+
         backend_name = getattr(config, self._email_be_setting_name)
         return get_connection(backend_name)
 

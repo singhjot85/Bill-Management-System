@@ -4,12 +4,9 @@ from abc import ABC, abstractmethod
 
 from django.contrib.auth import get_user_model
 
-from utils.registry_utils import ClassRegistry
 from apps.customer_management.models import Customer
-from apps.notifications.workflow.resolvers import (
-    ChannelInstruction,
-    resolver_registry,
-)
+from apps.notifications.workflow.resolvers import ChannelInstruction, resolver_registry
+from utils.registry_utils import ClassRegistry
 
 LOGGER = logging.getLogger()
 

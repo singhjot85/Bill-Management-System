@@ -31,7 +31,10 @@ repos:
         # args: ["--ignore=E501,W503,F403,F405,E203"]
         # additional_dependencies: [flake8-isort, flake8-print]
         # E501: line too long (98 > 79 characters)
-        args: ["--ignore=E501"]
+        # W503: line break before binary operator
+        # F403: import *
+        # F405: import * used and not able to resolve
+        args: ["--ignore=E501,W503,F403,F405"]
         additional_dependencies: [flake8-print]
 
   - repo: https://github.com/PyCQA/isort

@@ -8,5 +8,5 @@ from .base_resolver import (  # noqa: F401
     BaseResolver,
     ChannelInstruction,
     ResolverFactory,
-    resolver_registry
+    resolver_registry,
 )

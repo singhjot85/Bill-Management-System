@@ -5,12 +5,15 @@ Infra specific varibles will stay in this files
 .resolvers : Keeps this file clean and perevent circular imports.
 """
 
+from config.settings.constances import CONSTANCE_ADDITIONAL_FIELDS  # noqa: F401
+from config.settings.constances import CONSTANCE_CONFIG  # noqa: F401
+from config.settings.constances import CONSTANCE_CONFIG_FIELDSETS  # noqa: F401
 from config.settings.constants import *
 from config.settings.resolvers import (
     get_broker_url,
     get_cache_url,
+    get_default_email_from,
     get_resolved_cache_options,
-    get_default_email_from
 )
 from config.settings.variables import *
 
@@ -143,11 +146,6 @@ EMAIL_BACKEND = DJANGO_CONSOLE_BACKEND
 #  django-constance
 # ------------------
 CONSTANCE_REDIS_CONNECTION = get_cache_url()
-from config.settings.constances import (
-    CONSTANCE_ADDITIONAL_FIELDS,
-    CONSTANCE_CONFIG,
-    CONSTANCE_CONFIG_FIELDSETS
-)
 
 USE_TZ = True
 TIME_ZONE = APPLICATION_TIMEZONE

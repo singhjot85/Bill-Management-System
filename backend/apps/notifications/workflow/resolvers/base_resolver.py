@@ -1,7 +1,6 @@
 import abc
 import typing
 from dataclasses import dataclass, field
-
 from uuid import UUID
 
 from django.contrib.auth import get_user_model
@@ -19,8 +18,6 @@ from apps.setup.models import Configurations
 from utils.registry_utils import ClassRegistry
 
 if typing.TYPE_CHECKING:
-    from django.contrib.auth.models import AbstractUser
-
     from apps.notifications.workflow.trigger import NotificationEvent
 
 User = get_user_model()
@@ -153,7 +150,7 @@ class ResolverFactory:
             return getattr(self, "_party")
 
         return self._get_party()
-    
+
     def _get_party(self):
         try:
             if isinstance(self._party_id, int) or (isinstance(self._party_id, str) and self._party_id.isdigit()):
@@ -187,9 +184,11 @@ class ResolverFactory:
         if not self.party:
             return self._user_preferences
 
-        self._user_preferences = list(self.party.notification_preferences.filter(
-            event_type=self._event.event_type, opted_in=True
-        ).values_list("preference_type", flat=True))
+        self._user_preferences = list(
+            self.party.notification_preferences.filter(event_type=self._event.event_type, opted_in=True).values_list(
+                "preference_type", flat=True
+            )
+        )
 
         return self._user_preferences
 

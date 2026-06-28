@@ -37,7 +37,7 @@ class ObjectCreationMixin:
         "OrganizationTenant": ["schema_name"],
         "OrganizationDomain": ["domain"],
         "OrganizationBranding": ["organization__schema_name"],
-        "Configurations": ["interface_type"]
+        "Configurations": ["interface_type"],
     }
 
     @property
@@ -94,7 +94,7 @@ class ObjectCreationMixin:
             data = self.load_data_from_file(data).get(self.model.__name__)
 
         self._model_data = data
-    
+
     def get_unique_fields(self, kls: type[models.Model], data: dict = None) -> dict:
         """Get unique fields which prevent de-duped object creation,
         if the data from those fields match the data in current json, we don't create new object
@@ -102,7 +102,7 @@ class ObjectCreationMixin:
         field_names = data.get(f"{kls.__name__}__UNIQUE_FIELDS")
         if not field_names:
             field_names = self._model_wise_unique_fields.get(kls.__name__, None)
-        
+
         if not field_names:
             return None
 
@@ -124,11 +124,11 @@ class ObjectCreationMixin:
         Returns:
             instance (object): In-memory object of given kls class.
         """
-        
+
         filters = None
-        if (pk := data.get("pk") or data.get("id")):
+        if pk := data.get("pk") or data.get("id"):
             filters = {"pk": pk}
-        elif (unique_field_map := self.get_unique_fields(kls, data)):
+        elif unique_field_map := self.get_unique_fields(kls, data):
             filters = unique_field_map
         else:
             return kls()

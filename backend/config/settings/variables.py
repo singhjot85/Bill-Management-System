@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 
 APP_NAME = "apps"
-BASE_DIR = Path(__file__).resolve().parent.parent.parent # Path to /backend
-APP_DIR = os.path.join(BASE_DIR, APP_NAME) # Path to /backend/apps
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # Path to /backend
+APP_DIR = os.path.join(BASE_DIR, APP_NAME)  # Path to /backend/apps
 
 PROJECT_STATIC_PATH = os.path.join(BASE_DIR, "django_templates", "static")
 COLLECTED_STATIC_FILES = os.path.join(BASE_DIR, "django_templates", "staticfiles")

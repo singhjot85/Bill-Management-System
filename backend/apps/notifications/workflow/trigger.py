@@ -4,17 +4,13 @@ from dataclasses import dataclass, field
 from uuid import UUID
 
 from apps.notifications.constants import EventTypeChoices
-from apps.notifications.workflow.dispatcher import (
-    Dispatcher,
-)
-from apps.notifications.workflow.resolvers import (
-    ResolverFactory,
-)
 from apps.notifications.exceptions import (
+    InvalidEventException,
     NotificationDispatcherException,
     NotificationResolverException,
-    InvalidEventException,
 )
+from apps.notifications.workflow.dispatcher import Dispatcher
+from apps.notifications.workflow.resolvers import ResolverFactory
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers import ChannelInstruction

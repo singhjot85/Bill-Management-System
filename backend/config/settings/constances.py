@@ -1,4 +1,5 @@
 from enum import Enum
+
 from django.core.exceptions import ImproperlyConfigured
 
 from .constants import DJANGO_CONSOLE_BACKEND, DJANGO_FILE_BACKEND, DJANGO_SMTP_BACKEND

@@ -116,6 +116,7 @@ class TestQueueTask:
         expected = TaskNames.TEST_TENANT_AWARE_TASK.task_id(idempotency_key)
         mock_task.apply_async.assert_called_once_with(args=(), kwargs={}, task_id=expected)
 
+
 class TestGetDataFromTaskResult:
     @patch("time.sleep", return_value=None)
     def test_get_data_success(self, mock_sleep):

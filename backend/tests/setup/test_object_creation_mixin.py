@@ -1,13 +1,16 @@
 from unittest.mock import patch
-import pytest
 
+import pytest
 from django.contrib.auth.models import Group, User
 from django.core.cache import cache
 
 from apps.customer_management.models import Customer, CustomerAddress
-from apps.setup.local_setup.seeders.base_seeder import ObjectCreationMixin, ObjectCreationException
+from apps.setup.local_setup.seeders.base_seeder import (
+    ObjectCreationException,
+    ObjectCreationMixin,
+)
 from apps.setup.models import Configurations
-from tests.factories import OrganizationTenantFactory, ConfigurationsFactory
+from tests.factories import ConfigurationsFactory
 
 
 class DummyObjectCreation(ObjectCreationMixin):
@@ -139,7 +142,7 @@ class TestObjectCreationMixin:
     def test_init_obj__unique_fields_ignored_if_pk_exists(self):
         """init_obj should prioritize lookup by pk if both pk and unique fields are provided."""
         config1 = ConfigurationsFactory(interface_type="interface1", details={"foo": "bar"})
-        config2 = ConfigurationsFactory(interface_type="interface2", details={"foo": "baz"})
+        ConfigurationsFactory(interface_type="interface2", details={"foo": "baz"})
 
         data = {"pk": config1.pk, "interface_type": "interface2", "Configurations__UNIQUE_FIELDS": ["interface_type"]}
         instance = self.mixin.init_obj(Configurations, data)

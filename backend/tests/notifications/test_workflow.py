@@ -1,14 +1,15 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
-from django.core.cache import cache
-from django.contrib.auth import get_user_model
 from constance.test import override_config
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
 
 from apps.notifications.constants import (
     ChannelTypeChoices,
     EventTypeChoices,
-    NotificationTemplateChoices,
     LogStatusChoices,
+    NotificationTemplateChoices,
 )
 from apps.notifications.exceptions import (
     InvalidEventException,
@@ -21,9 +22,19 @@ from apps.notifications.models import (
     NotificationTemplate,
 )
 from apps.notifications.workflow.dispatcher import Dispatcher
-from apps.notifications.workflow.resolvers import BaseResolver, ChannelInstruction, ResolverFactory
-from apps.notifications.workflow.resolvers.email_resolver import EmailInstructions, EmailResolver
-from apps.notifications.workflow.resolvers.sms_resolver import SmsInstructions, SMSResolver
+from apps.notifications.workflow.resolvers import (
+    BaseResolver,
+    ChannelInstruction,
+    ResolverFactory,
+)
+from apps.notifications.workflow.resolvers.email_resolver import (
+    EmailInstructions,
+    EmailResolver,
+)
+from apps.notifications.workflow.resolvers.sms_resolver import (
+    SmsInstructions,
+    SMSResolver,
+)
 from apps.notifications.workflow.stratergies.email_stratergy import EmailStratergy
 from apps.notifications.workflow.trigger import NotificationEvent, trigger_notifications
 from apps.setup.constants import ConfigurationInterfaceChoices
@@ -51,9 +62,7 @@ class TestNotificationTrigger:
         """Checks if a valid NotificationEvent initializes correctly."""
         party_id = "00000000-0000-0000-0000-000000000001"
         event = NotificationEvent(
-            event_type=EventTypeChoices.WELCOME_USER.value,
-            assosciated_party=party_id,
-            data={"test": "data"}
+            event_type=EventTypeChoices.WELCOME_USER.value, assosciated_party=party_id, data={"test": "data"}
         )
         assert event.event_type == EventTypeChoices.WELCOME_USER.value
         assert event.assosciated_party == party_id
@@ -78,11 +87,9 @@ class TestNotificationTrigger:
         """Validates that trigger_notifications successfully resolves and dispatches events."""
         party_id = "00000000-0000-0000-0000-000000000001"
         instruction = ChannelInstruction(
-            log_id="00000000-0000-0000-0000-000000000002",
-            user_id=party_id,
-            channel_type=ChannelTypeChoices.EMAIL.value
+            log_id="00000000-0000-0000-0000-000000000002", user_id=party_id, channel_type=ChannelTypeChoices.EMAIL.value
         )
-        
+
         mock_resolver = MagicMock()
         mock_resolver.resolve.return_value = [instruction]
         mock_resolver_factory.return_value = mock_resolver
@@ -93,7 +100,7 @@ class TestNotificationTrigger:
         trigger_notifications(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_parties=[party_id],
-            data={"template_name": "welcome_new_user"}
+            data={"template_name": "welcome_new_user"},
         )
 
         mock_resolver_factory.assert_called_once()
@@ -107,7 +114,7 @@ class TestNotificationTrigger:
         """Verifies that trigger_notifications resolves separate events when multiple parties are supplied."""
         party1 = "00000000-0000-0000-0000-000000000001"
         party2 = "00000000-0000-0000-0000-000000000002"
-        
+
         mock_resolver = MagicMock()
         mock_resolver.resolve.return_value = []
         mock_resolver_factory.return_value = mock_resolver
@@ -115,7 +122,7 @@ class TestNotificationTrigger:
         trigger_notifications(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_parties=[party1, party2],
-            data={"template_name": "welcome_new_user"}
+            data={"template_name": "welcome_new_user"},
         )
 
         assert mock_resolver_factory.call_count == 2
@@ -127,10 +134,7 @@ class TestNotificationTrigger:
         mock_resolver_factory.side_effect = NotificationResolverException("Resolver error")
 
         with pytest.raises(NotificationResolverException):
-            trigger_notifications(
-                event_type=EventTypeChoices.WELCOME_USER.value,
-                assosciated_parties=[party_id]
-            )
+            trigger_notifications(event_type=EventTypeChoices.WELCOME_USER.value, assosciated_parties=[party_id])
 
 
 class TestNotificationResolver:
@@ -149,14 +153,14 @@ class TestNotificationResolver:
 
         self.config = ConfigurationsFactory(
             interface_type=ConfigurationInterfaceChoices.NOTIFICATION_CONFIGURATION.value,
-            details={"tenant_preferences": ["email"]}
+            details={"tenant_preferences": ["email"]},
         )
         self.user = UserFactory()
         self.customer = CustomerFactory()
         self.event = NotificationEvent(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "welcome_new_user"}
+            data={"template_name": "welcome_new_user"},
         )
 
     def test_resolver_factory_no_config(self):
@@ -186,7 +190,7 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
 
         resolver_factory = ResolverFactory(self.event, str(self.user.id))
@@ -201,7 +205,7 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=False
+            opted_in=False,
         )
 
         resolver_factory = ResolverFactory(self.event, str(self.user.id))
@@ -221,12 +225,12 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
 
         resolver_factory = ResolverFactory(self.event, str(self.user.id))
         instructions = resolver_factory.resolve()
-        
+
         assert len(instructions) == 1
         instruction = instructions[0]
         assert isinstance(instruction, EmailInstructions)
@@ -245,20 +249,20 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.INVOICE_CREATED.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
         NotificationPreferencesFactory(
             user=self.user,
             customer=self.customer,
             event_type=EventTypeChoices.INVOICE_CREATED.value,
             preference_type=ChannelTypeChoices.SMS.value,
-            opted_in=True
+            opted_in=True,
         )
 
         invoice_event = NotificationEvent(
             event_type=EventTypeChoices.INVOICE_CREATED.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "invoice_created"}
+            data={"template_name": "invoice_created"},
         )
 
         resolver_factory = ResolverFactory(invoice_event, str(self.user.id))
@@ -276,20 +280,20 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.INVOICE_CREATED.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
         NotificationPreferencesFactory(
             user=self.user,
             customer=self.customer,
             event_type=EventTypeChoices.INVOICE_CREATED.value,
             preference_type=ChannelTypeChoices.SMS.value,
-            opted_in=True
+            opted_in=True,
         )
 
         invoice_event = NotificationEvent(
             event_type=EventTypeChoices.INVOICE_CREATED.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "invoice_created"}
+            data={"template_name": "invoice_created"},
         )
 
         resolver_factory = ResolverFactory(invoice_event, str(self.user.id))
@@ -307,14 +311,14 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
         NotificationPreferencesFactory(
             user=self.user,
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.SMS.value,
-            opted_in=True
+            opted_in=True,
         )
 
         # Welcome user event only supports email (according to EventPreferences.WELCOME_USER)
@@ -335,7 +339,7 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
         resolver_factory = ResolverFactory(self.event, str(self.customer.id))
         assert resolver_factory.party == self.customer
@@ -350,7 +354,7 @@ class TestNotificationResolver:
             customer=self.customer,
             event_type=EventTypeChoices.INVOICE_CREATED.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
         resolver_factory = ResolverFactory(self.event, str(self.user.id))
         assert resolver_factory.user_preferences == []
@@ -368,7 +372,7 @@ class TestNotificationDispatcher:
             user_id="00000000-0000-0000-0000-000000000002",
             channel_type=ChannelTypeChoices.EMAIL.value,
             context_data={"name": "John Doe"},
-            template_name=NotificationTemplateChoices.WELCOME_NEW_USER.value
+            template_name=NotificationTemplateChoices.WELCOME_NEW_USER.value,
         )
         self.dispatcher = Dispatcher(self.instruction)
 
@@ -376,6 +380,7 @@ class TestNotificationDispatcher:
         """Verifies default task configuration."""
         assert self.dispatcher._instruction == self.instruction
         from apps.tasks.registry import TaskNames
+
         assert self.dispatcher._task_name == TaskNames.NOTIFICATION_TASK
 
     def test_dispatcher_task_kwargs(self):
@@ -396,7 +401,7 @@ class TestNotificationDispatcher:
             on_commit=True,
             task_args=None,
             task_kwargs=self.dispatcher.task_kwargs,
-            idempotency_key="email-00000000-0000-0000-0000-000000000001"
+            idempotency_key="email-00000000-0000-0000-0000-000000000001",
         )
 
     @patch("apps.notifications.workflow.dispatcher.queue_task")
@@ -417,7 +422,7 @@ class TestEmailStratergy:
         NotificationPreferences._base_manager.all().delete()
         User.objects.all().delete()
         NotificationLog._base_manager.all().delete()
-        NotificationTemplate.objects.all().delete() 
+        NotificationTemplate.objects.all().delete()
         CustomerFactory._meta.model._base_manager.all().delete()
 
         self.user = UserFactory(email="user@example.com")
@@ -428,7 +433,7 @@ class TestEmailStratergy:
             channel=ChannelTypeChoices.EMAIL.value,
             subject="Welcome {{ name }}",
             plain_text="Hello {{ name }}, welcome to BMA.",
-            html="<h1>Hello {{ name }}</h1>"
+            html="<h1>Hello {{ name }}</h1>",
         )
 
     def test_strategy_associated_party_user(self):
@@ -438,7 +443,7 @@ class TestEmailStratergy:
             "user_id": str(self.user.id),
             "channel_type": ChannelTypeChoices.EMAIL.value,
             "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-            "context_data": {"name": "John Doe"}
+            "context_data": {"name": "John Doe"},
         }
         strategy = EmailStratergy(**instructions)
         party = strategy.associated_party
@@ -451,7 +456,7 @@ class TestEmailStratergy:
             "user_id": str(self.customer.id),
             "channel_type": ChannelTypeChoices.EMAIL.value,
             "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-            "context_data": {"name": "John Doe"}
+            "context_data": {"name": "John Doe"},
         }
         strategy = EmailStratergy(**instructions)
         party = strategy.associated_party
@@ -464,10 +469,13 @@ class TestEmailStratergy:
             "user_id": "00000000-0000-0000-0000-000000000099",
             "channel_type": ChannelTypeChoices.EMAIL.value,
             "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-            "context_data": {"name": "John Doe"}
+            "context_data": {"name": "John Doe"},
         }
         strategy = EmailStratergy(**instructions)
-        from apps.notifications.workflow.stratergies.base_stratergy import NotificationStrategyException
+        from apps.notifications.workflow.stratergies.base_stratergy import (
+            NotificationStrategyException,
+        )
+
         with pytest.raises(NotificationStrategyException) as exc:
             strategy.associated_party
         assert "does not exist" in str(exc.value)
@@ -480,7 +488,7 @@ class TestEmailStratergy:
             "user_id": str(self.user.id),
             "channel_type": ChannelTypeChoices.EMAIL.value,
             "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-            "context_data": {"name": "John Doe"}
+            "context_data": {"name": "John Doe"},
         }
         strategy = EmailStratergy(**instructions)
 
@@ -491,6 +499,7 @@ class TestEmailStratergy:
         with override_config(USE_MOCK_EMAIL_SERVICE=False):
             strategy.get_connection
             from config.settings.constants import DJANGO_SMTP_BACKEND
+
             mock_get_connection.assert_called_with(DJANGO_SMTP_BACKEND)
 
     @patch("django.core.mail.EmailMessage.send")
@@ -501,11 +510,11 @@ class TestEmailStratergy:
             "user_id": str(self.user.id),
             "channel_type": ChannelTypeChoices.EMAIL.value,
             "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-            "context_data": {"name": "John Doe"}
+            "context_data": {"name": "John Doe"},
         }
         strategy = EmailStratergy(**instructions)
         strategy.send()
-        
+
         mock_send.assert_called_once()
 
     @patch("django.core.mail.EmailMessage.send")
@@ -516,11 +525,11 @@ class TestEmailStratergy:
             "user_id": str(self.user.id),
             "channel_type": ChannelTypeChoices.EMAIL.value,
             "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-            "context_data": {"name": "John Doe"}
+            "context_data": {"name": "John Doe"},
         }
         strategy = EmailStratergy(**instructions)
         strategy.send(render_html=False)
-        
+
         mock_send.assert_called_once()
 
 
@@ -545,7 +554,7 @@ class TestBaseResolver:
         self.event = NotificationEvent(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "welcome_new_user"}
+            data={"template_name": "welcome_new_user"},
         )
         self.resolver = self.DummyResolver(self.event, ChannelTypeChoices.EMAIL.value)
 
@@ -593,7 +602,7 @@ class TestEmailResolver:
         self.event = NotificationEvent(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "welcome_new_user"}
+            data={"template_name": "welcome_new_user"},
         )
         self.resolver = EmailResolver(self.event, ChannelTypeChoices.EMAIL.value)
 
@@ -608,7 +617,7 @@ class TestEmailResolver:
         invalid_event = NotificationEvent(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "invalid_template"}
+            data={"template_name": "invalid_template"},
         )
         resolver = EmailResolver(invalid_event, ChannelTypeChoices.EMAIL.value)
         with pytest.raises(NotificationResolverException) as exc:
@@ -618,9 +627,7 @@ class TestEmailResolver:
     def test_email_resolver_missing_template_name(self):
         """Checks validation error raised when template name is missing."""
         invalid_event = NotificationEvent(
-            event_type=EventTypeChoices.WELCOME_USER.value,
-            assosciated_party=str(self.user.id),
-            data={}
+            event_type=EventTypeChoices.WELCOME_USER.value, assosciated_party=str(self.user.id), data={}
         )
         resolver = EmailResolver(invalid_event, ChannelTypeChoices.EMAIL.value)
         with pytest.raises(NotificationResolverException) as exc:
@@ -642,7 +649,7 @@ class TestSMSResolver:
         self.event = NotificationEvent(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "welcome_new_user"}
+            data={"template_name": "welcome_new_user"},
         )
         self.resolver = SMSResolver(self.event, ChannelTypeChoices.SMS.value)
 
@@ -657,7 +664,7 @@ class TestSMSResolver:
         invalid_event = NotificationEvent(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_party=str(self.user.id),
-            data={"template_name": "invalid_template"}
+            data={"template_name": "invalid_template"},
         )
         resolver = SMSResolver(invalid_event, ChannelTypeChoices.SMS.value)
         with pytest.raises(NotificationResolverException) as exc:
@@ -667,9 +674,7 @@ class TestSMSResolver:
     def test_sms_resolver_missing_template_name(self):
         """Verifies validation error raised when SMS template name is missing."""
         invalid_event = NotificationEvent(
-            event_type=EventTypeChoices.WELCOME_USER.value,
-            assosciated_party=str(self.user.id),
-            data={}
+            event_type=EventTypeChoices.WELCOME_USER.value, assosciated_party=str(self.user.id), data={}
         )
         resolver = SMSResolver(invalid_event, ChannelTypeChoices.SMS.value)
         with pytest.raises(NotificationResolverException) as exc:
@@ -694,7 +699,7 @@ class TestNotificationEndToEnd:
 
         self.config = ConfigurationsFactory(
             interface_type=ConfigurationInterfaceChoices.NOTIFICATION_CONFIGURATION.value,
-            details={"tenant_preferences": ["email"]}
+            details={"tenant_preferences": ["email"]},
         )
 
         # Setup user and customer records
@@ -707,7 +712,7 @@ class TestNotificationEndToEnd:
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=True
+            opted_in=True,
         )
 
         # Create template in DB
@@ -716,7 +721,7 @@ class TestNotificationEndToEnd:
             event_type=EventTypeChoices.WELCOME_USER.value,
             channel=ChannelTypeChoices.EMAIL.value,
             subject="Welcome {{ name }}!",
-            plain_text="Hello {{ name }}, welcome to our platform."
+            plain_text="Hello {{ name }}, welcome to our platform.",
         )
 
     @patch("django.core.mail.EmailMessage.send")
@@ -734,10 +739,7 @@ class TestNotificationEndToEnd:
         trigger_notifications(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_parties=[str(self.user.id)],
-            data={
-                "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-                "name": "Jane Doe"
-            }
+            data={"template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value, "name": "Jane Doe"},
         )
 
         # Assertions
@@ -748,7 +750,7 @@ class TestNotificationEndToEnd:
         assert log.channel == ChannelTypeChoices.EMAIL.value
         assert log.context_data == {
             "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-            "name": "Jane Doe"
+            "name": "Jane Doe",
         }
 
         # 2. Strategy send was executed (EmailMessage.send mocked)
@@ -769,7 +771,7 @@ class TestNotificationEndToEnd:
             customer=self.customer,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=False
+            opted_in=False,
         )
 
         assert NotificationLog.objects.count() == 0
@@ -778,10 +780,7 @@ class TestNotificationEndToEnd:
         trigger_notifications(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_parties=[str(self.user.id)],
-            data={
-                "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-                "name": "Jane Doe"
-            }
+            data={"template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value, "name": "Jane Doe"},
         )
 
         # Assertions: No logs are created and no emails are sent
@@ -804,7 +803,7 @@ class TestNotificationEndToEnd:
             customer=customer_opted_out,
             event_type=EventTypeChoices.WELCOME_USER.value,
             preference_type=ChannelTypeChoices.EMAIL.value,
-            opted_in=False
+            opted_in=False,
         )
 
         assert NotificationLog.objects.count() == 0
@@ -813,10 +812,7 @@ class TestNotificationEndToEnd:
         trigger_notifications(
             event_type=EventTypeChoices.WELCOME_USER.value,
             assosciated_parties=[str(self.user.id), str(user_opted_out.id)],
-            data={
-                "template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value,
-                "name": "Jane Doe"
-            }
+            data={"template_name": NotificationTemplateChoices.WELCOME_NEW_USER.value, "name": "Jane Doe"},
         )
 
         # Assertions

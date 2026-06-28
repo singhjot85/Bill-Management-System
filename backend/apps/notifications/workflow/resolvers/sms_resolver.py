@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 
 from apps.notifications.constants import ChannelTypeChoices, NotificationTemplateChoices
+from apps.notifications.exceptions import NotificationResolverException
 from apps.notifications.workflow.resolvers import (
     BaseResolver,
     ChannelInstruction,
     resolver_registry,
 )
-
-from apps.notifications.exceptions import NotificationResolverException
 
 
 @dataclass
