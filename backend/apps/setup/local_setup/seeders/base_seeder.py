@@ -3,22 +3,300 @@ import logging
 import os
 import typing
 from abc import ABC, abstractmethod
-from typing import Any
+from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
-from django.db import transaction
-from django.db.models import Field, Model
+from django.db import models, transaction
 from django_tenants.utils import schema_context
 
 LOGGER = logging.getLogger()
 
 
 class SeederException(Exception):
+    """General Exception raised when from seeder."""
+
     pass
 
 
-class BaseSeeder(ABC):
+class ObjectCreationException(Exception):
+    """General Exception raised when creating an object."""
+
+    pass
+
+
+class ObjectCreationMixin:
+    """This mixin will be used to create objects from given data in json file
+    Create a mixin so that it can easly be lifter to seeder2.0
+    """
+
+    _model: models.Model
+    _model_data: dict
+    _default_database = "default"
+
+    @property
+    def model(self) -> typing.Optional[models.Model]:
+        """models.Model set for current object processing"""
+
+        if hasattr(self, "_model"):
+            return getattr(self, "_model")
+
+        raise ObjectCreationException("models.Model not define, please use `set_model` to declare a model to process.")
+
+    def set_model(self, kls: models.Model):
+        """Set the model instance to the mixin object
+
+        Args:
+            kls (models.Model): django models.Model class for which the object is to be created.
+
+        Raises:
+            ObjectCreationException
+        """
+
+        if not isinstance(kls, models.Model):
+            raise ObjectCreationException("models.Model should be an instance of `django.db.models.models.Model`.")
+
+        self._model = kls
+
+    @property
+    def model_data(self) -> typing.Union[dict, str]:
+        """models.Model set for current object processing"""
+
+        if hasattr(self, "_model_data"):
+            return getattr(self, "_model_data")
+
+        raise ObjectCreationException("models.Model not define, please use `set_model` to declare a model to process.")
+
+    def load_data_from_file(self, file_path: str):
+        """Load data from a data file"""
+        path_obj = Path(file_path)
+        if not path_obj.exists():
+            raise ObjectCreationException(f"No data file found, Invalid Path: {file_path}")
+
+        try:
+            return json.loads(path_obj.read_text())
+        except Exception as e:
+            raise ObjectCreationException(f"Error reading data file: {str(e)}") from e
+
+    def set_model_data(self, data: typing.Union[dict, str]) -> typing.Union[list, dict]:
+        """Set the model data to the mixin object
+
+        Args:
+            data (dict, str): Data to be used for object creation or path to the data file to be used
+        """
+        if isinstance(data, str):
+            data = self.load_data_from_file(data).get(self.model)
+
+        self._model_data = data
+
+    def init_obj(self, kls: models.Model, data: dict = None) -> models.Model:
+        """Initialize an in-memory object
+
+        Args:
+            kls (models.Model): Class for which model is to be created.
+            data (dict): Data to fetch pk/unique key(s), this step ensure(s) no de-duplication.
+
+        Returns:
+            instance (object): In-memory object of given kls class.
+        """
+        pk = data.get("pk") or data.get("id")
+
+        if not pk:
+            return kls()
+
+        instance = None
+        try:
+            instance = kls.objects.using(self._default_database).get(pk=pk)
+        except kls.DoesNotExist:
+            instance = kls()
+
+        return instance
+
+    def _create_object(self, kls: models.Model = None, data: dict = None) -> models.Model:
+        """This method create(s) one object at a time from given data and class.
+
+        Args:
+            kls (models.Model, optional): Class of the model to create object from.
+                By, default uses self.
+            data (dict, optional): Data for the object to be created.
+
+        Returns:
+            Object created from the given data, persistent in database.
+
+        Raises:
+            ObjectCreationException
+        """
+        data = data or self.model_data
+        kls = kls or self.model
+
+        instance = self.init_obj(kls, data)
+
+        if not instance:
+            raise ObjectCreationException("Error in creating model object")
+
+        m2m_fields = {}
+        all_fields: list[models.Field] = self.model._meta.get_fields(include_hidden=True)
+
+        for field in all_fields:
+            # If field not in data continue to next field
+            if field.name not in data and field.attname not in data:
+                continue
+
+            # Non-relation fields are set diectly
+            if not field.is_relation:
+                setattr(instance, field.name, data.get(field.name))
+                continue
+
+            # forawrd relation's i.e. whose FK.id lives in model's table, is also saved directly
+            if field.many_to_one or field.one_to_one:
+                raw_value = data.get(field.name, data.get(field.attname))
+                self._process_fk(instance, field, raw_value)
+
+            # m2m fields are saved in a dict to be used later
+            if field.many_to_many:
+                m2m_fields[field.name] = data.get(field.name)
+                continue
+
+        instance.save(using=self._default_database)
+        self.process_m2m_fields(instance, m2m_fields)
+        self.process_reverse_relations(instance, data)
+
+    def process_reverse_relations(self, instance: models.Model, data: dict):
+
+        for rel in instance._meta.related_objects:
+
+            accessor = rel.get_accessor_name()
+            if accessor not in data:
+                continue
+
+            items = data.get(accessor)
+            if not isinstance(items, (list, tuple)):
+                items = (items,)
+
+            related_model = rel.related_model
+            fk_field_name = rel.field.name
+
+            for item in items:
+                if isinstance(models.Model):
+                    setattr(item, fk_field_name, instance)
+                    instance.save(using=self._default_database)
+
+                elif isinstance(item, dict):
+                    item[fk_field_name] = instance
+                    self._create_object(kls=related_model, data=item)
+
+                elif isinstance(item, (int, str)):
+                    obj = related_model.objects.using(self._default_database).get(pk=item)
+                    setattr(obj, fk_field_name, instance)
+                    obj.save(using=self._default_database)
+
+    def process_m2m_fields(self, instance: models.Model, m2m_data: dict):
+        """Process many-to-many fields, fetch a related manager for m2m field and attach all objects to the instance using `manager.add`
+        Attach object to instace means u create a (obj_id, instance_id) in the m2m table.
+
+        Args:
+            instance: (models.Model): Model object on which the m2m fields are to be attached.
+            m2m_data (dict): Data for the m2m fields.
+
+        Raises:
+            ObjectCreationException
+        """
+
+        def _process_single_item(field: models.Field, data: typing.Any):
+            """Process a single m2m item at once."""
+            if isinstance(data, (models.Model, str, int)):
+                return data
+            elif isinstance(data, dict):
+                return self._create_object(kls=field.related_model, data=data)
+            raise ObjectCreationException(f"Invalid M2M item: {item!r}")
+
+        for field_name, raw_value in m2m_data.items():
+            field = instance._meta.get_field(field_name)
+            manager = getattr(instance, field_name)
+
+            manager.clear()
+            if not isinstance(raw_value, (list, tuple)):
+                raw_value = (raw_value,)
+
+            related_objs = []
+            related_objs_to_fetch = []
+            for item in raw_value:
+                obj = _process_single_item(field, item)
+                if isinstance(obj, str):
+                    related_objs_to_fetch.append(obj)
+                related_objs.append(obj)
+
+            if related_objs_to_fetch:
+                objs = field.related_model.objects.filter(pk__in=related_objs_to_fetch)
+                for obj in objs:
+                    related_objs.append(obj)
+
+            manager.add(*related_objs)
+
+    def _process_fk(self, instance: models.Model, field: models.Field, raw_value: typing.Any):
+        """Process many_to_one and one_to_one, this is helper method used in object creation"""
+
+        if isinstance(raw_value, models.Model):
+            return setattr(instance, field.name, raw_value)
+
+        elif instance(raw_value, dict):
+            related_obj = self._create_object(kls=field.related_model, data=raw_value)
+            return setattr(instance, field.name, related_obj)
+
+        elif isinstance(raw_value, (int, str, type(None))):
+            return setattr(instance, field.attname, raw_value)
+
+        raise ObjectCreationException(f"Invalid value for FK '{field.name}': {raw_value!r}")
+
+    def create_object(self, kls: models.Model = None, data: typing.Union[dict, str] = None) -> object:
+        """Create a model from given object data. You can either pass data to this method or set it using `set_data`
+
+        Args:
+            kls (models.Model, optional): django models.Model class for which the object is to be created.
+            data (dict, optional): Data to be used for object creation or path to the data file to be used
+
+        Returns:
+            Instance of the created object.
+
+        Raises:
+            ObjectCreationException
+        """
+        if kls:
+            self.set_model(kls)
+        if data:
+            self.set_model_data(data)
+
+        if not all(data, kls):
+            raise ObjectCreationException(
+                "Data and model class both are required to be set on mixin object for processing."
+            )
+
+        with transaction.atomic():
+            try:
+                if isinstance(data, dict):  # Single object creation
+                    self._create_object()
+
+                elif isinstance(data, list):  # Multi object creation
+                    for i, _data in enumerate(self.model_data):
+                        if not isinstance(data, dict):
+                            raise ObjectCreationException(f"Invalid data type {type(_data)} at position {i}")
+
+                        try:
+                            self._model_data = _data
+                            self.create_object()
+                        except Exception as e:
+                            raise ObjectCreationException(f"Failed creating object for index: {i}") from e
+
+                else:
+                    raise ObjectCreationException(f"Invalid data type: {type(data)}") from None
+            except Exception as e:
+                raise ObjectCreationException(f"Error while creating object for {kls.__name__}") from e
+
+        self._model = None
+        self._model_data = None
+
+
+class BaseSeeder(ABC, ObjectCreationMixin):
     """Base Seeder Templae to be used by each seeder."""
 
     label: str = ""
@@ -193,11 +471,13 @@ class BaseSeeder(ABC):
         LOGGER.info("[%s] Seeder ran successfully.", self.label)
 
     @staticmethod
-    def filter_model_fields(model: type[Model], fields: dict[str, Any], only_concrete: bool = True) -> dict[str, Any]:
-        """Filter Model fields from given fields, cleaner for raw field names.
+    def filter_model_fields(
+        model: type[models.Model], fields: dict[str, typing.Any], only_concrete: bool = True
+    ) -> dict[str, typing.Any]:
+        """Filter models.Model fields from given fields, cleaner for raw field names.
 
         Args:
-            model: Model Class.
+            model: models.Model Class.
             fields: Mapping for field and value.
             only_concrete: Filter only Concrete fields.
                 i.e., Skip (relationships, virtual fields, etc.)
@@ -213,7 +493,7 @@ class BaseSeeder(ABC):
         filtered = {}
         for key, value in fields.items():
             try:
-                field: Field = model._meta.get_field(key)
+                field: models.Field = model._meta.get_field(key)
                 if only_concrete and not field.concrete:
                     continue
                 filtered[key] = value
@@ -221,7 +501,7 @@ class BaseSeeder(ABC):
             except FieldDoesNotExist:
                 if only_concrete:
                     # Silently skip non-existent fields in strict mode
-                    LOGGER.debug("Field [%s] doesn't exist on model [%s], skipping", key, model.__name__)
+                    LOGGER.debug("models.Field [%s] doesn't exist on model [%s], skipping", key, model.__name__)
                 else:
                     # Include if it's a model attribute (property, method, etc.)
                     if hasattr(model, key):
@@ -251,7 +531,7 @@ class BaseSeeder(ABC):
         These are generally fields that are not unique on database level.
 
         Args:
-            model_name (str): Model for which unique fields are to be fetched.
+            model_name (str): models.Model for which unique fields are to be fetched.
 
         Returns:
             list of unique fields to fetch model instance.
@@ -270,7 +550,7 @@ class BaseSeeder(ABC):
 
         return unique_keys
 
-    def classify_fields(self, model_name: typing.Union[str, Any], filtered_fields: str) -> tuple[dict, dict]:
+    def classify_fields(self, model_name: typing.Union[str, typing.Any], filtered_fields: str) -> tuple[dict, dict]:
         """Classify into defaults and uniques"""
         if not isinstance(model_name, str):
             model_name = model_name.__name__
