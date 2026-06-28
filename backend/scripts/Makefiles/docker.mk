@@ -56,7 +56,7 @@ docker-detached-run:
 run-d: docker-detached-run
 
 
-.PHONY: mm, m, mme, bash, s, sp
+.PHONY: mm, m, mme, bash, s, sp, ts, tsp
 # -----
 # Migrations and Shells
 # -----
@@ -88,10 +88,20 @@ docker-django-shell:
 	${DJANGO_CONTAINER_CMD} python manage.py shell
 s: docker-django-shell
 
+docker-django-tenants-shell:
+	@echo "⌛ Launching django-tenants shell..."
+	${DJANGO_CONTAINER_CMD} python manage.py tenant_command shell
+ts: docker-django-tenants-shell
+
 docker-django-shell-plus:
 	@echo "⌛ Launching Django shell-plus..."
 	${DJANGO_CONTAINER_CMD} python manage.py shell_plus --ipython
 sp: docker-django-shell-plus
+
+docker-django-shell-plus:
+	@echo "⌛ Launching Django shell-plus..."
+	${DJANGO_CONTAINER_CMD} python manage.py tenant_command shell_plus --ipython
+tsp: docker-django-shell-plus
 
 
 .PHONY: clean-light-setup, setup, dev-setup, db-reset

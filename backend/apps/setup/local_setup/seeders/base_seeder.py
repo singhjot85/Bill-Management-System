@@ -491,6 +491,7 @@ class BaseSeeder(ABC, ObjectCreationMixin):
         """Abstract seed functionality, that houses the seeding logic, to be overriden for specific seeder."""
         pass
 
+    @classmethod
     def run_in_schema(self) -> str:
         """Specify the tenant in which the seeder should run
 
@@ -514,9 +515,12 @@ class BaseSeeder(ABC, ObjectCreationMixin):
             return True
 
         try:
-            return OrganizationTenant.objects.get(schema_name).schema_name
+            with schema_context(get_public_schema_name()):
+                return OrganizationTenant.objects.filter(schema_name).first().schema_name
         except OrganizationTenant.DoesNotExist as e:
             raise SeederException("Schema is not available yet, create it first to run the seeder") from e
+        except Exception as e:
+            raise SeederException("Unknown error occurred while looking up schema: %s", schema_name) from e
 
     def pre_run_validations(self, *args, **kwargs):
         """Pre Validation hooks for seed.run"""

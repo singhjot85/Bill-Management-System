@@ -60,10 +60,9 @@ def bootstrap_users():
             return
 
         for file_name in TENANT_DATA_FILE_NAMES:
-            seeder_cls = seeder_registry.get("auth_user")
-            if seeder_cls:
-                # resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
-                seeder_cls(file_name).run()
+            user_seeder = seeder_registry.get("auth_user")
+            if user_seeder:
+                user_seeder(file_name).run()
 
     except SeederException as se:
         raise se
