@@ -103,7 +103,12 @@ class ObjectCreationMixin:
         """Get unique fields which prevent de-duped object creation,
         if the data from those fields match the data in current json, we don't create new object
         """
-        field_names = data.get(f"{kls.__name__}__UNIQUE_FIELDS")
+        field_names = data.get(f"{kls.__name__}__UNIQUE_FIELDS") or data.get(f"{kls.__name__}__UNIQUE_KEYS")
+        if not field_names and hasattr(self, "seed_data") and self.seed_data:
+            field_names = self.seed_data.get(f"{kls.__name__}__UNIQUE_FIELDS") or self.seed_data.get(
+                f"{kls.__name__}__UNIQUE_KEYS"
+            )
+
         if not field_names:
             field_names = self._model_wise_unique_fields.get(kls.__name__, None)
 
@@ -112,11 +117,27 @@ class ObjectCreationMixin:
 
         field_map = {}
         for field_name in field_names:
-            val = data.get(field_name)
+            parts = field_name.split("__")
+            val = data
+            for part in parts:
+                if isinstance(val, dict):
+                    val = val.get(part)
+                elif hasattr(val, part):
+                    val = getattr(val, part)
+                else:
+                    val = None
+                    break
+
             if val is not None:
                 field_map[field_name] = val
 
         return field_map
+
+    def classify_fields(self, kls: type[models.Model], data: dict = None) -> tuple[dict, dict]:
+        """Classify fields into unique fields (uniques) and remaining fields (defaults)"""
+        unique_fields_map = self.get_unique_fields(kls, data) or {}
+        defaults = {k: v for k, v in data.items() if k not in unique_fields_map}
+        return unique_fields_map, defaults
 
     def init_obj(self, kls: models.Model, data: dict = None) -> models.Model:
         """Initialize an in-memory object
@@ -271,7 +292,6 @@ class ObjectCreationMixin:
 
     def _process_fk(self, instance: models.Model, field: models.Field, raw_value: typing.Any):
         """Process many_to_one and one_to_one, this is helper method used in object creation"""
-
         if isinstance(raw_value, models.Model):
             return setattr(instance, field.name, raw_value)
 
@@ -407,12 +427,12 @@ class BaseSeeder(ABC, ObjectCreationMixin):
         if not os.path.exists(path):
             raise SeederException(f"File not found at {path}")
 
-        if file_type not in ["txt", "json"]:
+        if file_type not in ["txt", "json", "html"]:
             raise SeederException(f"Invalid file type {file_type}")
 
         data = None
         with open(file=path, mode="r+", encoding="utf-8") as f:
-            if file_type == "txt":
+            if file_type in ["txt", "html"]:
                 data = f.read()
             elif file_type == "json":
                 data = json.load(f)
@@ -516,7 +536,7 @@ class BaseSeeder(ABC, ObjectCreationMixin):
 
         try:
             with schema_context(get_public_schema_name()):
-                return OrganizationTenant.objects.filter(schema_name).first().schema_name
+                return OrganizationTenant.objects.get(schema_name=schema_name).schema_name
         except OrganizationTenant.DoesNotExist as e:
             raise SeederException("Schema is not available yet, create it first to run the seeder") from e
         except Exception as e:

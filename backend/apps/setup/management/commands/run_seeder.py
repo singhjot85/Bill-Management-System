@@ -10,12 +10,12 @@ class Command(BaseCommand):
         parser.add_argument("--seeder-name", type=str, help="Username of public user")
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS("User Bootstrap Started..."))
+        self.stdout.write(self.style.SUCCESS("Seeder Run Started..."))
         try:
-            seeder_name = options.get("seeder-name")
+            seeder_name = options.get("seeder-name", None)
             run_local_setup(seeder_name)
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"User Bootstrap Failed >>> {str(e)}"))
+            self.stdout.write(self.style.ERROR(f"Seeder Run Failed >>> {str(e)}"))
             raise e
 
-        self.stdout.write(self.style.SUCCESS("User Bootstrap Successfull."))
+        self.stdout.write(self.style.SUCCESS("Seeder Run Successfull"))

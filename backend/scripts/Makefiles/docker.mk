@@ -8,7 +8,7 @@ TEST_FILTER:=""
 app:=setup
 schema_name:=public
 emn:=default_empty_migration
-make_migrations:=true
+make_migrations:=false
 
 #####################################
 ## Make target for docker commands ##
@@ -104,7 +104,7 @@ docker-django-shell-plus:
 tsp: docker-django-shell-plus
 
 
-.PHONY: clean-light-setup, setup, dev-setup, db-reset
+.PHONY: clean-light-setup, setup, dev-setup, db-reset, run-seeder, clean-setup
 # -----
 # Setup and Resets
 # -----
@@ -112,21 +112,20 @@ tsp: docker-django-shell-plus
 docker-clean-light-setup:
 	make clean
 	make build
-	make m
 	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
 	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
 	make run
 clean-light-setup: docker-clean-light-setup
 
-# docker-clean-setup:
-# 	make clean
-# 	make build
-# 	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
-# clean-setup: docker-clean-setup
+docker-clean-setup:
+	make clean
+	make build
+	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
+clean-setup: docker-clean-setup
 
-# docker-run-seeder:
-# 	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
-# run-seeder: docker-run-seeder
+docker-run-seeder:
+	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
+run-seeder: docker-run-seeder
 
 docker-clean-local-setup-fast:
 	${BASE_COMPOSE_CMD} down
@@ -167,5 +166,3 @@ tf: docker-test-filter
 
 docker-service-state-check:
 	${BASE_COMPOSE_CMD} ps --format json | jq -s 'map({service: .Service, status: .State})'
-
-.PHONY: docker-service-state-check docker-detached-run

@@ -150,6 +150,39 @@ class TestObjectCreationMixin:
         assert instance.pk == config1.pk
         assert instance._state.adding is False
 
+    @pytest.mark.django_db
+    def test_get_unique_fields__unique_keys_key__returns_correct_fields(self):
+        """get_unique_fields should support UNIQUE_KEYS key in data payload."""
+        data = {"interface_type": "some_interface", "Configurations__UNIQUE_KEYS": ["interface_type"]}
+        res = self.mixin.get_unique_fields(Configurations, data)
+        assert res == {"interface_type": "some_interface"}
+
+    @pytest.mark.django_db
+    def test_get_unique_fields__nested_relationship__resolves_nested_field(self):
+        """get_unique_fields should resolve double-underscore nested fields from dictionaries and models."""
+        from apps.tenants.models import OrganizationBranding, OrganizationTenant
+
+        tenant = OrganizationTenant(schema_name="my_nested_schema")
+        data = {
+            "organization": tenant,
+            "phone": "99999",
+            "OrganizationBranding__UNIQUE_FIELDS": ["organization__schema_name"],
+        }
+        res = self.mixin.get_unique_fields(OrganizationBranding, data)
+        assert res == {"organization__schema_name": "my_nested_schema"}
+
+    @pytest.mark.django_db
+    def test_classify_fields__correctly_splits_uniques_and_defaults(self):
+        """classify_fields should correctly classify data into uniques and defaults."""
+        data = {
+            "interface_type": "some_interface",
+            "details": {"key": "val"},
+            "Configurations__UNIQUE_FIELDS": ["interface_type"],
+        }
+        uniques, defaults = self.mixin.classify_fields(Configurations, data)
+        assert uniques == {"interface_type": "some_interface"}
+        assert defaults == {"details": {"key": "val"}, "Configurations__UNIQUE_FIELDS": ["interface_type"]}
+
     # --- Full Workflow Tests ---
 
     @pytest.mark.django_db

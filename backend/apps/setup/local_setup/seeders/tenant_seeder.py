@@ -27,9 +27,16 @@ class TenantSeeder(BaseSeeder):
         tenant = self.create_object(OrganizationTenant, org_data)
         if not tenant:
             raise SeederException("Error creating tenant") from None
-
         branding_data = self.seed_data.get(OrganizationBranding.__name__)
         if not branding_data:
             LOGGER.info(f"No branding data found for >>> {tenant}, Skipping branding creation")
+            return
+
+        if isinstance(branding_data, dict):
+            branding_data["organization"] = tenant
+        elif isinstance(branding_data, list):
+            for item in branding_data:
+                if isinstance(item, dict):
+                    item["organization"] = tenant
 
         self.create_object(OrganizationBranding, branding_data)

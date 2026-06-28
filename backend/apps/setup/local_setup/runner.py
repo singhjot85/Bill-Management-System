@@ -23,6 +23,8 @@ def run_local_setup(seeder_name: str = None):
             LOGGER.info("Not in development mode, so cannot run local setup.")
             return
 
+        LOGGER.info("Local Setup Started...")
+
         seeders = None
         if seeder_name:
             seeder_cls = seeder_registry.get(seeder_name)
@@ -32,20 +34,33 @@ def run_local_setup(seeder_name: str = None):
             seeders = seeder_registry.registry
 
         if not seeders:
-            raise SeederException("Seeders not found")
+            msg = "Seeders to run not found"
+            LOGGER.error(f"Local Setup failed: {msg}")
+            raise SeederException(msg)
+
+        if "organization_tenants" in seeders:
+            for file_name in TENANT_DATA_FILE_NAMES:
+                try:
+                    seeder_instance = seeders.get("organization_tenants")
+                    seeder_instance(file_name).run()
+                except Exception as e:
+                    raise SeederException("Error creating schema's") from e
 
         for key, seeder_cls in seeders.items():
-            # resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
-            # label = getattr(resolved_seeder_cls, "label", key)
             LOGGER.info("[%s] Seeder Started Running...", key)
 
             for file_name in TENANT_DATA_FILE_NAMES:
                 seeder_instance = seeder_cls(file_name)
                 if not hasattr(seeder_instance, "run"):
                     raise SeederException(f"[{key}] Invalid seeder !!")
+                try:
+                    seeder_instance.run()
+                except Exception as ex:
+                    msg = f"[{key}] Seeder failed >>> {str(ex)}"
+                    LOGGER.error(msg)
+                    raise SeederException(msg) from ex
 
-                seeder_instance.run()
-
+            LOGGER.info("[%s] Seeder Passed Successfully...", key)
     except SeederException as se:
         raise se
     except Exception as e:

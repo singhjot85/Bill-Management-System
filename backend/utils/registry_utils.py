@@ -23,6 +23,11 @@ class ClassRegistry:
         Args:
             cls (Any): Class which you want to register.
             key (str, optional): Key corresponding to which the class should register.
+
+        Raises:
+            InvalidRegistryKey
+            ValueError
+            AlreadyRegisteredException
         """
         if not key and hasattr(cls, "REGISTERY_KEY"):
             if key and not isinstance(key, str):
@@ -71,6 +76,9 @@ class ClassRegistry:
 
         Args:
             key (str): Key corresponding to which the class is registerd
+
+        Raises:
+            InvalidRegistryKey
         """
         if key and not isinstance(key, str):
             raise InvalidRegistryKey from None
