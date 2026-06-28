@@ -15,10 +15,12 @@ User = get_user_model()  # noqa F811
 class UserSeeder(BaseSeeder):
     label = "User Seeder"
     REGISTERY_KEY = "auth_user"
-    user_seeder_data: dict = None
+
+    data_cache_key: str = "user_seeder_data"
+    user_seeder_data: dict
 
     def __init__(self, file_name: str):
-        super().__init__()
+        super().__init__(file_name)
         self.load_data(file_name, "user_seeder_data")
 
     def _is_existing_user(self, user_fields: dict):

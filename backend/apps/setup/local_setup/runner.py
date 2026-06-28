@@ -35,14 +35,15 @@ def run_local_setup(seeder_name: str = None):
             raise SeederException("Seeders not found")
 
         for key, seeder_cls in seeders.items():
-            resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
-            label = getattr(resolved_seeder_cls, "label", key)
-            LOGGER.info("[%s] Seeder Started Running...", label)
+            # resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
+            # label = getattr(resolved_seeder_cls, "label", key)
+            LOGGER.info("[%s] Seeder Started Running...", key)
 
             for file_name in TENANT_DATA_FILE_NAMES:
-                seeder_instance = resolved_seeder_cls(file_name)
+                seeder_instance = seeder_cls(file_name)
                 if not hasattr(seeder_instance, "run"):
-                    raise SeederException(f"[{label}] Invalid seeder !!")
+                    raise SeederException(f"[{key}] Invalid seeder !!")
+
                 seeder_instance.run()
 
     except SeederException as se:
@@ -61,8 +62,8 @@ def bootstrap_users():
         for file_name in TENANT_DATA_FILE_NAMES:
             seeder_cls = seeder_registry.get("auth_user")
             if seeder_cls:
-                resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
-                resolved_seeder_cls(file_name).run()
+                # resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
+                seeder_cls(file_name).run()
 
     except SeederException as se:
         raise se
@@ -80,8 +81,8 @@ def bootstrap_tenants():
         for file_name in TENANT_DATA_FILE_NAMES:
             seeder_cls = seeder_registry.get("organization_tenants")
             if seeder_cls:
-                resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
-                resolved_seeder_cls(file_name).run()
+                # resolved_seeder_cls = globals().get(seeder_cls.__name__, seeder_cls)
+                seeder_cls(file_name).run()
 
     except SeederException as se:
         raise se

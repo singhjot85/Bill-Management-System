@@ -1,10 +1,6 @@
 import logging
 
-from apps.tenants.models import (
-    OrganizationBranding,
-    OrganizationDomain,
-    OrganizationTenant,
-)
+from apps.tenants.models import OrganizationBranding, OrganizationTenant
 
 from .base_seeder import BaseSeeder, SeederException
 
@@ -31,9 +27,9 @@ class TenantSeeder(BaseSeeder):
         tenant = self.create_object(OrganizationTenant, org_data)
         if not tenant:
             raise SeederException("Error creating tenant") from None
-        
+
         branding_data = self.seed_data.get(OrganizationBranding.__name__)
         if not branding_data:
             LOGGER.info(f"No branding data found for >>> {tenant}, Skipping branding creation")
-        
+
         self.create_object(OrganizationBranding, branding_data)
