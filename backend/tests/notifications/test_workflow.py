@@ -414,8 +414,8 @@ class TestEmailStratergy:
     """
 
     def setup_method(self):
-        User.objects.all().delete()
         NotificationPreferences._base_manager.all().delete()
+        User.objects.all().delete()
         NotificationLog._base_manager.all().delete()
         NotificationTemplate.objects.all().delete() 
         CustomerFactory._meta.model._base_manager.all().delete()

@@ -43,18 +43,18 @@ class ObjectCreationMixin:
 
         raise ObjectCreationException("models.Model not define, please use `set_model` to declare a model to process.")
 
-    def set_model(self, kls: models.Model):
+    def set_model(self, kls: type[models.Model]):
         """Set the model instance to the mixin object
 
         Args:
-            kls (models.Model): django models.Model class for which the object is to be created.
+            kls (type[models.Model]): django models.Model class for which the object is to be created.
 
         Raises:
             ObjectCreationException
         """
 
-        if not isinstance(kls, models.Model):
-            raise ObjectCreationException("models.Model should be an instance of `django.db.models.models.Model`.")
+        if not (isinstance(kls, type) and issubclass(kls, models.Model)):
+            raise ObjectCreationException("models.Model should be a subclass of `django.db.models.Model`.")
 
         self._model = kls
 
@@ -85,7 +85,7 @@ class ObjectCreationMixin:
             data (dict, str): Data to be used for object creation or path to the data file to be used
         """
         if isinstance(data, str):
-            data = self.load_data_from_file(data).get(self.model)
+            data = self.load_data_from_file(data).get(self.model.__name__)
 
         self._model_data = data
 
@@ -135,11 +135,12 @@ class ObjectCreationMixin:
             raise ObjectCreationException("Error in creating model object")
 
         m2m_fields = {}
-        all_fields: list[models.Field] = self.model._meta.get_fields(include_hidden=True)
+        all_fields: list[models.Field] = kls._meta.get_fields(include_hidden=True)
 
         for field in all_fields:
             # If field not in data continue to next field
-            if field.name not in data and field.attname not in data:
+            attname = getattr(field, "attname", None)
+            if field.name not in data and (attname is None or attname not in data):
                 continue
 
             # Non-relation fields are set diectly
@@ -149,7 +150,7 @@ class ObjectCreationMixin:
 
             # forawrd relation's i.e. whose FK.id lives in model's table, is also saved directly
             if field.many_to_one or field.one_to_one:
-                raw_value = data.get(field.name, data.get(field.attname))
+                raw_value = data.get(field.name, data.get(attname) if attname else None)
                 self._process_fk(instance, field, raw_value)
 
             # m2m fields are saved in a dict to be used later
@@ -160,6 +161,7 @@ class ObjectCreationMixin:
         instance.save(using=self._default_database)
         self.process_m2m_fields(instance, m2m_fields)
         self.process_reverse_relations(instance, data)
+        return instance
 
     def process_reverse_relations(self, instance: models.Model, data: dict):
 
@@ -177,7 +179,7 @@ class ObjectCreationMixin:
             fk_field_name = rel.field.name
 
             for item in items:
-                if isinstance(models.Model):
+                if isinstance(item, models.Model):
                     setattr(item, fk_field_name, instance)
                     instance.save(using=self._default_database)
 
@@ -222,9 +224,10 @@ class ObjectCreationMixin:
             related_objs_to_fetch = []
             for item in raw_value:
                 obj = _process_single_item(field, item)
-                if isinstance(obj, str):
+                if isinstance(obj, (str, int)):
                     related_objs_to_fetch.append(obj)
-                related_objs.append(obj)
+                else:
+                    related_objs.append(obj)
 
             if related_objs_to_fetch:
                 objs = field.related_model.objects.filter(pk__in=related_objs_to_fetch)
@@ -239,7 +242,7 @@ class ObjectCreationMixin:
         if isinstance(raw_value, models.Model):
             return setattr(instance, field.name, raw_value)
 
-        elif instance(raw_value, dict):
+        elif isinstance(raw_value, dict):
             related_obj = self._create_object(kls=field.related_model, data=raw_value)
             return setattr(instance, field.name, related_obj)
 
@@ -248,12 +251,12 @@ class ObjectCreationMixin:
 
         raise ObjectCreationException(f"Invalid value for FK '{field.name}': {raw_value!r}")
 
-    def create_object(self, kls: models.Model = None, data: typing.Union[dict, str] = None) -> object:
+    def create_object(self, kls: type[models.Model] = None, data: typing.Union[dict, list, str] = None) -> object:
         """Create a model from given object data. You can either pass data to this method or set it using `set_data`
 
         Args:
-            kls (models.Model, optional): django models.Model class for which the object is to be created.
-            data (dict, optional): Data to be used for object creation or path to the data file to be used
+            kls (type[models.Model], optional): django models.Model class for which the object is to be created.
+            data (dict, list, str, optional): Data to be used for object creation or path to the data file to be used
 
         Returns:
             Instance of the created object.
@@ -266,34 +269,41 @@ class ObjectCreationMixin:
         if data:
             self.set_model_data(data)
 
-        if not all(data, kls):
+        model_class = getattr(self, "_model", None)
+        model_data = getattr(self, "_model_data", None)
+
+        if not model_class or model_data is None:
             raise ObjectCreationException(
                 "Data and model class both are required to be set on mixin object for processing."
             )
 
+        created_result = None
         with transaction.atomic():
             try:
-                if isinstance(data, dict):  # Single object creation
-                    self._create_object()
+                if isinstance(model_data, dict):  # Single object creation
+                    created_result = self._create_object()
 
-                elif isinstance(data, list):  # Multi object creation
-                    for i, _data in enumerate(self.model_data):
-                        if not isinstance(data, dict):
+                elif isinstance(model_data, list):  # Multi object creation
+                    created_result = []
+                    for i, _data in enumerate(model_data):
+                        if not isinstance(_data, dict):
                             raise ObjectCreationException(f"Invalid data type {type(_data)} at position {i}")
 
                         try:
                             self._model_data = _data
-                            self.create_object()
+                            obj = self._create_object()
+                            created_result.append(obj)
                         except Exception as e:
                             raise ObjectCreationException(f"Failed creating object for index: {i}") from e
 
                 else:
-                    raise ObjectCreationException(f"Invalid data type: {type(data)}") from None
+                    raise ObjectCreationException(f"Invalid data type: {type(model_data)}") from None
             except Exception as e:
-                raise ObjectCreationException(f"Error while creating object for {kls.__name__}") from e
+                raise ObjectCreationException(f"Error while creating object for {model_class.__name__}") from e
 
         self._model = None
         self._model_data = None
+        return created_result
 
 
 class BaseSeeder(ABC, ObjectCreationMixin):
@@ -339,7 +349,7 @@ class BaseSeeder(ABC, ObjectCreationMixin):
         Returns:
             file extension, txt if no extension
         """
-        if (split := file_path.split(".")) > 0:
+        if len(split := file_path.split(".")) > 1:
             return split[-1]
 
         return "txt"
