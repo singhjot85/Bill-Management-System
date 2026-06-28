@@ -8,7 +8,9 @@ from pathlib import Path
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
-from django_tenants.utils import schema_context
+from django_tenants.utils import schema_context, get_public_schema_name
+
+from apps.tenants.models import OrganizationTenant
 
 LOGGER = logging.getLogger()
 
@@ -38,6 +40,8 @@ class ObjectCreationMixin:
         "OrganizationDomain": ["domain"],
         "OrganizationBranding": ["organization__schema_name"],
         "Configurations": ["interface_type"],
+        "User": ["username","email"],
+        "NotificationTemplate": ["template_name", "event_type", "channel", "language"]
     }
 
     @property
@@ -293,6 +297,8 @@ class ObjectCreationMixin:
         Raises:
             ObjectCreationException
         """
+        LOGGER.debug("Starting object creation for >>> %s", kls.__name__)
+
         if kls:
             self.set_model(kls)
         if data:
@@ -307,29 +313,30 @@ class ObjectCreationMixin:
             )
 
         created_result = None
-        with transaction.atomic():
-            try:
-                if isinstance(model_data, dict):  # Single object creation
-                    created_result = self._create_object()
+        # with transaction.atomic():
+        try:
+            if isinstance(model_data, dict):  # Single object creation
+                created_result = self._create_object()
 
-                elif isinstance(model_data, list):  # Multi object creation
-                    created_result = []
-                    for i, _data in enumerate(model_data):
-                        if not isinstance(_data, dict):
-                            raise ObjectCreationException(f"Invalid data type {type(_data)} at position {i}")
+            elif isinstance(model_data, list):  # Multi object creation
+                created_result = []
+                for i, _data in enumerate(model_data):
+                    if not isinstance(_data, dict):
+                        raise ObjectCreationException(f"Invalid data type {type(_data)} at position {i}")
 
-                        try:
-                            self._model_data = _data
-                            obj = self._create_object()
-                            created_result.append(obj)
-                        except Exception as e:
-                            raise ObjectCreationException(f"Failed creating object for index: {i}") from e
+                    try:
+                        self._model_data = _data
+                        obj = self._create_object()
+                        created_result.append(obj)
+                    except Exception as e:
+                        raise ObjectCreationException(f"Failed creating object for index: {i}") from e
 
-                else:
-                    raise ObjectCreationException(f"Invalid data type: {type(model_data)}") from None
-            except Exception as e:
-                raise ObjectCreationException(f"Error while creating object for {model_class.__name__}") from e
+            else:
+                raise ObjectCreationException(f"Invalid data type: {type(model_data)}") from None
+        except Exception as e:
+            raise ObjectCreationException(f"Error while creating object for {model_class.__name__}") from e
 
+        LOGGER.debug("Object creation successfull for >>> %s, obj >>>", kls.__name__, created_result)
         self._model = None
         self._model_data = None
         return created_result
@@ -388,7 +395,7 @@ class BaseSeeder(ABC, ObjectCreationMixin):
         """Load Data from a file
         Args:
             path (str): Complete file path.
-            type (str): Type of data to load.
+            type (str, optional): Type of data to load.
                 txt | json
 
         Raises:
@@ -397,7 +404,7 @@ class BaseSeeder(ABC, ObjectCreationMixin):
         if not path:
             raise SeederException("`path` is required to load a file.")
 
-        if not os.path.exists():
+        if not os.path.exists(path):
             raise SeederException(f"File not found at {path}")
 
         if file_type not in ["txt", "json"]:
@@ -489,25 +496,60 @@ class BaseSeeder(ABC, ObjectCreationMixin):
 
         Override for seeder specific tenant switching.
         """
+        return get_public_schema_name()
+    
+    def validate_schema(self, schema_name: str) -> str:
+        """Validate's if the schema is a valid schema or not.
+        
+        Args:
+            schema_name (str): Schema to validate
+        
+        Returns:
+            schema_name (str): Validated schema
+        
+        Raises:
+            SeederException
+        """
+        if schema_name == get_public_schema_name():
+            return True
 
-        return "public"
+        try:
+            return OrganizationTenant.objects.get(schema_name).schema_name
+        except OrganizationTenant.DoesNotExist as e:
+            raise SeederException("Schema is not available yet, create it first to run the seeder") from e
 
+    def pre_run_validations(self, *args, **kwargs):
+        """Pre Validation hooks for seed.run"""
+        schema_name = self.run_in_schema()
+        self.validate_schema(schema_name)
+
+        return schema_name
+    
     def run(self, *args, **kwargs):
         """Main caller for each seeder, stays in base, rarely overriden"""
         LOGGER.info("[%s] Running Seeder...", self.label)
 
         try:
-            schema_name = self.run_in_schema()
+            schema_name = self.pre_run_validations()
+
+            if not schema_name:
+                raise SeederException("Schema not found...")
+
             with schema_context(schema_name):
                 with transaction.atomic():  # Atomicity
                     # Idempotency, inside the seed (to be taken care of always).
                     self.seed(args, kwargs)
 
+                self.post_run_validations()
         except Exception as e:
             LOGGER.error("[%s] Seeder run failed.", self.label)
             raise SeederException(str(e)) from e
 
         LOGGER.info("[%s] Seeder ran successfully.", self.label)
+    
+    def post_run_validations(self, *args, **kwargs):
+        """Pre Validation hooks for seed.run"""
+        pass
 
     @staticmethod
     def filter_model_fields(
@@ -561,41 +603,6 @@ class BaseSeeder(ABC, ObjectCreationMixin):
             field (str): Name of the field.
             resolved_fields (dict): field_map for resolved fields.
         """
-        content = self.load_file()
+        content = self.load_file(val)
         resolved_fields[field] = content
-
-    def get_unique_fields(self, model_name: str) -> list:
-        """Get unique keys for the model,
-        We provide freedom to define unique keys that can be set in data so that object creation remains idempotent
-        These are generally fields that are not unique on database level.
-
-        Args:
-            model_name (str): models.Model for which unique fields are to be fetched.
-
-        Returns:
-            list of unique fields to fetch model instance.
-        """
-        unique_keys = self.seed_data.get(f"{model_name}_UNIQUE_KEYS")
-
-        if not unique_keys and hasattr(self, f"{model_name}_UNIQUE_KEYS"):
-            unique_keys = getattr(self, f"{model_name}_UNIQUE_KEYS")
-
-        if not unique_keys:
-            LOGGER.warning(f"Unique keys not define for model: {model_name}, not ideal.")
-        elif not isinstance(unique_keys, (list, tuple)):
-            raise SeederException(
-                f"Invalid unique keys attribute: {f"{model_name}_UNIQUE_KEYS"} type: {type(unique_keys)}"
-            )
-
-        return unique_keys
-
-    def classify_fields(self, model_name: typing.Union[str, typing.Any], filtered_fields: str) -> tuple[dict, dict]:
-        """Classify into defaults and uniques"""
-        if not isinstance(model_name, str):
-            model_name = model_name.__name__
-
-        unique_keys = self.get_unique_fields(model_name)
-        uniques = {k: v for k, v in filtered_fields.items() if k in unique_keys}
-        defaults = {k: v for k, v in filtered_fields.items() if k not in unique_keys}
-
-        return uniques, defaults
+        return resolved_fields
