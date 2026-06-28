@@ -2,13 +2,17 @@ from unittest.mock import patch
 import pytest
 
 from django.contrib.auth.models import Group, User
+from django.core.cache import cache
+
 from apps.customer_management.models import Customer, CustomerAddress
 from apps.setup.local_setup.seeders.base_seeder import ObjectCreationMixin, ObjectCreationException
 from apps.setup.models import Configurations
+from tests.factories import OrganizationTenantFactory, ConfigurationsFactory
 
 
 class DummyObjectCreation(ObjectCreationMixin):
     """A concrete class to instantiate ObjectCreationMixin for testing."""
+
     pass
 
 
@@ -86,7 +90,7 @@ class TestObjectCreationMixin:
     @pytest.mark.django_db
     def test_init_obj__existing_pk__returns_existing_instance(self):
         """init_obj should retrieve and return existing object if pk exists in DB."""
-        config = Configurations.objects.create(interface_type="test_interface", details={"foo": "bar"})
+        config = ConfigurationsFactory(interface_type="test_interface", details={"foo": "bar"})
         instance = self.mixin.init_obj(Configurations, {"pk": config.pk})
         assert isinstance(instance, Configurations)
         assert instance.pk == config.pk
@@ -96,27 +100,67 @@ class TestObjectCreationMixin:
     def test_init_obj__non_existent_pk__returns_new_instance(self):
         """init_obj should return a new instance if pk is provided but not found in DB."""
         import uuid
+
         instance = self.mixin.init_obj(Configurations, {"pk": uuid.uuid4()})
         assert isinstance(instance, Configurations)
         assert instance._state.adding is True
+
+    @pytest.mark.django_db
+    def test_init_obj__unique_fields_in_data__returns_existing_instance(self):
+        """init_obj should retrieve and return existing object if unique fields in data match a DB record."""
+        config = ConfigurationsFactory(interface_type="unique_interface_data", details={"foo": "bar"})
+
+        data = {"interface_type": "unique_interface_data", "Configurations__UNIQUE_FIELDS": ["interface_type"]}
+        instance = self.mixin.init_obj(Configurations, data)
+        assert isinstance(instance, Configurations)
+        assert instance.pk == config.pk
+        assert instance._state.adding is False
+
+    @pytest.mark.django_db
+    def test_init_obj__unique_fields_in_mixin_defaults__returns_existing_instance(self):
+        """init_obj should retrieve and return existing object using default unique fields from mixin."""
+        config = ConfigurationsFactory(interface_type="unique_interface_data", details={"test": "data"})
+
+        data = {"interface_type": "unique_interface_data"}
+        instance = self.mixin.init_obj(Configurations, data)
+        assert isinstance(instance, Configurations)
+        assert instance.pk == config.pk
+        assert instance._state.adding is False
+
+    @pytest.mark.django_db
+    def test_init_obj__unique_fields_not_found__returns_new_instance(self):
+        """init_obj should return a new instance if unique fields are specified but no match exists in DB."""
+        data = {"interface_type": "non_existent_interface", "Configurations__UNIQUE_FIELDS": ["interface_type"]}
+        instance = self.mixin.init_obj(Configurations, data)
+        assert isinstance(instance, Configurations)
+        assert instance._state.adding is True
+
+    @pytest.mark.django_db
+    def test_init_obj__unique_fields_ignored_if_pk_exists(self):
+        """init_obj should prioritize lookup by pk if both pk and unique fields are provided."""
+        config1 = ConfigurationsFactory(interface_type="interface1", details={"foo": "bar"})
+        config2 = ConfigurationsFactory(interface_type="interface2", details={"foo": "baz"})
+
+        data = {"pk": config1.pk, "interface_type": "interface2", "Configurations__UNIQUE_FIELDS": ["interface_type"]}
+        instance = self.mixin.init_obj(Configurations, data)
+        assert isinstance(instance, Configurations)
+        assert instance.pk == config1.pk
+        assert instance._state.adding is False
 
     # --- Full Workflow Tests ---
 
     @pytest.mark.django_db
     def test_create_object__happy_path_single__creates_db_record(self):
         """Verify workflow of creating a single object without relations."""
-        data = {
-            "interface_type": "single_test_interface",
-            "details": {"channels": ["email"]}
-        }
+        data = {"interface_type": "single_test_interface", "details": {"channels": ["email"]}}
         res = self.mixin.create_object(kls=Configurations, data=data)
-        
+
         # Verify returned object
         assert isinstance(res, Configurations)
         assert res.pk is not None
         assert res.interface_type == "single_test_interface"
         assert res.details == {"channels": ["email"]}
-        
+
         # Verify DB persistence
         config = Configurations.objects.get(pk=res.pk)
         assert config.interface_type == "single_test_interface"
@@ -124,19 +168,22 @@ class TestObjectCreationMixin:
     @pytest.mark.django_db
     def test_create_object__happy_path_list__creates_multiple_records(self):
         """Verify workflow of creating multiple objects from a list."""
+        Configurations._base_manager.all().delete()
+        cache.clear()
+
         data_list = [
             {"interface_type": "list_test_interface", "details": {"c": 1}},
-            {"interface_type": "list_test_interface", "details": {"c": 2}}
+            {"interface_type": "list_test_interface_2", "details": {"c": 2}},
         ]
         res = self.mixin.create_object(kls=Configurations, data=data_list)
-        
+
         assert isinstance(res, list)
         assert len(res) == 2
         assert all(isinstance(obj, Configurations) for obj in res)
         assert res[0].details == {"c": 1}
         assert res[1].details == {"c": 2}
-        
-        assert Configurations.objects.filter(interface_type="list_test_interface").count() == 2
+
+        assert Configurations.objects.all().count() == 2
 
     @pytest.mark.django_db
     def test_create_object__with_forward_foreign_key_relation(self):
@@ -144,18 +191,14 @@ class TestObjectCreationMixin:
         data = {
             "address_line_1": "456 Oak Ave",
             "city": "Metropolis",
-            "customer": {
-                "name": "Bruce Wayne",
-                "email": "bruce@wayne.corp",
-                "customer_type": "private"
-            }
+            "customer": {"name": "Bruce Wayne", "email": "bruce@wayne.corp", "customer_type": "private"},
         }
         addr = self.mixin.create_object(kls=CustomerAddress, data=data)
-        
+
         assert isinstance(addr, CustomerAddress)
         assert addr.pk is not None
         assert addr.address_line_1 == "456 Oak Ave"
-        
+
         # Verify customer was created
         customer = addr.customer
         assert isinstance(customer, Customer)
@@ -171,22 +214,16 @@ class TestObjectCreationMixin:
             "email": "clark@dailyplanet.com",
             "customer_type": "private",
             "customer_addresses": [
-                {
-                    "address_line_1": "123 Metropolis St",
-                    "is_primary": True
-                },
-                {
-                    "address_line_1": "456 Smallville Rd",
-                    "is_primary": False
-                }
-            ]
+                {"address_line_1": "123 Metropolis St", "is_primary": True},
+                {"address_line_1": "456 Smallville Rd", "is_primary": False},
+            ],
         }
         cust = self.mixin.create_object(kls=Customer, data=data)
-        
+
         assert isinstance(cust, Customer)
         assert cust.pk is not None
         assert cust.name == "Clark Kent"
-        
+
         # Verify addresses were created and attached
         addresses = list(cust.customer_addresses.all())
         assert len(addresses) == 2
@@ -201,20 +238,16 @@ class TestObjectCreationMixin:
         # Create standard Group objects
         group1 = Group.objects.create(name="AdminGroup")
         group2 = Group.objects.create(name="UserGroup")
-        
+
         # We can seed a User with many-to-many groups.
-        data = {
-            "username": "superman",
-            "email": "superman@dc.com",
-            "groups": [group1.pk, group2.pk]
-        }
-        
+        data = {"username": "superman", "email": "superman@dc.com", "groups": [group1.pk, group2.pk]}
+
         user = self.mixin.create_object(kls=User, data=data)
-        
+
         assert isinstance(user, User)
         assert user.pk is not None
         assert user.username == "superman"
-        
+
         # Verify many-to-many associations
         groups = list(user.groups.all())
         assert len(groups) == 2
@@ -227,21 +260,18 @@ class TestObjectCreationMixin:
         data = {
             "username": "batman",
             "email": "batman@dc.com",
-            "groups": [
-                {"name": "JusticeLeague"},
-                {"name": "BatFamily"}
-            ]
+            "groups": [{"name": "JusticeLeague"}, {"name": "BatFamily"}],
         }
-        
+
         user = self.mixin.create_object(kls=User, data=data)
-        
+
         assert isinstance(user, User)
         groups = list(user.groups.all())
         assert len(groups) == 2
         names = [g.name for g in groups]
         assert "JusticeLeague" in names
         assert "BatFamily" in names
-        
+
         # Verify DB records
         assert Group.objects.filter(name="JusticeLeague").exists()
         assert Group.objects.filter(name="BatFamily").exists()
@@ -254,24 +284,21 @@ class TestObjectCreationMixin:
             "email": "aquaman@atlantis.gov",
             "customer_type": "private",
             "customer_addresses": [
-                {
-                    "address_line_1": "Atlantis Palace",
-                    "is_primary": True
-                },
+                {"address_line_1": "Atlantis Palace", "is_primary": True},
                 {
                     "address_line_1": "Palace Gates",
                     "is_primary": False,
-                    "postal_code": "this-is-not-an-integer"  # Trigger database DataError
-                }
-            ]
+                    "postal_code": "this-is-not-an-integer",  # Trigger database DataError
+                },
+            ],
         }
-        
+
         # Before running, verify counts
         assert Customer.objects.filter(email="aquaman@atlantis.gov").count() == 0
-        
+
         with pytest.raises(ObjectCreationException):
             self.mixin.create_object(kls=Customer, data=data)
-            
+
         # Verify that customer creation was rolled back completely
         assert Customer.objects.filter(email="aquaman@atlantis.gov").count() == 0
         assert CustomerAddress.objects.filter(address_line_1="Atlantis Palace").count() == 0

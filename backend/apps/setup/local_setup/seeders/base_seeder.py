@@ -33,6 +33,12 @@ class ObjectCreationMixin:
     _model: models.Model
     _model_data: dict
     _default_database = "default"
+    _model_wise_unique_fields = {
+        "OrganizationTenant": ["schema_name"],
+        "OrganizationDomain": ["domain"],
+        "OrganizationBranding": ["organization__schema_name"],
+        "Configurations": ["interface_type"]
+    }
 
     @property
     def model(self) -> typing.Optional[models.Model]:
@@ -88,6 +94,25 @@ class ObjectCreationMixin:
             data = self.load_data_from_file(data).get(self.model.__name__)
 
         self._model_data = data
+    
+    def get_unique_fields(self, kls: type[models.Model], data: dict = None) -> dict:
+        """Get unique fields which prevent de-duped object creation,
+        if the data from those fields match the data in current json, we don't create new object
+        """
+        field_names = data.get(f"{kls.__name__}__UNIQUE_FIELDS")
+        if not field_names:
+            field_names = self._model_wise_unique_fields.get(kls.__name__, None)
+        
+        if not field_names:
+            return None
+
+        field_map = {}
+        for field_name in field_names:
+            val = data.get(field_name)
+            if val is not None:
+                field_map[field_name] = val
+
+        return field_map
 
     def init_obj(self, kls: models.Model, data: dict = None) -> models.Model:
         """Initialize an in-memory object
@@ -99,14 +124,18 @@ class ObjectCreationMixin:
         Returns:
             instance (object): In-memory object of given kls class.
         """
-        pk = data.get("pk") or data.get("id")
-
-        if not pk:
+        
+        filters = None
+        if (pk := data.get("pk") or data.get("id")):
+            filters = {"pk": pk}
+        elif (unique_field_map := self.get_unique_fields(kls, data)):
+            filters = unique_field_map
+        else:
             return kls()
 
         instance = None
         try:
-            instance = kls.objects.using(self._default_database).get(pk=pk)
+            instance = kls.objects.using(self._default_database).get(**filters)
         except kls.DoesNotExist:
             instance = kls()
 
