@@ -369,6 +369,9 @@ class BaseSeeder(ABC, ObjectCreationMixin):
     DATA_FILES_PATH = "setup/local_setup/data"
     REGISTERY_KEY = ""
 
+    initial = False
+    depends_on = []
+
     @staticmethod
     def correct_file_path(file_path: str):
         """Correct the file path, relative to base, root directory
