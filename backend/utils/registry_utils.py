@@ -1,4 +1,7 @@
-from typing import Any
+import abc
+import typing
+
+RegistryType: typing.TypeAlias = typing.Optional[typing.Union[str, dict]]
 
 
 class AlreadyRegisteredException(Exception):
@@ -13,12 +16,39 @@ class InvalidRegistryKey(Exception):
     pass
 
 
-class ClassRegistry:
+class NotFoundException(Exception):
+    """Raise when a given key is not found in registry."""
+
+    pass
+
+
+class InvalidRegistryException(Exception):
+
+    pass
+
+
+class BaseRegistry(abc.ABC):
+    """Base Implementation of any type of registry"""
+
+    _registry: RegistryType
+
+    @abc.abstractmethod
+    def register(self, *args, **kwargs):
+        """Implementation to register something in registry"""
+        pass
+
+    @abc.abstractmethod
+    def unregister(self, *args, **kwargs):
+        """Implementation to un-register something from registry"""
+        pass
+
+
+class ClassRegistry(BaseRegistry):
 
     def __init__(self):
         self._registry = {}
 
-    def register(self, cls: Any, key: str = None):
+    def register(self, cls: typing.Any, key: str = None):
         """Reigster the class from registry
         Args:
             cls (Any): Class which you want to register.
@@ -65,7 +95,7 @@ class ClassRegistry:
 
         return None
 
-    def get(self, key: str) -> Any:
+    def get(self, key: str) -> typing.Any:
         """
         Get a class corresponding to registry,
         NOTE: Registry only returns a class, object you have to initiate yourself
@@ -86,7 +116,7 @@ class ClassRegistry:
         return self._registry.get(key)
 
 
-class UnorderedClassRegistry:
+class UnorderedClassRegistry(BaseRegistry):
 
     def __init__(self):
         self._registry = set()
@@ -98,7 +128,22 @@ class UnorderedClassRegistry:
 
         return None
 
-    def register(self, kls: Any):
+    def contains(self, name: str, raise_exception: bool = False):
+        """
+        Checks if given name is present in registry
+
+        Args:
+            name (str): Name to check in registry.
+            raise_exception (bool): Raise exception if not found.
+        """
+        for kls in self._registry:
+            if kls.__name__.lower() == name.lower():
+                return True
+
+        if raise_exception:
+            raise NotFoundException(f"{name} not found in registry.")
+
+    def register(self, kls: typing.Any):
         """
         Register a Class to the Registry
 
@@ -111,7 +156,7 @@ class UnorderedClassRegistry:
 
         self._registry.add(kls)
 
-    def unregister(self, kls: Any):
+    def unregister(self, kls: typing.Any):
         """
         Un-Register a Class to the Registry
 
@@ -121,3 +166,36 @@ class UnorderedClassRegistry:
 
         if kls in self._registry:
             self._registry.pop(kls)
+
+
+def auto_register(registry: type[BaseRegistry], *args, **kwargs):
+    """Auto Register you'r classes.
+
+    Args:
+        registry: (RegistryType): Registry in which you want the class to be registered.
+
+    Example Usage:
+        >>> @auto_register(unordered_class_registry)
+        >>> class SomeClasstoRegister(...):
+        >>>     ...
+
+        >>> @auto_register(class_registry, key="some_class")
+        >>> class SomeClasstoRegister(...):
+        >>>     ...
+
+        >>> @auto_register(class_registry, "some_class")
+        >>> class SomeClasstoRegister(...):
+        >>>     ...
+
+    """
+
+    def decorator(cls):
+
+        if not isinstance(registry, BaseRegistry):
+            raise InvalidRegistryException(f"{registry.__class__.__name__} is not a valid registry.")
+
+        registry.register(cls, *args, **kwargs)
+
+        return cls
+
+    return decorator

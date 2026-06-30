@@ -47,7 +47,7 @@ graph TD
     C --> D["Topological Sort <br>(Kahn's Algorithm)"]
     D --> E{"For each Seeder in sorted order..."}
     E --> F{"Check Scope"}
-    
+
     F -- "Scope.PUBLIC" --> G["Activate public schema"]
     G --> H["Check SeederExecutionLog"]
     H -- "Not executed" --> I["BaseSeeder.run() <br>(Loads Strategy Source & runs seed)"]
@@ -130,7 +130,7 @@ class BaseSeeder:
     def run(self, schema_name: str) -> None:
         """The Template Method defining the execution lifecycle skeleton."""
         LOGGER.info("[%s] Seeder started running on schema: %s", self.__class__.__name__, schema_name)
-        
+
         # Verify idempotency log before running
         if self._already_executed(schema_name):
             LOGGER.info("[%s] Already successfully executed on schema: %s. Skipping.", self.__class__.__name__, schema_name)
@@ -138,13 +138,13 @@ class BaseSeeder:
 
         try:
             data = self.data_source.load()
-            
+
             with transaction.atomic():
                 self.seed(data, schema_name)
-                
+
             self._log_execution_status(schema_name, "SUCCESS")
             LOGGER.info("[%s] Seeder completed successfully on schema: %s", self.__class__.__name__, schema_name)
-            
+
         except Exception as e:
             self._log_execution_status(schema_name, "FAILED")
             LOGGER.error("[%s] Seeder failed on schema %s: %s", self.__class__.__name__, schema_name, str(e))
@@ -199,7 +199,7 @@ def topological_sort(seeders: list[type[BaseSeeder]]) -> list[type[BaseSeeder]]:
 ---
 
 ### 4.4 Scope Definition
-**Problem**: Some seeders operate platform-wide (e.g., creating the tenants themselves), while others populate tables local to each tenant's schema context. 
+**Problem**: Some seeders operate platform-wide (e.g., creating the tenants themselves), while others populate tables local to each tenant's schema context.
 
 **Solution**: Declare scope as a first-class property inside the base class.
 
@@ -215,10 +215,10 @@ from django_tenants.utils import schema_context
 
 def run_seeder_pipeline():
     sorted_seeders = topological_sort(SEEDER_PIPELINE)
-    
+
     for seeder_cls in sorted_seeders:
         seeder = seeder_cls()
-        
+
         if seeder.scope == Scope.PUBLIC:
             with schema_context("public"):
                 seeder.run("public")

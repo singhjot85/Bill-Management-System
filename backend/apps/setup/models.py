@@ -4,7 +4,20 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, models
 
 from apps.setup.constants import ConfigurationInterfaceChoices
-from utils.model_utils import VersionedBetterModelMixin
+from utils.model_utils import BetterModelMixin, VersionedBetterModelMixin
+
+
+class SeederExecutionLog(BetterModelMixin):
+    seeder_name = models.CharField(max_length=255)
+    schema_name = models.CharField(max_length=255)
+    status = models.CharField(max_length=50)  # SUCCESS, FAILED
+
+    class Meta:
+        db_table = "seeder_execution_log"
+        unique_together = ("seeder_name", "schema_name")
+
+    def __str__(self):
+        return f"{self.seeder_name} on {self.schema_name} ({self.status})"
 
 
 class Configurations(VersionedBetterModelMixin):
