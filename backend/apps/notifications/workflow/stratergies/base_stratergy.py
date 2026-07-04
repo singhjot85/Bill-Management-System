@@ -28,11 +28,37 @@ class BaseStratergy(ABC):
     label: str = ""
     _instructions: "ChannelInstruction" = None
 
-    def __init__(self, *args, **kwargs) -> None:
-        self._instructions = self.reconstruct_instructions(*args, **kwargs)
+    @staticmethod
+    def reconstruct_instructions(*args, **kwargs) -> "ChannelInstruction":
+        """
+        Reconstruct ChannelInstruction back from the provided json data
+
+        Args:
+            *args (type): Description.
+            **kwargs (type): Keyword arguments from celery-task directly.
+        """
+        channel_type = kwargs.get("channel_type")
+        resolver: "BaseResolver" = resolver_registry.get(key=channel_type)
+        if not resolver:
+            raise NotificationStrategyException(f"Cannot find a resolver for channel: {channel_type}")
+
+        if hasattr(resolver, "_get_instruction_dataclass"):
+            instruction_cls = resolver._get_instruction_dataclass()
+            filtered_fields = {k: v for k, v in kwargs.items() if k in instruction_cls.__dataclass_fields__.keys()}
+
+            return instruction_cls(**filtered_fields)
+
+        raise NotificationStrategyException(f"Unable to re_construct instructions from given kwargs: {kwargs}")
+
+    def __init__(self, instructions: "ChannelInstruction", *args, **kwargs) -> None:
+
+        self._instructions = instructions
+
+        if not self._instructions:
+            raise NotificationStrategyException(f"Unable to re_construct instructions from given kwargs: {kwargs}")
 
     @property
-    def associated_party(self) -> typing.Optional[typing.Union["User", "Customer"]]:
+    def associated_party(self) -> typing.Optional[typing.Union["UserModel", "Customer"]]:
         """
         Fetch associated party from databse or object cache
 
@@ -75,28 +101,6 @@ class BaseStratergy(ABC):
 
         return self._associated_party
 
-    def reconstruct_instructions(self, *args, **kwargs) -> "ChannelInstruction":
-        """
-        Reconstruct ChannelInstruction back from the provided json data
-
-        Args:
-            *args (type): Description.
-            **kwargs (type): Keyword arguments from celery-task directly.
-        """
-        from dataclasses import fields
-
-        def filter_kwargs(data_cls):
-            field_names = {f.name for f in fields(data_cls)}
-            return {k: v for k, v in kwargs.items() if k in field_names}
-
-        channel_type = kwargs.get("channel_type")
-        resolver: "BaseResolver" = resolver_registry.get(key=channel_type)
-        if hasattr(resolver, "_get_instruction_dataclass"):
-            instruction_cls = resolver._get_instruction_dataclass(None)
-            return instruction_cls(**filter_kwargs(instruction_cls))
-
-        return ChannelInstruction(**kwargs)
-
     @abstractmethod
     def _send(self, *args, **kwargs):
         """Actual send logic belongs here, this can be overriden in each subclass."""
@@ -121,7 +125,7 @@ class BaseStratergy(ABC):
         LOGGER.info("Sending %s notification...", self.label)
 
         try:
-            self._send(args, kwargs)
+            self._send(*args, **kwargs)
         except Exception as ex:
             LOGGER.error("Error in sending %s", self.label, exc_info=ex)
             if raise_on_exception:

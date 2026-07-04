@@ -10,11 +10,7 @@ from apps.notifications.constants import (
     LogStatusChoices,
     NotificationTemplateChoices,
 )
-from utils.model_utils import (
-    BetterModelMixin,
-    VersionedBetterModelMixin,
-    VersionedSafeModelMixin,
-)
+from utils.model_utils import BetterModelMixin, VersionedBetterModelMixin
 
 User = get_user_model()
 
@@ -36,7 +32,7 @@ class NotificationTemplate(VersionedBetterModelMixin):
     html = models.TextField(null=True, blank=True)
 
 
-class NotificationLog(VersionedSafeModelMixin):
+class NotificationLog(BetterModelMixin):
     """Tracks the history and status of all sent notifications.
     The log is used in two places: During Event creation(at dipatcher),
     and during actual implementation flow(during network IO).
@@ -65,10 +61,10 @@ class NotificationPreferences(BetterModelMixin):
     """Store user level prefernce's for notifications."""
 
     user = models.ForeignKey(
-        to=User, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False
+        to=User, on_delete=models.PROTECT, related_name="notification_preferences", null=True, blank=True
     )
     customer = models.ForeignKey(
-        to=Customer, on_delete=models.PROTECT, related_name="notification_preferences", null=False, blank=False
+        to=Customer, on_delete=models.PROTECT, related_name="notification_preferences", null=True, blank=True
     )
     event_type = models.CharField(max_length=124, choices=EventTypeChoices.choices, null=False, blank=False)
 

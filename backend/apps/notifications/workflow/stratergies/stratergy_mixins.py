@@ -28,8 +28,8 @@ class TemplateHelperMixin:
 
     @property
     def template(self) -> "NotificationTemplate":
-        if hasattr(self, "_template_object"):
-            return self._template_object
+        if hasattr(self, "_template_object") and (_template_object := getattr(self, "_template_object")):
+            return _template_object
 
         return self.fetch_template()
 
@@ -55,6 +55,11 @@ class TemplateHelperMixin:
             template_name=self._instructions.template_name,
             channel=self._instructions.channel_type,
         ).first()
+
+        if not self._template_object:
+            raise TemplateHelperException(
+                f"Template not found for >>> template_name: {self._instructions.template_name}, channel: {self._instructions.channel_type}"
+            )
 
         return self._template_object
 
@@ -101,7 +106,7 @@ class TemplateHelperMixin:
         Returns:
             str: Rendered Template.
         """
-        return self._render(data, string, self.SUBJECT_FIELD, args, kwargs)
+        return self._render(data, string, self.SUBJECT_FIELD, *args, **kwargs)
 
     def subject_post_render_hook(self, rendered: str, *args, **kwargs) -> str:
         """Hook to be executed after the rendering logic.
@@ -151,7 +156,7 @@ class TemplateHelperMixin:
         Returns:
             str: Rendered Template.
         """
-        return self._render(data, string, self.HTML_FIELD, args, kwargs)
+        return self._render(data, string, self.HTML_FIELD, *args, **kwargs)
 
     def html_post_render_hook(self, rendered: str, *args, **kwargs) -> str:
         """Hook to be executed after the rendering logic.
@@ -202,7 +207,7 @@ class TemplateHelperMixin:
         Returns:
             str: Rendered Template.
         """
-        return self._render(data, string, self.PLAIN_TEXT_FIELD, args, kwargs)
+        return self._render(data, string, self.PLAIN_TEXT_FIELD, *args, **kwargs)
 
     def plain_text_post_render_hook(self, rendered: str, *args, **kwargs) -> str:
         """Hook to be executed after the rendering logic.

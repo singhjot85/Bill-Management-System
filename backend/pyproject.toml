@@ -30,6 +30,7 @@ dependencies = [
     "factory-boy (>=3.3.3,<4.0.0)",
     "django-constance (>=4.3.5,<5.0.0)",
     "django-redis (>=7.0.0,<8.0.0)",
+    "debugpy (>=1.8.21,<2.0.0)",
 ]
 
 

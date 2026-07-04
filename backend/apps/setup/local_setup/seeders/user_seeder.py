@@ -1,8 +1,13 @@
+import typing
+
 from django.contrib.auth import get_user_model
 
 from .base_seeder import BaseSeeder
 
-User = get_user_model()  # noqa F811
+User = get_user_model()
+
+if typing.TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractUser
 
 
 class UserSeeder(BaseSeeder):
@@ -19,3 +24,14 @@ class UserSeeder(BaseSeeder):
     def seed(self, *args, **kwargs):
         user_data: list[dict] = self.seed_data.get("Users")
         self.create_object(User, user_data)
+
+    def setter_password(self, model_instance: "AbstractUser", field_name: str, value: typing.Any) -> None:
+        """Setter for password field for user password, to convert password into a hash we'll use set_password
+
+        Args:
+            model_instance (models.Model): Current object under execution.
+            field_name (str): Name of the field.
+            value (Any): Data for that field from entire data object.
+        """
+        if field_name == "password":
+            model_instance.set_password(value)

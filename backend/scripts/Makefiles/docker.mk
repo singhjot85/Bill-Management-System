@@ -1,6 +1,7 @@
 # Default variable values, will be overriden in main project Markdown
 BASE_COMPOSE_CMD:=docker compose -f ../compose/compose.local.yaml
-DJANGO_CONTAINER_CMD:=&& docker compose -f ../compose/compose.local.yaml run --rm django
+DJANGO_CONTAINER_CMD:=docker compose -f ../compose/compose.local.yaml run --rm django
+DEBUGPY_COMPOSE_CMD:=docker compose -f ${COMPOSE_PATH}
 
 TEST_DIR:=tests/
 TEST_FILTER:=""
@@ -15,7 +16,7 @@ make_migrations:=false
 #####################################
 
 
-.PHONY: build, rebuild, clean, cbr, run, run-d
+.PHONY: build, rebuild, clean, cbr, run, run-d, vscode-debug, db-destroy
 # -----
 # Builds, Destroys, Runs
 # -----
@@ -55,8 +56,16 @@ docker-detached-run:
 	${BASE_COMPOSE_CMD} up -d
 run-d: docker-detached-run
 
+docker-debugpy-vscode-debug:
+	@echo "⌛ Running containers and attaching debugpy..."
+	${DEBUGPY_COMPOSE_CMD} up --remove-orphans
+vscode-debug: docker-debugpy-vscode-debug
 
-.PHONY: mm, m, mme, bash, s, sp, ts, tsp
+docker-destroy-database:
+	${BASE_COMPOSE_CMD} down --volumes
+db-destroy: docker-destroy-database
+
+.PHONY: mm, m, mme, bash, s, sp, ts, tsp, tsd
 # -----
 # Migrations and Shells
 # -----
@@ -98,54 +107,55 @@ docker-django-shell-plus:
 	${DJANGO_CONTAINER_CMD} python manage.py shell_plus --ipython
 sp: docker-django-shell-plus
 
-docker-django-shell-plus:
-	@echo "⌛ Launching Django shell-plus..."
+docker-django-tenants-shell-plus:
+	@echo "⌛ Launching Django tenants shell-plus..."
 	${DJANGO_CONTAINER_CMD} python manage.py tenant_command shell_plus --ipython
-tsp: docker-django-shell-plus
+tsp: docker-django-tenants-shell-plus
+
+docker-django-tenants-shell-debug:
+	@echo "⌛ Launching Django tenants shell (debug mode)..."
+	${BASE_COMPOSE_CMD} run -p 2255:5678 --rm django python -m debugpy --listen 0.0.0.0:5678 manage.py tenant_command shell -v 3
+tsd: docker-django-tenants-shell-debug
 
 
-.PHONY: clean-light-setup, setup, dev-setup, db-reset, run-seeder, clean-setup
+.PHONY: clean-light-setup, setup, dev-setup, db-reset, db-reset-light, run-seeder, clean-setup
 # -----
 # Setup and Resets
 # -----
 
-docker-clean-light-setup:
-	make clean
-	make build
+docker-dev-setup:
+	make m
 	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
 	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
-	make run
-clean-light-setup: docker-clean-light-setup
-
-docker-clean-setup:
-	make clean
-	make build
-	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
-clean-setup: docker-clean-setup
+dev-setup: docker-dev-setup
 
 docker-run-seeder:
 	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
 run-seeder: docker-run-seeder
 
-docker-clean-local-setup-fast:
-	${BASE_COMPOSE_CMD} down
+docker-db-reset-light:
+	make db-destroy
+	make dev-setup
+db-reset-light: docker-db-reset-light
+
+docker-db-reset:
+	make db-destroy
+	make run-seeder
+db-reset: docker-db-reset
+
+docker-clean-setup:
+	make clean
 	make build
-	make m
-	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
-	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
+	make run-seeder
 	make run
-setup: docker-clean-local-setup-fast
+clean-setup: docker-clean-setup
 
-docker-dev-setup:
-	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_tenants
-	make m
-	${DJANGO_CONTAINER_CMD} python manage.py bootstrap_users
-dev-setup: docker-dev-setup
-
-docker-local-db-reset:
-	${BASE_COMPOSE_CMD} down --volumes
-	if [ "${make_migrations}" = "true" ]; then make mm; fi
-db-reset: docker-local-db-reset
+docker-clean-light-setup:
+	make clean
+	make build
+	make dev-setup
+	make run
+clean-light-setup: docker-clean-light-setup
 
 
 .PHONY: t, tf, docker-service-state-check,

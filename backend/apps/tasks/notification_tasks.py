@@ -3,7 +3,10 @@ import typing
 
 from celery import shared_task
 
-from apps.notifications.workflow.stratergies import notification_stratergy_registry
+from apps.notifications.workflow.stratergies import (
+    NotificationStrategyException,
+    notification_stratergy_registry,
+)
 
 LOGGER = logging.getLogger()
 
@@ -18,5 +21,12 @@ def notification_task(*args, **kwargs):
     It's just placeholder all the logic is in workflow services.
     """
     manager_key = kwargs.get("channel_type", None)
-    manager: "BaseStratergy" = notification_stratergy_registry.get(manager_key)(*args, **kwargs)
-    manager.send()
+    NotificationStatergy: type["BaseStratergy"] = notification_stratergy_registry.get(manager_key)
+
+    if not NotificationStatergy:
+        raise NotificationStrategyException(f"Cannot find NotificationStatergy for channel: {manager_key}")
+
+    instructions = NotificationStatergy.reconstruct_instructions(*args, **kwargs)
+
+    stratergy: "BaseStratergy" = NotificationStatergy(instructions, *args, **kwargs)
+    stratergy.send()

@@ -6,11 +6,7 @@ from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connectio
 
 from apps.notifications.constants import ChannelTypeChoices
 from apps.notifications.exceptions import NotificationStratergyException
-from apps.notifications.workflow.stratergies import (
-    BaseStratergy,
-    TemplateHelperMixin,
-    notification_stratergy_registry,
-)
+from apps.notifications.workflow.stratergies import BaseStratergy, TemplateHelperMixin
 from config.settings.constances import ConstanceFields
 from config.settings.constants import DJANGO_SMTP_BACKEND
 
@@ -64,9 +60,9 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
         Returns:
             "EmailMultiAlternatives": Description.
         """
-        subject = self.render_subject(self._instructions.context_data, args, kwargs)
-        plain_text = self.render_plain_text(self._instructions.context_data, args, kwargs)
-        html = self.render_html(self._instructions.context_data, args, kwargs)
+        subject = self.render_subject(self._instructions.context_data, *args, **kwargs)
+        plain_text = self.render_plain_text(self._instructions.context_data, *args, **kwargs)
+        html = self.render_html(self._instructions.context_data, *args, **kwargs)
 
         message = EmailMultiAlternatives(
             connection=self.get_connection,
@@ -86,8 +82,8 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
             *args (type): Description.
             **kwargs (type): Description.
         """
-        subject = self.render_subject(self._instructions.context_data, args, kwargs)
-        plain_text = self.render_plain_text(self._instructions.context_data, args, kwargs)
+        subject = self.render_subject(self._instructions.context_data, *args, **kwargs)
+        plain_text = self.render_plain_text(self._instructions.context_data, *args, **kwargs)
 
         return EmailMessage(
             connection=self.get_connection,
@@ -116,6 +112,3 @@ class EmailStratergy(BaseStratergy, TemplateHelperMixin):
             raise NotificationStratergyException("Unable to build a email message from given instructions.")
 
         message.send()
-
-
-notification_stratergy_registry.register(EmailStratergy)

@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from uuid import UUID
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ImproperlyConfigured
 
 from apps.customer_management.models import Customer
 from apps.notifications.constants import (
@@ -22,6 +23,8 @@ if typing.TYPE_CHECKING:
 
 User = get_user_model()
 
+resolver_registry = ClassRegistry()
+
 
 @dataclass
 class ChannelInstruction:
@@ -35,7 +38,7 @@ class ChannelInstruction:
         if not id:
             return
 
-        if isinstance(id, int):
+        if isinstance(id, (int, UUID)):
             return
 
         if isinstance(id, str):
@@ -174,7 +177,7 @@ class ResolverFactory:
 
         tenant_pref = config.details.get("tenant_preferences")
         if not tenant_pref:
-            raise NotificationResolverException("Tenant Preferences not found for current tenant.")
+            raise ImproperlyConfigured("Tenant Preferences not found for current tenant.")
 
         self._tenant_pref = tenant_pref
 
@@ -198,6 +201,9 @@ class ResolverFactory:
         instructions = []
         for channel_type in self.preferences:
             resolver: "BaseResolver" = resolver_registry.get(key=channel_type)
+            if not resolver:
+                raise NotificationResolverException(f"Cannot find any resolver for: {resolver}")
+
             instruction: "ChannelInstruction" = resolver(self._event, channel_type).resolve()
             instructions.append(instruction)
 
@@ -215,8 +221,9 @@ class BaseResolver(abc.ABC):
         self._event = event
         self._channel_type = channel_type
 
+    @classmethod
     @abc.abstractmethod
-    def _get_instruction_dataclass(self, *args, **kwargs) -> "ChannelInstruction":
+    def _get_instruction_dataclass(cls, *args, **kwargs) -> "ChannelInstruction":
         """
         Getter for Instruction Dataclass, should return a `ChannelInstruction` subclass
         Override in implementation for channel specific logic
@@ -252,9 +259,6 @@ class BaseResolver(abc.ABC):
         The actual method that gets called when resolving instructions for dispatcher
         The flow remains consistent, but the implemenration might differ channel to ch
         """
-        channel_instruction: "ChannelInstruction" = self._get_instruction_dataclass(args, kwargs)
-        data: dict = self._get_dataclass_data(args, kwargs)
+        channel_instruction: "ChannelInstruction" = self._get_instruction_dataclass(*args, **kwargs)
+        data: dict = self._get_dataclass_data(*args, **kwargs)
         return channel_instruction(**data)
-
-
-resolver_registry = ClassRegistry()

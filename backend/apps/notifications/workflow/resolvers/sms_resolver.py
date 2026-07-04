@@ -2,11 +2,7 @@ from dataclasses import dataclass
 
 from apps.notifications.constants import ChannelTypeChoices, NotificationTemplateChoices
 from apps.notifications.exceptions import NotificationResolverException
-from apps.notifications.workflow.resolvers import (
-    BaseResolver,
-    ChannelInstruction,
-    resolver_registry,
-)
+from apps.notifications.workflow.resolvers import BaseResolver, ChannelInstruction
 
 
 @dataclass
@@ -31,7 +27,8 @@ class SMSResolver(BaseResolver):
     _channel_type = ChannelTypeChoices.SMS.value
     REGISTERY_KEY = _channel_type
 
-    def _get_instruction_dataclass(self, *args, **kwargs):
+    @classmethod
+    def _get_instruction_dataclass(cls, *args, **kwargs):
         """Instuctions Dataclass for sms channel"""
         return SmsInstructions
 
@@ -43,6 +40,3 @@ class SMSResolver(BaseResolver):
         data = super()._get_dataclass_data(*args, **kwargs)
         data.update({"template_name": self._event.data.get("template_name")})
         return data
-
-
-resolver_registry.register(SMSResolver)

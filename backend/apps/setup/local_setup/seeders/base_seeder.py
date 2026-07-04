@@ -166,7 +166,23 @@ class ObjectCreationMixin:
 
         return instance
 
-    def _create_object(self, kls: models.Model = None, data: dict = None) -> models.Model:
+    def _set_field_attr(self, model_instance: models.Model, field_name: str, value: typing.Any) -> None:
+        """
+        Some fields like User.password, file_fields shouldn't be set directly using setattr
+        They need their own seperate logic, this method gives us freedom for that
+
+        Args:
+            model_instance (models.Model): Current object under execution.
+            field_name (str): Name of the field.
+            value (Any): Data for that field from entire data object.
+        """
+        method_name = f"setter_{field_name}"
+        if hasattr(self, method_name):
+            return getattr(self, method_name)(model_instance, field_name, value)
+
+        setattr(model_instance, field_name, value)
+
+    def _create_object(self, kls: type[models.Model] = None, data: dict = None) -> models.Model:
         """This method create(s) one object at a time from given data and class.
 
         Args:
@@ -199,8 +215,8 @@ class ObjectCreationMixin:
 
             # Non-relation fields are set diectly
             if not field.is_relation:
-                setattr(instance, field.name, data.get(field.name))
-                continue
+                # setattr(instance, field.name, data.get(field.name))
+                self._set_field_attr(instance, field.name, data.get(field.name))
 
             # forawrd relation's i.e. whose FK.id lives in model's table, is also saved directly
             if field.many_to_one or field.one_to_one:
@@ -234,7 +250,8 @@ class ObjectCreationMixin:
 
             for item in items:
                 if isinstance(item, models.Model):
-                    setattr(item, fk_field_name, instance)
+                    # setattr(item, fk_field_name, instance)
+                    self._set_field_attr(item, fk_field_name, instance)
                     instance.save(using=self._default_database)
 
                 elif isinstance(item, dict):
@@ -243,7 +260,8 @@ class ObjectCreationMixin:
 
                 elif isinstance(item, (int, str)):
                     obj = related_model.objects.using(self._default_database).get(pk=item)
-                    setattr(obj, fk_field_name, instance)
+                    # setattr(obj, fk_field_name, instance)
+                    self._set_field_attr(obj, fk_field_name, instance)
                     obj.save(using=self._default_database)
 
     def process_m2m_fields(self, instance: models.Model, m2m_data: dict):
@@ -293,14 +311,17 @@ class ObjectCreationMixin:
     def _process_fk(self, instance: models.Model, field: models.Field, raw_value: typing.Any):
         """Process many_to_one and one_to_one, this is helper method used in object creation"""
         if isinstance(raw_value, models.Model):
-            return setattr(instance, field.name, raw_value)
+            # return setattr(instance, field.name, raw_value)
+            return self._set_field_attr(instance, field.name, raw_value)
 
         elif isinstance(raw_value, dict):
             related_obj = self._create_object(kls=field.related_model, data=raw_value)
-            return setattr(instance, field.name, related_obj)
+            # return setattr(instance, field.name, related_obj)
+            return self._set_field_attr(instance, field.name, related_obj)
 
         elif isinstance(raw_value, (int, str, type(None))):
-            return setattr(instance, field.attname, raw_value)
+            # return setattr(instance, field.attname, raw_value)
+            return self._set_field_attr(instance, field.attname, raw_value)
 
         raise ObjectCreationException(f"Invalid value for FK '{field.name}': {raw_value!r}")
 
@@ -565,7 +586,7 @@ class BaseSeeder(ABC, ObjectCreationMixin):
             with schema_context(schema_name):
                 with transaction.atomic():  # Atomicity
                     # Idempotency, inside the seed (to be taken care of always).
-                    self.seed(args, kwargs)
+                    self.seed(*args, **kwargs)
 
                 self.post_run_validations()
         except Exception as e:
