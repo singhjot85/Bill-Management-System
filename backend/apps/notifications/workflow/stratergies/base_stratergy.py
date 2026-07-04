@@ -8,7 +8,7 @@ from apps.customer_management.models import Customer
 from apps.notifications.workflow.resolvers import ChannelInstruction, resolver_registry
 from utils.registry_utils import ClassRegistry
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
     from django.contrib.auth.models import User as UserModel

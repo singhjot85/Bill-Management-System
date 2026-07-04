@@ -20,7 +20,7 @@ class NotificationTemplateAdmin(admin.ModelAdmin):
                 "fields": ["is_removed", ("template_name", "version"), ("event_type", "channel")],
             },
         ),
-        ("Content", {"fields": ["plain_text", "html"], "classes": ["wide"]}),
+        ("Content", {"fields": ["subject", "plain_text", "html"], "classes": ["wide"]}),
         ("TimeStamps", {"fields": ["created", "modified"], "classes": ["collapse"]}),
     )
 

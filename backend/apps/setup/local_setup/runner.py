@@ -4,7 +4,7 @@ from .constants import TENANT_DATA_FILE_NAMES, seeder_registry
 from .guards import is_local_env
 from .seeders import SeederException
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 
 def run_local_setup(seeder_name: str = None):
@@ -46,6 +46,7 @@ def run_local_setup(seeder_name: str = None):
                 except Exception as e:
                     raise SeederException("Error creating schema's") from e
 
+        LOGGER.info("Seeders to run >>> %s", seeders.keys())
         for key, seeder_cls in seeders.items():
             LOGGER.info("[%s] Seeder Started Running...", key)
 

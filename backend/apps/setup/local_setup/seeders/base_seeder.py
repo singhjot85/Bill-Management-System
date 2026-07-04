@@ -12,7 +12,7 @@ from django_tenants.utils import get_public_schema_name, schema_context
 
 from apps.tenants.models import OrganizationTenant
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 
 class SeederException(Exception):
@@ -406,18 +406,30 @@ class BaseSeeder(ABC, ObjectCreationMixin):
         Raises:
             SeederException
         """
-        if os.path.exists(file_path):
-            return file_path
+        paths_to_try = [file_path]
+        if file_path.startswith("backend/"):
+            prefix_len = len("backend/")
+            paths_to_try.append(file_path[prefix_len:])
+        elif file_path.startswith("/backend/"):
+            prefix_len = len("/backend/")
+            paths_to_try.append(file_path[prefix_len:])
 
-        app_path = os.path.join(settings.APP_DIR, file_path)
-        if os.path.exists(app_path):
-            return app_path
+        tried_paths = []
+        for p in paths_to_try:
+            if os.path.exists(p):
+                return p
 
-        root_path = os.path.join(settings.BASE_DIR, file_path)
-        if os.path.exists(root_path):
-            return root_path
+            app_path = os.path.join(settings.APP_DIR, p)
+            if os.path.exists(app_path):
+                return app_path
+            tried_paths.append(app_path)
 
-        raise SeederException(f"File not found paths tried: \n\t{file_path}, \n\t{app_path}, \n\t{root_path}")
+            root_path = os.path.join(settings.BASE_DIR, p)
+            if os.path.exists(root_path):
+                return root_path
+            tried_paths.append(root_path)
+
+        raise SeederException(f"File not found paths tried: \n\t{file_path}, \n\t" + ", \n\t".join(tried_paths))
 
     @staticmethod
     def file_type_from_path(file_path: str):

@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
     from apps.notifications.workflow.resolvers import ChannelInstruction
 
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

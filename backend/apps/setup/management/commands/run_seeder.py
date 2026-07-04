@@ -1,6 +1,7 @@
 from django.core.management import BaseCommand
 
-from apps.setup.seeder.runner import run_seeder_pipeline as run_local_setup
+# from apps.setup.seeder.runner import run_seeder_pipeline as run_local_setup
+from apps.setup.local_setup.runner import run_local_setup
 
 
 class Command(BaseCommand):

@@ -54,3 +54,5 @@ Thumbs.db
 .agents/logs
 .agents/session_state.json
 .agents/plugins/backend-plugin/plugin_state.json
+
+**/backend/logs/*

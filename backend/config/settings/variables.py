@@ -55,3 +55,5 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "local_testing", "django-mails")
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "")
+
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

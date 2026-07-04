@@ -4,7 +4,7 @@ from apps.tenants.models import OrganizationBranding, OrganizationTenant
 
 from .base_seeder import BaseSeeder, SeederException
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 
 class TenantSeeder(BaseSeeder):

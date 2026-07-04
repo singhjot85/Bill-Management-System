@@ -5,6 +5,7 @@ Infra specific varibles will stay in this files
 .resolvers : Keeps this file clean and perevent circular imports.
 """
 
+from config.logging_config import get_logging_config
 from config.settings.constances import CONSTANCE_ADDITIONAL_FIELDS  # noqa: F401
 from config.settings.constances import CONSTANCE_CONFIG  # noqa: F401
 from config.settings.constances import CONSTANCE_CONFIG_FIELDSETS  # noqa: F401
@@ -120,6 +121,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "backend.config.middlewares.RequestLoggingMiddleware",
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -153,7 +155,6 @@ TIME_ZONE = APPLICATION_TIMEZONE
 USE_I18N = True
 LANGUAGE_CODE = "en-us"
 
-
 if CURRENT_ENV in LOCAL_ENVS:
     DEBUG = True
     ALLOWED_HOSTS = []
@@ -163,3 +164,5 @@ else:
     DEBUG = False
     ALLOWED_HOSTS = []
     WSGI_APPLICATION = ""
+
+LOGGING = get_logging_config(debug=DEBUG, log_level=LOG_LEVEL)

@@ -8,7 +8,7 @@ from apps.notifications.workflow.stratergies import (
     notification_stratergy_registry,
 )
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
     from apps.notifications.workflow.stratergies import BaseStratergy

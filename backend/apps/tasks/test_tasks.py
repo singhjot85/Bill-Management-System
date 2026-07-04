@@ -3,7 +3,7 @@ import logging
 from celery import shared_task
 from django.db import connection
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 
 @shared_task

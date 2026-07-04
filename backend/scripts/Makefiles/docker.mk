@@ -130,6 +130,7 @@ docker-dev-setup:
 dev-setup: docker-dev-setup
 
 docker-run-seeder:
+	make m
 	${DJANGO_CONTAINER_CMD} python manage.py run_seeder
 run-seeder: docker-run-seeder
 
