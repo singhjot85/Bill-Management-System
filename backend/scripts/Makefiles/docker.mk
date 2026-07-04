@@ -144,9 +144,7 @@ dev-setup: docker-dev-setup
 
 docker-local-db-reset:
 	${BASE_COMPOSE_CMD} down --volumes
-	if [ "${make_migrations}" = "true" ]; then \
-		make mm; \
-	fi
+	if [ "${make_migrations}" = "true" ]; then make mm; fi
 db-reset: docker-local-db-reset
 
 

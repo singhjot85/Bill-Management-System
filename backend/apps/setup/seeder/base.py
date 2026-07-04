@@ -1,12 +1,10 @@
 import json
 import logging
 import os
+import re
 import typing
 from abc import ABC
-import re
 from pathlib import Path
-
-from django.conf import settings
 
 from django.conf import settings
 from django.db import models, transaction
@@ -14,8 +12,7 @@ from django_tenants.utils import schema_context
 
 from apps.setup.models import SeederExecutionLog
 from apps.setup.seeder.exceptions import ObjectCreationException, SeederException
-from apps.setup.seeder.sources import FixtureSource
-from apps.setup.seeder.sources import DataSource
+from apps.setup.seeder.sources import DataSource, FixtureSource
 from utils.registry_utils import UnorderedClassRegistry
 
 LOGGER = logging.getLogger(__name__)
@@ -264,6 +261,8 @@ class BaseSeeder(ABC, ObjectCreationMixin):
     model: type[models.Model] = None
     depends_on: list[type["BaseSeeder"]] = []
 
+    resolved_dependencies: list
+
     def __init_subclass__(cls):
         super().__init_subclass__()
 
@@ -279,7 +278,7 @@ class BaseSeeder(ABC, ObjectCreationMixin):
         if self.model:
             self._scope = self._auto_detect_scope()
             return self._scope
-        
+
         return Scope.PUBLIC
 
     @scope.setter

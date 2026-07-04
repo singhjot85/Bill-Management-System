@@ -1,43 +1,43 @@
-import importlib
 import logging
-import pkgutil
 from collections import defaultdict, deque
 
 from apps.setup.local_setup.guards import is_local_env
 from apps.setup.seeder.base import BaseSeeder, Scope, seeder_registry
+from apps.setup.seeder.exceptions import SeederRunException
 from apps.tenants.models import OrganizationTenant
 
 LOGGER = logging.getLogger(__name__)
 
+# NOTE: Implement dir level auto-discovery only if required, not required right now
+#       Currently we can use decorator's or __init__subclass__ for auto-discovery
+# def discover_seeders() -> list[type[BaseSeeder]]:
+#     """Discovers and imports all seeder modules to trigger registration."""
+#     from apps.setup.seeder import seeders as seeders_pkg
 
-def discover_seeders() -> list[type[BaseSeeder]]:
-    """Discovers and imports all seeder modules to trigger registration."""
-    from apps.setup.seeder import seeders as seeders_pkg
+#     # Iterate over modules inside setup/seeder/seeders/ package
+#     for _, module_name, _ in pkgutil.iter_modules(seeders_pkg.__path__):
+#         if module_name.startswith("_"):
+#             continue
+#         try:
+#             mod = importlib.import_module(f"apps.setup.seeder.seeders.{module_name}")
 
-    # Iterate over modules inside setup/seeder/seeders/ package
-    for _, module_name, _ in pkgutil.iter_modules(seeders_pkg.__path__):
-        if module_name.startswith("_"):
-            continue
-        try:
-            mod = importlib.import_module(f"apps.setup.seeder.seeders.{module_name}")
+#             # Determine prefix if the module name starts with digits (e.g., "0010_")
+#             prefix = None
+#             if "_" in module_name:
+#                 parts = module_name.split("_")
+#                 if parts[0].isdigit():
+#                     prefix = parts[0]
 
-            # Determine prefix if the module name starts with digits (e.g., "0010_")
-            prefix = None
-            if "_" in module_name:
-                parts = module_name.split("_")
-                if parts[0].isdigit():
-                    prefix = parts[0]
+#             # Associate prefix with any BaseSeeder subclasses defined in the module
+#             for attr_name in dir(mod):
+#                 attr = getattr(mod, attr_name)
+#                 if isinstance(attr, type) and issubclass(attr, BaseSeeder) and attr is not BaseSeeder:
+#                     if prefix:
+#                         attr._file_prefix = prefix
+#         except Exception as e:
+#             LOGGER.error("Failed to import seeder module %s: %s", module_name, e)
 
-            # Associate prefix with any BaseSeeder subclasses defined in the module
-            for attr_name in dir(mod):
-                attr = getattr(mod, attr_name)
-                if isinstance(attr, type) and issubclass(attr, BaseSeeder) and attr is not BaseSeeder:
-                    if prefix:
-                        attr._file_prefix = prefix
-        except Exception as e:
-            LOGGER.error("Failed to import seeder module %s: %s", module_name, e)
-
-    return list(seeder_registry._registry)
+#     return list(seeder_registry._registry)
 
 
 def resolve_all_dependencies(seeders: list[type[BaseSeeder]]) -> None:
@@ -100,33 +100,26 @@ def topological_sort(seeders: list[type[BaseSeeder]]) -> list[type[BaseSeeder]]:
     return order
 
 
-def run_seeder_pipeline(seeder_name: str = None) -> None:
-    """Orchestrates seeder execution, resolving dependencies, tracking logs, and handling multi-tenant scopes."""
-    if not is_local_env():
-        LOGGER.info("Not in development mode. Skipping seeder execution.")
-        return
+class SeedRunner:
+    """
+    TODO: Move the topological sort also in this runner, or just create a seperate Mixin for that.
+    """
 
-    LOGGER.info("Starting Seeder Execution Pipeline...")
+    def __init__(self):
 
-    # Discover and register all seeder classes
-    all_seeders = discover_seeders()
+        assert is_local_env(), "Not in development mode. Cannot execute a seeder."
 
-    # Filter pipeline if specific seeder is requested
-    if seeder_name:
-        # Collect target class (case-insensitive check)
-        target_seeder = None
-        for s in all_seeders:
-            if s.__name__.lower() == seeder_name.lower():
-                target_seeder = s
-                break
+    @property
+    def registered_seeders(self):
+        return seeder_registry.registry
 
-        if not target_seeder:
-            raise ValueError(f"Seeder '{seeder_name}' not found in registered seeders.")
+    @property
+    def all_seeder_names(self):
+        return [kls.__name__ for kls in seeder_registry.registry]
 
-        # Introspect dependencies of all seeders first
-        resolve_all_dependencies(all_seeders)
+    def resolve_deps_for_single_seeder(self, target_seeder) -> list:
 
-        # Transitively collect dependencies of the target seeder
+        resolve_all_dependencies(self.all_seeder_names)
         seeders_to_run_set = set()
 
         def collect_deps(s_cls):
@@ -136,33 +129,72 @@ def run_seeder_pipeline(seeder_name: str = None) -> None:
             for dep in getattr(s_cls, "resolved_dependencies", []):
                 collect_deps(dep)
 
-        collect_deps(target_seeder)
-        seeders_to_run = list(seeders_to_run_set)
-    else:
-        seeders_to_run = all_seeders
+        return [collect_deps(target_seeder)]
 
-    # Resolve execution order
-    execution_order = topological_sort(seeders_to_run)
-    LOGGER.info("Seeder execution sequence: %s", [s.__name__ for s in execution_order])
+    def resolve_seeders_to_run(self, seeder_name):
+        seeders_to_run = None
 
-    # Run each seeder
-    for seeder_cls in execution_order:
-        seeder = seeder_cls()
+        if seeder_name and seeder_name not in self.all_seeder_names:
+            raise SeederRunException(f"Seeder not found for name: {seeder_name} !!")
+        elif seeder_name:
+            seeders_to_run = self.resolve_deps_for_single_seeder()
+        else:
+            seeders_to_run = self.all_seeder_names
 
-        if seeder.scope == Scope.PUBLIC:
-            # PUBLIC scope runs exactly once in public schema
-            seeder.run("public")
+        return seeders_to_run
 
-        elif seeder.scope == Scope.PER_TENANT:
-            # PER_TENANT scope runs in every tenant schema database context
-            tenants = OrganizationTenant.objects.using("default").all()
-            if not tenants.exists():
-                LOGGER.warning(
-                    "[%s] No tenants found in database to run per-tenant seeding.", seeder.__class__.__name__
-                )
-                continue
+    def execute_ordered_seeders(seld, seeders: list):
 
-            for tenant in tenants:
-                seeder.run(tenant.schema_name)
+        for seeder_cls in seeders:
+            seeder: BaseSeeder = seeder_cls()
 
-    LOGGER.info("Seeder Pipeline executed successfully.")
+            if seeder.scope == Scope.PUBLIC:
+                # PUBLIC scope runs exactly once in public schema
+                seeder.run("public")
+
+            elif seeder.scope == Scope.PER_TENANT:  # PER_TENANT scope runs in every tenant schema database context
+                tenants = OrganizationTenant.objects.using("default").all()
+                if not tenants.exists():
+                    LOGGER.warning(
+                        "[%s] No tenants found in database to run per-tenant seeding.", seeder.__class__.__name__
+                    )
+                    continue
+
+                for tenant in tenants:
+                    seeder.run(tenant.schema_name)
+
+    def seed_data(self, seeder_name: str = None, raise_exception: bool = False) -> bool:
+        """Seed data using the pre-defined seeder's
+
+        Args:
+            seeder_name (str, optional): Name of the seeder to run
+                By default runs all the seeder
+            raise_exception (bool, optional): Raise or silently supress exceptions
+                By default do not raise exceptions
+
+        Returns:
+            is_sucess (bool): If the execution is sucessful or not
+        """
+        is_sucess: bool = False
+
+        try:
+            LOGGER.info("Starting Seeder Execution Pipeline...")
+            seeders_to_run = self.resolve_seeders_to_run(seeder_name)
+
+            execution_order = topological_sort(seeders_to_run)
+            LOGGER.info("Seeder execution sequence: %s", [s.__name__ for s in execution_order])
+
+            self.execute_ordered_seeders(execution_order)
+            LOGGER.info("Seeder Pipeline executed successfully.")
+
+        except SeederRunException as sRunEx:
+            is_sucess = False
+            LOGGER.error("Error in seeder Execution", exc_info=sRunEx)
+            if raise_exception:
+                raise sRunEx
+        except Exception as e:
+            is_sucess = False
+            if raise_exception:
+                raise e
+
+        return is_sucess

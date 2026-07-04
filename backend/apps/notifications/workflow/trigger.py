@@ -57,6 +57,10 @@ class NotificationEvent:
 
 
 class NotificationService:
+    """
+    A util type class, to trigger Notifcations
+    NOTE: Avoid using object associated variable's as this is a static class.
+    """
 
     def build_event(self, event_type: str, party: typing.Union[str, UUID], data: dict = None, *args, **kwargs):
         """Build and event dataclass from the given data,
