@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 from django.contrib.auth import get_user_model
 
 from apps.customer_management.models import Customer
+from apps.notifications.constants import LogStatusChoices
+from apps.notifications.models import NotificationLog
 from apps.notifications.workflow.resolvers import ChannelInstruction, resolver_registry
 from utils.registry_utils import ClassRegistry
 
@@ -76,6 +78,22 @@ class BaseStratergy(ABC):
 
         return self._get_associated_party()
 
+    @property
+    def log_obj(self) -> NotificationLog:
+
+        if hasattr(self, "_log_obj") and (log := getattr(self, "_log_obj")):
+            return log
+
+        if not self._instructions or not self._instructions.log_id:
+            raise NotificationStrategyException("Invalid instructions, log id is required")
+
+        self._log_obj = NotificationLog.objects.filter(id=self._instructions.log_id).first()
+
+        if not self._log_obj:
+            raise NotificationStrategyException("Log object not found")
+
+        return self._log_obj
+
     def _get_associated_party(self) -> typing.Optional[typing.Union["UserModel", "Customer"]]:
         """
         Get from database
@@ -106,6 +124,16 @@ class BaseStratergy(ABC):
         """Actual send logic belongs here, this can be overriden in each subclass."""
         pass
 
+    def pre_send_hooks(self, *args, **kwargs):
+        """Pre hooks before sending the mail"""
+        self.log_obj.status = LogStatusChoices.IN_PROGRESS.value
+        self.log_obj.save(update_fields=["status", "template_snapshot", "context_data"])
+
+    def post_send_hooks(self, *args, **kwargs):
+        """Pre hooks after sending the mail, Executed on successful _send(...) only"""
+        self.log_obj.status = LogStatusChoices.SENT.value
+        self.log_obj.save(update_fields=["status"])
+
     def send(self, raise_on_exception: bool = True, *args, **kwargs):
         """
         Main Send caller, that calls the send logic, and also handles logging and error handling.
@@ -125,7 +153,9 @@ class BaseStratergy(ABC):
         LOGGER.info("Sending %s notification...", self.label)
 
         try:
+            self.pre_send_hooks(*args, **kwargs)
             self._send(*args, **kwargs)
+            self.post_send_hooks(*args, **kwargs)
         except Exception as ex:
             LOGGER.error("Error in sending %s", self.label, exc_info=ex)
             if raise_on_exception:

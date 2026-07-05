@@ -1,7 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 
 from .constants import (
-    LOCAL_ENVS,
     REDIS_CLUSTER_DEFAULT_OPTIONS,
     REDIS_DEFAULT_BACKEND,
     REDIS_DEFAULT_OPTIONS,
@@ -18,8 +17,6 @@ from .variables import (
     CACHE_HOST,
     CACHE_PORT,
     CACHE_PROTCOL,
-    CURRENT_ENV,
-    DEFAULT_FROM_EMAIL,
     VALKEY_SOCKER_TIMEOUT,
     VALKEY_SOCKET_CONN_TIMEOUT,
 )
@@ -80,10 +77,3 @@ def get_resolved_cache_options_cluster():
         raise ImproperlyConfigured(f"Invalid Cache provider [{CACHE_PROTCOL}].")
 
     return CACHE_BACKEND, RESOLVED_CACHE_OPTIONS
-
-
-def get_default_email_from():
-    if CURRENT_ENV in LOCAL_ENVS:
-        return "dev@mailing.com"
-
-    return DEFAULT_FROM_EMAIL

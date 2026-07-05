@@ -28,6 +28,7 @@ class NotificationTemplateAdmin(admin.ModelAdmin):
 class NotificationLogAdmin(ReadOnlyAdmin):
     list_display = ["id", "status", "task_id", "channel", "is_removed"]
     list_filter = ["status", "channel", "is_removed"]
+    ordering = ["-created", "-modified"]
 
     fieldsets = (
         (None, {"fields": [("id", "task_id"), ("status", "channel"), "template"]}),

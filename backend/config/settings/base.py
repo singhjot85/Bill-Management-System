@@ -5,7 +5,7 @@ Infra specific varibles will stay in this files
 .resolvers : Keeps this file clean and perevent circular imports.
 """
 
-from config.logging_config import get_logging_config
+# from config.logging_config import get_logging_config
 from config.settings.constances import CONSTANCE_ADDITIONAL_FIELDS  # noqa: F401
 from config.settings.constances import CONSTANCE_CONFIG  # noqa: F401
 from config.settings.constances import CONSTANCE_CONFIG_FIELDSETS  # noqa: F401
@@ -13,7 +13,6 @@ from config.settings.constants import *
 from config.settings.resolvers import (
     get_broker_url,
     get_cache_url,
-    get_default_email_from,
     get_resolved_cache_options,
 )
 from config.settings.variables import *
@@ -121,7 +120,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "backend.config.middlewares.RequestLoggingMiddleware",
+    # "backend.config.middlewares.RequestLoggingMiddleware",
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -141,8 +140,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_AUTH = {"USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER}
 
-DEFAULT_FROM_EMAIL = get_default_email_from()
-EMAIL_BACKEND = DJANGO_CONSOLE_BACKEND
+# ------------------
+#  django-mail
+# ------------------
+DEFAULT_FROM_EMAIL = DEFAULT_FROM_EMAIL
+EMAIL_BACKEND = DJANGO_FILE_BACKEND  # overriden in constance, check there
+
 
 # ------------------
 #  django-constance
@@ -165,4 +168,4 @@ else:
     ALLOWED_HOSTS = []
     WSGI_APPLICATION = ""
 
-LOGGING = get_logging_config(debug=DEBUG, log_level=LOG_LEVEL)
+# LOGGING = get_logging_config(debug=DEBUG, log_level=LOG_LEVEL)

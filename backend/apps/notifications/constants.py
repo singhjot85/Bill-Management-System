@@ -72,6 +72,7 @@ class LangugeTypeChoices(TextChoices):
 
 class LogStatusChoices(TextChoices):
     QUEUED = "queued", "Queued"
+    IN_PROGRESS = "in_progres", "In Progress"
     SENT = "sent", "Sent"
     FAILED = "failed", "Failed"
     BOUCED = "bounced", "Bounced"
