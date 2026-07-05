@@ -18,8 +18,8 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: '^backend/apps/setup/fixtures/notification_templates/'
       - id: end-of-file-fixer
+        exclude: '^backend/apps/setup/fixtures/notification_templates/'
       - id: check-yaml
       - id: check-merge-conflict
       - id: debug-statements
@@ -53,9 +53,9 @@ repos:
     rev: v1.36.4
     hooks:
       - id: djlint-reformat-django
-        exclude: '^backend/django_templates/templates/|^frontend/index\.html$'
+        exclude: '^backend/django_templates/templates/|^frontend/index\.html$|^backend/apps/setup/fixtures/notification_templates/'
       - id: djlint-django
-        exclude: '^backend/django_templates/templates/|^frontend/index\.html$'
+        exclude: '^backend/django_templates/templates/|^frontend/index\.html$|^backend/apps/setup/fixtures/notification_templates/'
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
