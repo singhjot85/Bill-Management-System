@@ -18,6 +18,7 @@ class MockSeeder(BaseSeeder):
     """Concrete implementation of BaseSeeder for testing."""
 
     label = "Mock"
+    REGISTERY_KEY = "mock_seeder"
 
     def seed(self, *args, **kwargs):
         """Mock seed implementation."""
@@ -32,7 +33,7 @@ class TestBaseSeeder:
 
     def setup_method(self):
         """Initialize MockSeeder for each test."""
-        self.seeder = MockSeeder()
+        self.seeder = MockSeeder(file_name="test.json")
 
     def test_run_success(self):
         """
@@ -97,7 +98,8 @@ class TestBaseSeeder:
         cache_key = "test_cache"
 
         with patch("builtins.open", mock_open(read_data=json.dumps(data))):
-            loaded_data = self.seeder.load_data("test.json", cache_key_name=cache_key)
+            with patch("os.path.exists", return_value=True):
+                loaded_data = self.seeder.load_data("test.json", cache_key_name=cache_key)
 
         assert loaded_data == data
         assert getattr(self.seeder, cache_key) == data

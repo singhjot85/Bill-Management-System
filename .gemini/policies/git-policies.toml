@@ -1,0 +1,35 @@
+# ==============================================================================
+# Rule 1: STRICTLY DENY FORCE PUSHES AND ANY PUSHING
+# ==============================================================================
+[[rule]]
+toolName = "run_shell_command"
+subagent = "backend-test-writer"
+commandRegex = "git (.*push.*)"
+decision = "deny"
+priority = 100
+denyMessage = "Automation Policy Violation: Pushing code or force-pushing from the automated agent loop is strictly forbidden."
+modes = ["default", "autoEdit", "yolo"]
+
+# ==============================================================================
+# Rule 2: STRICTLY DENY BRANCH SWITCHING / CHECKOUTS
+# ==============================================================================
+[[rule]]
+toolName = "run_shell_command"
+subagent = "backend-test-writer"
+commandRegex = "git (checkout|switch)"
+decision = "deny"
+priority = 90
+denyMessage = "Automation Policy Violation: Branch switching is disabled. The agent must remain on the designated branch."
+modes = ["default", "autoEdit", "yolo"]
+
+# ==============================================================================
+# Rule 3: AUTOMATICALLY ALLOW REPETITIVE GIT ADD & COMMIT (PREVENT "ASK_USER")
+# ==============================================================================
+[[rule]]
+toolName = "run_shell_command"
+subagent = "backend-test-writer"
+commandRegex = "git (add|commit)"
+decision = "allow"
+priority = 80
+modes = ["default", "autoEdit", "yolo"]
+allowRedirection = true

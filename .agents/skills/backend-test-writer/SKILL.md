@@ -40,6 +40,7 @@ backend/tests/
 - If the app directory doesn't exist in `tests/`, create it and add `__init__.py`.
 - Determine test type: model, view, serializer, form, task.
 - Identify dependencies (other models, tenant requirements).
+- Identify what will be available at runtime taking reference from [Test Documentation](../../../backend/tests/Readme.md), if something is not available at runtime, mock it.
 
 ### Step 2: Plan Test Cases
 
@@ -49,12 +50,13 @@ backend/tests/
 - Multi-tenant isolation (cross-tenant data leakage).
 - Celery tasks: Note that `CELERY_TASK_ALWAYS_EAGER = True` is used, so tasks run synchronously.
 
-### Step 3: Generate Test Files
+### Step 3: Generate Tests
 
 - Create appropriate file in `backend/tests/<app_name>/test_*.py`.
 - Break large functionality into atomic functional components.
 - Group tests for related features in test classes.
 - Mock the data using factories and mock data in `setup_method()`.
+- Patch complex logic(s) to maintain atomicity in tests.
 - Feed the expected data (variables, objects, etc.) to the callable.
 - Assert that the outcome of the callable matches the expected outcome.
 - Test error paths and edge cases wherever applicable.
@@ -73,6 +75,20 @@ backend/tests/
 - Always run tests in docker setup.
 ```bash
 docker compose -f compose/compose.local.yaml run django pytest tests/<app_name>/test_*.py
+```
+- Use following make targets to make testing easier:
+```bash
+# Run all tests
+make t
+
+# Run all tests in a specific directory
+make tf TEST_DIR=<directory_path>
+
+# Run filtered tests
+make tf TEST_FILTER=<test_filter>
+
+# Run filtered tests fast (makes test discovery fast)
+make tf TEST_DIR=<directory_path> TEST_FILTER=<test_filter>
 ```
 
 ## Anti-Patterns to Avoid

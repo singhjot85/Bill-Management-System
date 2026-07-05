@@ -54,12 +54,24 @@ This structure is designed to leverage **Docker BuildKit's** context isolation:
 
 This eliminates accidental leakage of irrelevant code (e.g., frontend source in the backend image) and ensures that changes in one domain do not unnecessarily invalidate the build cache of the other.
 
-## Documentation
+## Documentation Hub
 
-- [Frontend Architecture](./documentation/Frontend_Architecture.md)
-- [Data Models](./documentation/Models.md)
-- [Local Setup & Seeders](./documentation/Local_Setup.md)
-- [Payment Service Architecture](./documentation/Payment_Service_Architecture.md)
+We maintain a hybrid documentation system: centralized architecture guides and distributed implementation READMEs.
+
+### 🏛️ [Centralized Documentation Hub](./docs/README.md)
+Start here for system-wide architecture, design patterns, and cross-cutting concerns.
+- [Architecture Overview](./docs/architecture/overview.md)
+- [Data Modeling](./docs/architecture/data-models.md)
+- [Multi-Tenancy Strategy](./docs/architecture/multi-tenancy.md)
+- [Async Task System](./docs/architecture/async-system.md)
+
+### 🛠️ Distributed Implementation Guides
+Each application module contains its own `README.md` with specific implementation details, API references, and testing instructions.
+- [Notifications](./backend/apps/notifications/Readme.md)
+- [Payments](./backend/apps/payments_management/Readme.md)
+- [Customer Management](./backend/apps/customer_management/Readme.md)
+- [Tenants & Branding](./backend/apps/tenants/Readme.md)
+- [Services (Deprecated)](./backend/apps/services/Readme.md)
 
 _For legacy UI documentation, see [Project Templating](./project_templating/Readme.md)._
 

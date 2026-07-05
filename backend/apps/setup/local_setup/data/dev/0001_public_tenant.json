@@ -1,0 +1,47 @@
+{
+    "OrganizationTenant": {
+        "name": "Site Admin (Public)",
+        "schema_name": "public",
+        "domains": [
+            {
+                "domain": "localhost"
+            },
+            {
+                "domain": "localtest"
+            }
+        ]
+    },
+    "OrganizationBranding": {
+        "organization": {
+            "schema_name": "public"
+        },
+        "country": "in",
+        "phone": "9998329876",
+        "email": "publictenant@email.com",
+        "navbar_icon": "mdi-heart-pulse",
+        "navbar_title": "Public",
+        "footer_icon": "mdi-heart-pulse",
+        "footer_text": "Hello to you'r local NGO, please conatct us at given conatcy info.",
+        "footer_extra_text": "Some extra footer text fot testing."
+    },
+    "Users": [
+        {
+            "first_name": "Bruce",
+            "last_name": "Wayne",
+            "username": "admin@localngo.com",
+            "email": "admin@localngo.com",
+            "password": "qwerty@123",
+            "is_superuser": true,
+            "is_staff": true
+        },
+        {
+            "first_name": "Clark",
+            "last_name": "Kent",
+            "username": "admin@ngo.com",
+            "email": "admin@ngo.com",
+            "password": "qwerty@123",
+            "is_superuser": true,
+            "is_staff": true
+        }
+    ]
+}

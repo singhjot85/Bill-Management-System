@@ -25,10 +25,12 @@ dependencies = [
     "valkey (>=6.1.1,<7.0.0)",
     "django-celery-results (>=2.6.0,<3.0.0)",
     "celery (>=5.6.3,<6.0.0)",
-    "django-valkey (>=0.4.1,<0.5.0)",
     "django-celery-beat (>=2.9.0,<3.0.0)",
     "redis (>=7.4.0,<8.0.0)",
     "factory-boy (>=3.3.3,<4.0.0)",
+    "django-constance (>=4.3.5,<5.0.0)",
+    "django-redis (>=7.0.0,<8.0.0)",
+    "debugpy (>=1.8.21,<2.0.0)",
 ]
 
 
@@ -70,3 +72,30 @@ markers = [
     "unit: marks tests for isolated functions",
     "celery: marks tests that involve celery tasks",
 ]
+
+[tool.pyright]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "**/*.pyc",
+    "**/migrations",
+    "**/tests",
+    "**/test_*.py",
+    "**/.venv",
+    "**/venv",
+    "**/env",
+    "**/static",
+    "**/staticfiles",
+    "**/media",
+    "frontend",
+    "project_templating",
+]
+typeCheckingMode = "off"
+reportUndefinedVariable = "error"
+reportMissingImports = "error"
+reportMissingTypeStubs = false
+reportAssignmentType = false
+reportUnusedImport = "warning"
+reportUnusedVariable = "warning"
+pythonVersion = "3.12"

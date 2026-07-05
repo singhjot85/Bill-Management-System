@@ -5,6 +5,10 @@ Infra specific varibles will stay in this files
 .resolvers : Keeps this file clean and perevent circular imports.
 """
 
+# from config.logging_config import get_logging_config
+from config.settings.constances import CONSTANCE_ADDITIONAL_FIELDS  # noqa: F401
+from config.settings.constances import CONSTANCE_CONFIG  # noqa: F401
+from config.settings.constances import CONSTANCE_CONFIG_FIELDSETS  # noqa: F401
 from config.settings.constants import *
 from config.settings.resolvers import (
     get_broker_url,
@@ -14,13 +18,14 @@ from config.settings.resolvers import (
 from config.settings.variables import *
 
 STATICFILES_DIRS = [PROJECT_STATIC_PATH]
+STATIC_ROOT = COLLECTED_STATIC_FILES
 STATIC_URL = "static/"
 
 ROOT_URLCONF = "config.routers"
 PUBLIC_SCHEMA_URLCONF = "config.public_routers"
 
-TENANT_MODEL = f"{TENANT_APP_NAME}.{TENANT_MODEL_NAME}"
-TENANT_DOMAIN_MODEL = f"{TENANT_APP_NAME}.{DOMAIN_MODEL_NAME}"
+TENANT_MODEL = TENANTS_ORGANIZATION_TENANT
+TENANT_DOMAIN_MODEL = TENANTS_ORGANIZATION_DOMAIN
 
 INSTALLED_APPS = [
     *DEFAULT_DJANGO_APPS,
@@ -115,9 +120,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # "backend.config.middlewares.RequestLoggingMiddleware",
 ]
-
-REST_AUTH = {"USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -134,6 +138,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_AUTH = {"USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER}
+
+# ------------------
+#  django-mail
+# ------------------
+DEFAULT_FROM_EMAIL = DEFAULT_FROM_EMAIL
+EMAIL_BACKEND = DJANGO_FILE_BACKEND  # overriden in constance, check there
+
+
+# ------------------
+#  django-constance
+# ------------------
+CONSTANCE_REDIS_CONNECTION = get_cache_url()
+
 USE_TZ = True
 TIME_ZONE = APPLICATION_TIMEZONE
 
@@ -149,3 +167,5 @@ else:
     DEBUG = False
     ALLOWED_HOSTS = []
     WSGI_APPLICATION = ""
+
+# LOGGING = get_logging_config(debug=DEBUG, log_level=LOG_LEVEL)

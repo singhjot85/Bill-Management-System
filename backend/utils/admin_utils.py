@@ -1,8 +1,9 @@
-from django.contrib.admin import AdminSite
+from constance.admin import Config, ConstanceAdmin
+from django.contrib import admin
 from django.shortcuts import redirect
 
 
-class PublicAdminSite(AdminSite):
+class PublicAdminSite(admin.AdminSite):
     # TODO: Make this configurable
     site_header = "Public Administration"
     site_title = "Public Admin"
@@ -23,7 +24,7 @@ class PublicAdminSite(AdminSite):
 public_admin_site = PublicAdminSite(name="public_admin")
 
 
-class TenantAdminSite(AdminSite):
+class TenantAdminSite(admin.AdminSite):
     site_header = "Tenant Administration"
     site_title = "Tenant Admin"
     index_title = "Tenant Portal"
@@ -41,3 +42,26 @@ class TenantAdminSite(AdminSite):
 
 
 private_admin_site = TenantAdminSite(name="private_admin")
+
+# =============================
+#   Register Third Party Admins
+# =============================
+
+public_admin_site.register([Config], ConstanceAdmin)
+private_admin_site.register([Config], ConstanceAdmin)
+
+
+class ReadOnlyAdmin(admin.ModelAdmin):
+    """Read Only Admin Class, a reusable admin utility that converts a admin in readonly, ex: LogModels"""
+
+    def get_readonly_fields(self, request, obj=...):
+        """Declare all the Admin fields as readonly"""
+        return [field.name for field in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        """Restrict Object creation from list view"""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Restrict Object change from object view"""
+        return False

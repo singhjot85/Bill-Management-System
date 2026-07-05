@@ -2,9 +2,20 @@
     "OrganizationTenant": {
         "name": "Local NGO",
         "in_production": false,
-        "schema_name": "localngo"
+        "schema_name": "localngo",
+        "domains": [
+            {
+                "domain": "localngo.localhost"
+            },
+            {
+                "domain": "ngo.localhost"
+            }
+        ]
     },
     "OrganizationBranding": {
+        "organization": {
+            "schema_name": "localngo"
+        },
         "phone": "1234567891",
         "email": "brandingemail@localngo.com",
         "navbar_icon": "mdi-heart-pulse",
@@ -13,14 +24,6 @@
         "footer_text": "Hello to you'r local NGO, please conatct us at given conatcy info.",
         "footer_extra_text": "Some extra footer text fot testing."
     },
-    "OrganizationDomain": [
-        {
-            "domain": "localngo.localhost"
-        },
-        {
-            "domain": "ngo.localhost"
-        }
-    ],
     "Users": [
         {
             "first_name": "Bruce",
@@ -28,7 +31,25 @@
             "username": "admin@localngo.com",
             "email": "admin@localngo.com",
             "password": "qwerty@123",
-            "create_superuser": true
+            "is_staff": true,
+            "is_superuser": true,
+            "notification_preferences": [
+                {
+                    "event_type": "welcome_user",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "invoice_created",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "payment_received",
+                    "preference_type": "email",
+                    "opted_in": true
+                }
+            ]
         },
         {
             "first_name": "Clark",
@@ -36,7 +57,25 @@
             "username": "admin@ngo.com",
             "email": "admin@ngo.com",
             "password": "qwerty@123",
-            "create_superuser": true
+            "is_staff": true,
+            "is_superuser": true,
+            "notification_preferences": [
+                {
+                    "event_type": "welcome_user",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "invoice_created",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "payment_received",
+                    "preference_type": "email",
+                    "opted_in": true
+                }
+            ]
         },
         {
             "first_name": "Tony",
@@ -44,7 +83,25 @@
             "username": "client@localngo.com",
             "email": "client@localngo.com",
             "password": "qwerty@123",
-            "create_superuser": false
+            "is_staff": false,
+            "is_superuser": false,
+            "notification_preferences": [
+                {
+                    "event_type": "welcome_user",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "invoice_created",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "payment_received",
+                    "preference_type": "email",
+                    "opted_in": true
+                }
+            ]
         },
         {
             "first_name": "Bruce",
@@ -52,7 +109,47 @@
             "username": "client@ngo.com",
             "email": "client@ngo.com",
             "password": "qwerty@123",
-            "create_superuser": false
+            "is_staff": false,
+            "is_superuser": false,
+            "notification_preferences": [
+                {
+                    "event_type": "welcome_user",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "invoice_created",
+                    "preference_type": "email",
+                    "opted_in": true
+                },
+                {
+                    "event_type": "payment_received",
+                    "preference_type": "email",
+                    "opted_in": true
+                }
+            ]
+        }
+    ],
+    "NotificationTemplate": [
+        {
+            "plain_text": "apps/setup/fixtures/notification_templates/welcome_user/welcome_user.txt",
+            "html": "apps/setup/fixtures/notification_templates/welcome_user/welcome_user.html",
+            "subject": "apps/setup/fixtures/notification_templates/welcome_user/welcome_user-subject.txt",
+            "template_name": "welcome_new_user",
+            "event_type": "welcome_user",
+            "channel": "email",
+            "language": "en"
+        }
+    ],
+    "NotificationTemplate__UNIQUE_KEYS": ["template_name", "event_type", "channel", "language"],
+    "Configurations":[
+        {
+            "interface_type": "notification_configuration",
+            "details": "apps/setup/fixtures/configurations/notification_configuration.json"
+        },
+        {
+            "interface_type": "ui_configuration",
+            "details": "apps/setup/fixtures/configurations/ui_configuration.json"
         }
     ]
 }

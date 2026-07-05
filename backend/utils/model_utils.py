@@ -86,28 +86,58 @@ class SimpleVersionModelMixin(models.Model):
 
 
 class SafeModelMixin(SoftDeletableModel, TimeStampedModel):
-    """A Model Mixin that is safe and makes debugging easier."""
+    """Combination of SoftDeletableModel, TimeStampedModel
+    Fields:
+        is_removed (bool): Deleting marks this as false
+        created (AutoCreatedField): Date time when object is created
+        modified (AutoLastModifiedField): Date time when object is modified
+    """
 
     class Meta:
         abstract = True
 
 
 class BetterModelMixin(UUIDModel, SafeModelMixin):
-    """A Model mixin that gives a better primary key."""
+    """Combination of UUIDModel, SoftDeletableModel, TimeStampedModel
+    Fields:
+        id (UUID): prinary key
+        is_removed (bool): Deleting marks this as false
+        created (AutoCreatedField): Date time when object is created
+        modified (AutoLastModifiedField): Date time when object is modified
+    """
 
     class Meta:
         abstract = True
 
 
 class VersionedSafeModelMixin(SafeModelMixin, SimpleVersionModelMixin):
-    """Safer Model with versioning."""
+    """Combination of SoftDeletableModel, TimeStampedModel, SimpleVersionModelMixin
+    Fields:
+        is_removed (bool): Deleting marks this as false
+        created (AutoCreatedField): Date time when object is created
+        modified (AutoLastModifiedField): Date time when object is modified
+        version_major (int): version major
+        version_minor (int): version minor
+        version_patch (int): version patch
+        version (str): Complete version string
+    """
 
     class Meta:
         abstract = True
 
 
 class VersionedBetterModelMixin(BetterModelMixin, SimpleVersionModelMixin):
-    """Better Model with versioning."""
+    """Combination of UUIDModel, SoftDeletableModel, TimeStampedModel, SimpleVersionModelMixin
+    Fields:
+        id (UUID): prinary key
+        is_removed (bool): Deleting marks this as false
+        created (AutoCreatedField): Date time when object is created
+        modified (AutoLastModifiedField): Date time when object is modified
+        version_major (int): version major
+        version_minor (int): version minor
+        version_patch (int): version patch
+        version (str): Complete version string
+    """
 
     class Meta:
         abstract = True

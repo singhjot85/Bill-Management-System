@@ -1,78 +1,42 @@
 import logging
 
-from apps.tenants.models import (
-    OrganizationBranding,
-    OrganizationDomain,
-    OrganizationTenant,
-)
+from apps.tenants.models import OrganizationBranding, OrganizationTenant
 
-from .base_seeder import BaseSeeder
+from .base_seeder import BaseSeeder, SeederException
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 
 class TenantSeeder(BaseSeeder):
     label = "Tenant Seeder"
+    REGISTERY_KEY = "organization_tenants"
+
+    data_cache_key: str = "tenant_seeder_data"
     tenant_seeder_data: dict = None
 
-    def __init__(self, data_file_name: str):
-        super().__init__()
-
-        self.data_file_name = data_file_name
-        self.load_data(data_file_name, "tenant_seeder_data")
-
-    def _create_tenant(self):
-        tenant = None
-        try:
-            tenant_data: dict = self.tenant_seeder_data.get("OrganizationTenant")
-            filtered_fields = self.filter_model_fields(OrganizationTenant, tenant_data)
-            tenant, created = OrganizationTenant.objects.get_or_create(**filtered_fields)
-
-            if created:
-                LOGGER.info("Created tenant >>> %s", tenant)
-            else:
-                LOGGER.info("Skipping creation tenant already exist >>> %s", tenant)
-        except Exception as e:
-            LOGGER.error("Error creating tenant >>> %s", str(e))
-
-        return tenant
-
-    def _create_domains(self, tenant: OrganizationTenant):
-        domain_data: list[dict] = self.tenant_seeder_data.get("OrganizationDomain")
-        for data in domain_data:
-            try:
-                filtered_fields = self.filter_model_fields(OrganizationDomain, data)
-                domain, created = OrganizationDomain.objects.get_or_create(**filtered_fields, tenant=tenant)
-
-                if created:
-                    LOGGER.info("[%s] Created domain >>> %s", tenant, domain)
-                else:
-                    LOGGER.info("[%s] Skipping Creation domain already exist >>> %s", tenant, domain)
-            except Exception as e:
-                LOGGER.error("[%s] Error Creating domain >>> %s", tenant, str(e))
-
-    def _create_branding(self, tenant: OrganizationTenant):
-        try:
-            branding_data: dict = self.tenant_seeder_data.get("OrganizationBranding")
-            filtered_fields = self.filter_model_fields(OrganizationBranding, branding_data)
-            branding, created = OrganizationBranding.objects.get_or_create(**filtered_fields, organization=tenant)
-            # branding.organization = tenant
-            # branding.save(update_fields=["organization"])
-
-            if created:
-                LOGGER.info("[%s] Created branding >>> %s", tenant, branding)
-            else:
-                LOGGER.info("[%s] Skipping Creation branding already exist >>> %s", tenant, branding)
-        except Exception as e:
-            LOGGER.error("[%s] Error Creating branding >>> %s", tenant, str(e))
+    def validate_schema(self, schema_name: str):
+        """Schema doesn't exist yet, so the validation won't work"""
+        return schema_name
 
     def seed(self, *args, **kwargs):
-        tenant = self._create_tenant()
-        if tenant:
-            self._create_domains(tenant)
-            self._create_branding(tenant)
+        org_data = self.seed_data.get(OrganizationTenant.__name__, None)
 
-        return tenant
+        if not org_data:
+            raise SeederException(f"data not found mention it under: {OrganizationTenant.__name__}") from None
 
-    def get_tenant_schema(self, *args, **kwargs):
-        return self.tenant_seeder_data.get("OrganizationTenant").get("schema_name")
+        tenant = self.create_object(OrganizationTenant, org_data)
+        if not tenant:
+            raise SeederException("Error creating tenant") from None
+        branding_data = self.seed_data.get(OrganizationBranding.__name__)
+        if not branding_data:
+            LOGGER.info(f"No branding data found for >>> {tenant}, Skipping branding creation")
+            return
+
+        if isinstance(branding_data, dict):
+            branding_data["organization"] = tenant
+        elif isinstance(branding_data, list):
+            for item in branding_data:
+                if isinstance(item, dict):
+                    item["organization"] = tenant
+
+        self.create_object(OrganizationBranding, branding_data)

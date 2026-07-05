@@ -1,112 +1,84 @@
+---
+title: Backend Testing Suite
+type: implementation
+app: tests
+last_updated: 2025-01-24
+tags: [django, testing, pytest]
+---
+
 # Backend Testing Suite
 
-This directory contains the automated test suite for the BMA backend. We prioritize fast, isolated, and reliable tests that validate both business logic and multi-tenant integrity.
+## Purpose
 
-## Core Tooling Stack
+Automated test suite for validating business logic and multi-tenant integrity.
 
-- **[pytest](https://docs.pytest.org/)**: Our primary test framework. Chosen for its concise syntax, powerful fixture system, and superior output compared to Django's built-in `unittest` wrapper.
-- **[pytest-django](https://pytest-django.readthedocs.io/)**: Provides seamless Django integration, handling database setup, tenant synchronization, and useful fixtures like `db` and `client`.
-- **[factory-boy](https://factoryboy.readthedocs.io/)**: Used for generating test data. Factories provide a clean, reusable way to create complex model instances and their relationships without the boilerplate of manual `Model.objects.create()` calls.
+The BMA testing suite prioritizes fast, isolated, and reliable tests using `pytest`. It ensures that tenant data remains isolated and that core features like invoicing and payments function correctly across different schemas.
 
-## Intentional Omissions (Rationale)
+## Quick Start
 
-To maintain a lean and fast testing environment, we have intentionally deferred or bypassed certain common tools:
+```bash
+# Run the full suite
+pytest
 
-- **`pytest-celery`**: Skipped in favor of `CELERY_TASK_ALWAYS_EAGER = True`. This executes tasks synchronously within the test process, simplifying debugging and removing the need for a running worker/broker during tests.
-- **`pytest-xdist`**: Parallel execution is currently unnecessary due to the suite's size. We prioritize simplicity over the overhead of managing parallel test state.
-- **`pytest-cov`**: While we track coverage informally, we avoid strict enforcement to focus on testing critical business paths and multi-tenant isolation rather than chasing arbitrary percentage targets.
+# Run tests for a specific app
+pytest backend/tests/customer_management/
 
-## Directory Organization
-
-The test suite mirrors the structure of the `apps/` directory to ensure discoverability:
-
-```text
-backend/tests/
-├── conftest.py          # Project-wide fixtures and pytest configuration
-├── factories.py         # Centralized factory-boy definitions
-├── customer_management/ # App-specific tests
-│   ├── __init__.py      # Required for proper module resolution
-│   ├── conftest.py      # App-level fixtures (e.g., specific tenant setups)
-│   ├── test_models.py
-│   └── test_views.py
-└── tenants/             # Multi-tenant isolation and provisioning tests
+# Run for a specific filter
+pytest -k <test-filter>
 ```
 
-## Configuration (via `pyproject.toml`)
+## Key Concepts
 
-We utilize `pyproject.toml` for pytest configuration to keep the root directory clean. Key settings include:
-
-- **`addopts`**:
-  - `--strict-markers`: Raises an error if an unregistered marker is used, preventing silent typos.
-  - `--tb=short`: Streamlines failure output to focus on the immediate traceback.
-  - `--reuse-db`: Speeds up local runs by persisting the test database between sessions.
-  - `--import-mode=importlib`: Ensures reliable module discovery across nested directories.
-- **`python_files`**: Configured to scan for `test_*.py` patterns.
-
-## Performance & Isolation Strategies
-
-### 1. Multi-Tenant Database Isolation
-
-Tests run in a dedicated test database to ensure total isolation from development data. This is critical for `django-tenants`, as it allows schema-level operations (creation, migration, deletion) to happen safely during the test lifecycle.
-
-### 2. Synchronous Task Execution
-
-By setting `CELERY_TASK_ALWAYS_EAGER = True`, we ensure that background tasks (like PDF generation or email dispatch) run immediately. This allows tests to assert the results of these tasks (e.g., file creation) without complex asynchronous synchronization.
-
-### 3. Fast Password Hashing
-
-We override the default password hashers to use **MD5** during tests. While insecure for production, it is significantly faster than BCrypt or Argon2, saving ~0.5s per user creation and drastically reducing the total suite runtime.
-
-### 4. Memory-Based Caching
-
-We use `LocMemCache` for testing. This removes the dependency on an external Valkey/Redis instance while maintaining the speed and reliability of cache-related logic verification.
+- **Multi-Tenant Isolation**: Tests run in dedicated schemas to verify `django-tenants` boundaries.
+- **Eager Tasks**: `CELERY_TASK_ALWAYS_EAGER = True` ensures background tasks run synchronously during tests.
+- **Factory-Boy**: Centralized factories (`factories.py`) manage complex test data generation.
+- **Given-When-Then**: Standardized test structure for clarity and maintainability.
 
 ## Testing Conventions
 
-**Factory usage:**
+tests written using `pytest` follow _Arrange-Act-Assert_ methodology, that is what we are going to follow in our project tests. Prefer writing test classes rather then scattered classes.
 
-- Use factories instead of verbose queries like `Models.objects.create`, `Models.objects.get_or_create`.
+- **Arrange:**
+    - Naming: `test_subject__condition__result` or `test_method_name__scenario__expected_behavior`.
+    - `setup_method` to setup common data for class.
+    - `_<get_some_data>` private functions for dynamic and common data setup among tests under a class.
+    - factories to create models, they handle their own cleanup.
+    - `unittest.mock.patch`, `unittest.mock`, `unittest.MagicMock` instead of complex object building, external APIs and heavy services.
+- **Act:**
+    - Identify what the test is aimed for and only call that callable (`function`, `class`, `property`).
+    - Before calling the callable, go through the code and identify setup and asserts.
+    - Re-verify if everything is setup properly, and pass what the callable achieve(s) to assert phase.
+- **Assert:**
+    - `refresh_from_db(using="default")` before asserts.
+    - Aim minimal logical assertion(s) per test to maintain focus.
+    - Tests must clean up after themselves.
 
-**Test Names:**
+## Configuration
 
-- Test names should be clean and descriptive, some of the patterns could be:
-  - **`method_name__scenario__expected_behavior`**
-  - **`test_subject__condition__result`**
+- **Pytest**:
+    - Configured via `pyproject.toml` with strict marker checks and short tracebacks.
+    - Configured python files: `test_*` or `*_test`, classes: `Test*`, `*Tests`, functions: `test_*`.
+    - Configured testpath `tests`.
+    - Arguments for pytest command:
+        - `-v`: Log verbosity.
+        - `--reuse-db`: reuses database and make tests fast.
+        - `--import-mode=importlib`: To prevent issue's when two files have same name.
+    - Current Declared Markeres: `slow`, `integration`, `unit`, `celery`.
+- **Settings**:
+    - Uses `config.settings.test` which overrides hashers (MD5 for speed) and caches (LocMem).
+    - Default database fot tests is `pytest_db`(see DATABASE.NAME in [settings](backend/config/settings/test.py)).
+    - By default tests run in tenant schema `test_schema` (see TENANT_SCHEMA_NAME in [settings](backend/config/settings/test.py)).
+    - To switch to public schema for a specific tests you can use `public_db` fixture or `django_tenants.utils.schema_context`.
+    - `CELERY_TASK_ALWAYS_EAGER` to run tasks synchronously `CELERY_TASK_EAGER_PROPAGATES` to show celery exceptions.
+    - Django's `LocMemCache` used to make tests fast.
+    - Django's console Email Backend used to prevent I/O operations and make tests faster.
 
-**Given-When-Then:**
+## Testing
 
-- Organize each test into 3 clear sections, Given-When-Then
-  - **Arrange (Given)**: Set up preconditions, mocks, test data.
-  - **Act (When)**: Call the method/code under test.
-  - **Assert (Then)**: Verify the outcome.
+- Automated via CI/CD pipelines.
+- Manual execution recommended before every commit using `pytest`.
 
-**Assertions per test:**
+## Related Documentation
 
-- One Assertion per Test (or few related ones).
-- One logical assertion per test (e.g., one method outcome or state change).
-- _Exception:_ Asserting multiple properties of the same returned object is fine (e.g., checking all fields of a DTO).
-
-**Test Isolation & Independence:**
-
-- No test should depend on another test’s execution order.
-- Tests must clean up after themselves (database, files, mocks).
-- Use fresh fixtures (`setup_method()` / `setup()` methods).
-- Run any single test alone and it should pass.
-
-**Mocking:**
-
-- If a function implements complex logic, write a test for each implementation and mock the rest (ensure you write separate tests for those implementations).
-- Mock external APIs and heavy DB calls.
-
-**Fast & Consistent:**
-
-- Unit tests must run in milliseconds.
-- No random values (use fixed seeds if needed).
-- Mock network calls, and try to keep file-system and DB access in either separate fixtures or `setup_method`.
-
-**Miscellaneous:**
-
-- Separate sections with blank lines for readability.
-- Use `random` to cover a wide range in a single test.
-- Avoid logic in tests; tests should be declarative, not procedural.
-- When testing multiple similar inputs, use **parameterized tests** instead of copy-pasting.
+- [Architecture Overview](../../docs/architecture/overview.md)
+- [Multi-Tenancy Architecture](../../docs/architecture/multi-tenancy.md)

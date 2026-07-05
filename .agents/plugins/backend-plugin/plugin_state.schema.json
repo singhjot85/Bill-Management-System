@@ -1,0 +1,284 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "bma.agents.backend_plugin_state",
+    "title": "BMA Backend Plugin State",
+    "description": "Internal state machine for the backend-plugin pipeline. Tracks stage progression, retry counts, touched files, and blocks. This file is runtime-only and must be git-ignored.",
+    "type": "object",
+    "required": [
+        "feature",
+        "feature_type",
+        "current_stage",
+        "pipeline",
+        "completed_stages",
+        "pending_stages",
+        "blocked_on",
+        "retry_counts",
+        "files_touched",
+        "last_validated_at",
+        "architect_notes",
+        "domains_touched",
+        "apps_touched"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "feature": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Must exactly match active_feature in session_state.json.",
+            "examples": [
+                "celery-beat periodic jobs",
+                "customer address API"
+            ]
+        },
+        "feature_type": {
+            "type": "string",
+            "enum": [
+                "new_feature",
+                "bug_fix",
+                "refactor",
+                "infra_change"
+            ],
+            "description": "Declared by the Architect at session start. Controls which pipeline stages are applicable. The Architect may omit stages that do not apply to the feature type — e.g. a bug_fix skips architecture design."
+        },
+        "current_stage": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The stage the pipeline is currently executing or about to execute. Must always be the first entry of pending_stages. Updated by the orchestrator after each stage completes.",
+            "examples": [
+                "architecture",
+                "dependency_setup",
+                "happy_path",
+                "full_implementation",
+                "tests",
+                "documentation"
+            ]
+        },
+        "pipeline": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "description": "Ordered list of all stages for this feature. Declared by the Architect on session start and never modified after that. Completed + pending stages must always equal this list.",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "architecture",
+                    "documentation",
+                    "dependency_setup",
+                    "service_validation",
+                    "happy_path",
+                    "happy_path_tests",
+                    "full_implementation",
+                    "full_implementation_tests",
+                    "final_documentation"
+                ]
+            },
+            "examples": [
+                [
+                    "architecture",
+                    "documentation",
+                    "dependency_setup",
+                    "service_validation",
+                    "happy_path",
+                    "happy_path_tests",
+                    "full_implementation",
+                    "full_implementation_tests",
+                    "final_documentation"
+                ],
+                [
+                    "happy_path",
+                    "happy_path_tests",
+                    "full_implementation",
+                    "full_implementation_tests"
+                ]
+            ]
+        },
+        "completed_stages": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Stages that have passed their exit hook and been committed to state. The orchestrator appends here — subagents never write to this field directly.",
+            "items": {
+                "type": "string"
+            },
+            "default": []
+        },
+        "pending_stages": {
+            "type": "array",
+            "minItems": 0,
+            "description": "Stages not yet started, in execution order. The first entry must always match current_stage. Shrinks as stages complete.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "blocked_on": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "hook_name",
+                        "stage",
+                        "summary",
+                        "blocked_at"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "hook_name": {
+                            "type": "string",
+                            "description": "The hook that triggered the hard-stop.",
+                            "examples": [
+                                "pre_coder",
+                                "pre_tester",
+                                "pre_commit"
+                            ]
+                        },
+                        "stage": {
+                            "type": "string",
+                            "description": "The pipeline stage that was blocked."
+                        },
+                        "summary": {
+                            "type": "string",
+                            "description": "Human-readable summary of unresolved errors shown to the user."
+                        },
+                        "blocked_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "ISO 8601 timestamp of when the block was set."
+                        }
+                    }
+                }
+            ],
+            "description": "Null when pipeline is healthy. Set to a block object when a hook hard-stops. Must be null before any stage can proceed. Only the user can clear this — never the orchestrator acting autonomously.",
+            "default": null
+        },
+        "retry_counts": {
+            "type": "object",
+            "description": "Tracks how many times each hook has been retried in this session. Keyed by hook name. The orchestrator increments these — subagents never touch this field.",
+            "additionalProperties": false,
+            "properties": {
+                "pre_coder": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "pre_tester": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "pre_commit": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                }
+            },
+            "default": {
+                "pre_coder": 0,
+                "pre_tester": 0,
+                "pre_commit": 0
+            }
+        },
+        "files_touched": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Rollback manifest. Every file created or modified by any subagent in this session. Appended to by the orchestrator after each subagent reports its changes. Never cleared during a session — this is the only safe rollback reference.",
+            "items": {
+                "type": "object",
+                "required": [
+                    "path",
+                    "operation",
+                    "stage",
+                    "touched_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Path relative to project root.",
+                        "examples": [
+                            "backend/apps/tasks/invoice_tasks.py",
+                            "documentation/Async_Architecture.md"
+                        ]
+                    },
+                    "operation": {
+                        "type": "string",
+                        "enum": [
+                            "created",
+                            "modified"
+                        ],
+                        "description": "Whether this file was newly created or an existing file was modified. Determines rollback action: delete for created, git checkout HEAD for modified."
+                    },
+                    "stage": {
+                        "type": "string",
+                        "description": "The pipeline stage during which this file was touched."
+                    },
+                    "touched_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp."
+                    }
+                }
+            },
+            "default": []
+        },
+        "last_validated_at": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            ],
+            "description": "Timestamp of the last successful hook pass. Null if no hook has passed yet in this session.",
+            "default": null
+        },
+        "architect_notes": {
+            "type": "string",
+            "description": "Free-form notes written by the Architect subagent or captured from user decision-gap answers. Injected as context into Coder and Tester subagents. Append-only — never overwrite previous notes.",
+            "default": ""
+        },
+        "domains_touched": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Structured domain list parsed by the orchestrator from the Architect's '=== ARCHITECT SUMMARY ===' block (domains_touched field). Persisted here as the single source of truth so context_builder.py can resolve reference.md domain blocks for Coder/Tester stages without re-parsing free-text architect_notes. Set once at architecture stage, by the orchestrator only — never written by subagents directly. Must stay in sync with the most recent Architect summary; if the Architect revises domains mid-feature (rare), the orchestrator overwrites this field entirely rather than appending.",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "async_tasks",
+                    "payments",
+                    "tenants",
+                    "customers",
+                    "notifications",
+                    "setup_and_config",
+                    "seeders",
+                    "architecture_index"
+                ]
+            },
+            "default": [],
+            "examples": [
+                [
+                    "async_tasks",
+                    "payments"
+                ]
+            ]
+        },
+        "apps_touched": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Structured app list parsed by the orchestrator from the Architect's '=== ARCHITECT SUMMARY ===' block (apps_touched field). Persisted here for the same reason as domains_touched — context_builder.py's resolve_app_readme_sections() needs this list directly, not scraped from free text. pre_coder.py's check_apps_exist validates these against backend/apps/ on disk; this field stores the validated result for downstream consumption. Set once at architecture stage, by the orchestrator only.",
+            "items": {
+                "type": "string"
+            },
+            "default": [],
+            "examples": [
+                [
+                    "tasks",
+                    "payments_management"
+                ]
+            ]
+        }
+    }
+} 

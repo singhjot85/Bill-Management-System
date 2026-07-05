@@ -44,3 +44,8 @@ When no existing documentation file exists and the user requests new documentati
 4. **Write documentation**: Fill in each section with detailed, accurate content.
 5. **Add examples**: Include code snippets, usage examples, or diagrams where helpful.
 6. **Review and finalize**: Check for completeness, accuracy, and clarity. Present the final doc for review.
+
+## Validation Step
+
+- After the documentation is completed, check if the documenration is healthy using `doc_health_check` script of this skill.
+- Re-validate the document aligns to what is implemented and dsigned in code.

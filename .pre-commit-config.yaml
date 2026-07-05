@@ -1,6 +1,6 @@
-exclude: "documentation|node_modules|.git|assets|.github|.gemini"
+exclude: "documentation|node_modules|.git|.agents|.codex|.gemini|.github|assets"
 default_stages: [pre-commit, pre-push]
-fail_fast: false
+fail_fast: true
 
 repos:
   - repo: https://github.com/psf/black
@@ -19,6 +19,7 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+        exclude: '^backend/apps/setup/fixtures/notification_templates/'
       - id: check-yaml
       - id: check-merge-conflict
       - id: debug-statements
@@ -28,8 +29,14 @@ repos:
     rev: 7.2.0
     hooks:
       - id: flake8
-        args: ["--ignore=E501,W503,F403,F405,E203"]
-        additional_dependencies: [flake8-isort, flake8-print]
+        # args: ["--ignore=E501,W503,F403,F405,E203"]
+        # additional_dependencies: [flake8-isort, flake8-print]
+        # E501: line too long (98 > 79 characters)
+        # W503: line break before binary operator
+        # F403: import *
+        # F405: import * used and not able to resolve
+        args: ["--ignore=E501,W503,F403,F405"]
+        additional_dependencies: [flake8-print]
 
   - repo: https://github.com/PyCQA/isort
     rev: 5.13.2
@@ -46,9 +53,9 @@ repos:
     rev: v1.36.4
     hooks:
       - id: djlint-reformat-django
-        exclude: '^backend/django_templates/templates/|^frontend/index\.html$'
+        exclude: '^backend/django_templates/templates/|^frontend/index\.html$|^backend/apps/setup/fixtures/notification_templates/'
       - id: djlint-django
-        exclude: '^backend/django_templates/templates/|^frontend/index\.html$'
+        exclude: '^backend/django_templates/templates/|^frontend/index\.html$|^backend/apps/setup/fixtures/notification_templates/'
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0

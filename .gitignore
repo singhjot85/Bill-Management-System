@@ -24,7 +24,6 @@ media/
 staticfiles/
 local_settings.py
 
-.vscode/
 .history/
 *.code-workspace
 
@@ -46,5 +45,14 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
-local_testing/
-source_codes/
+**/local_testing/
+**/source_codes/
+
+.vscode/
+.zed/
+
+.agents/logs
+.agents/session_state.json
+.agents/plugins/backend-plugin/plugin_state.json
+
+**/backend/logs/*

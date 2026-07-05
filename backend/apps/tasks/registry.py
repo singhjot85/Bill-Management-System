@@ -20,7 +20,8 @@ class TaskLocation(Enum):
     """Task file path for auto discover_tasks, whenever a new task file is created register it here"""
 
     TEST_TASKS = "apps.tasks.test_tasks"
-    INVOICE_TASK = "apps.tasks.invoice_tasks"
+    INVOICE_TASKS = "apps.tasks.invoice_tasks"
+    NOTIFICATION_TASKS = "apps.tasks.notification_tasks"
 
     @staticmethod
     def get_autodiscove_tasks():
@@ -31,8 +32,9 @@ class TaskLocation(Enum):
 
 class TaskNames(Enum):
 
-    PDF_GENERATION = "generate_pdf", TaskLocation.INVOICE_TASK.value
+    PDF_GENERATION = "generate_pdf", TaskLocation.INVOICE_TASKS.value
     TEST_TENANT_AWARE_TASK = "test_tenant_awareness", TaskLocation.TEST_TASKS.value
+    NOTIFICATION_TASK = "notification_task", TaskLocation.NOTIFICATION_TASKS.value
 
     def task_label(self) -> str:
         """Returns a user friendly task label for current"""
@@ -57,7 +59,7 @@ class TaskNames(Enum):
         try:
             return import_module(self.task_path()).__getattribute__(self.value[0])
         except ImportError:
-            raise ImportError("Error importing task")
+            raise ImportError("Error Getting Celery Task instance")
 
 
 class FailureModes(Enum):
@@ -82,18 +84,22 @@ def queue_task(
     """
     A wrapper over celery's `task.delay`/`task.apply_async` to standardize task queuing.
     This wrapper make's it easier to modify task queuing behaviour
-    args:
+
+    Args:
         on_commit (bool): Whether to queue task after current db-transaction commit or not.
             defaults to True.
         task_args (tuple, optional): Set of argument's to be passed to the task directly.
             Defaults to None.
         task_kwargs (dict, optional): Set of keyword arguments to be passed to the task directly.
             Defaults to None.
-    kwargs:
+
+    Kwargs:
         queue_name (str, optional): Task queue name, in which the task is to be pushed.
             default's to None
-        task_id (str): Task Id, to ensure idempotency (i.e. one task run's only once even if queued multiple times).
+        idempotency_key (str): Some string, to ensure idempotency (i.e. one task run's only once even if queued multiple times).
             default's to None
+            NOTE: Ensure the string generated passed remains constant agnostic to task.
+
     Returns:
         (AsyncResult, None): Instance of celery's AsyncResult
             NOTE: Before using AsyncResult always check if result is available i.e. `AsyncResult.ready()`
@@ -101,16 +107,22 @@ def queue_task(
     task_args = task_args or tuple()
     task_kwargs = task_kwargs or {}
 
+    _task_enum = None
     if isinstance(task, str):
         try:
-            task = TaskNames[task].get_task_instance()
+            _task_enum = TaskNames[task]
+            task = _task_enum.get_task_instance()
         except KeyError:
             raise TaskQueuingException(f"Invalid task name: {task}")
     elif isinstance(task, TaskNames):
+        _task_enum = task
         task = task.get_task_instance()
 
     if not isinstance(task, DjangoTask):
         raise TaskQueuingException("Invalid argument type for task!")
+
+    if _task_enum and (idempotency_key := kwargs.pop("idempotency_key", None)):
+        kwargs["task_id"] = _task_enum.task_id(idempotency_key)
 
     task: DjangoTask
     if on_commit:
