@@ -1,0 +1,20 @@
+{
+    "feature": "",
+    "feature_type": "new_feature",
+    "current_stage": "",
+    "pipeline": [],
+    "completed_stages": [],
+    "pending_stages": [],
+    "blocked_on": null,
+    "retry_counts": {
+        "DESIGN_LINT": 0,
+        "DESIGN_REVIEW": 0,
+        "CODE_LINT": 0,
+        "CODE_SELF_CHECK": 0
+    },
+    "files_touched": [],
+    "last_validated_at": null,
+    "architect_notes": "",
+    "version": 0,
+    "contract": null
+}

@@ -1,0 +1,18 @@
+{
+  "component_name": "",
+  "tier": "generic",
+  "vuetify_components": [],
+  "design_tokens": {},
+  "states": [],
+  "animation_spec": "None",
+  "wireframe": {
+    "svg_content": "",
+    "review_mode": "image"
+  },
+  "review": {
+    "status": "pending",
+    "iteration": 1,
+    "notes": ""
+  },
+  "code_files": []
+}

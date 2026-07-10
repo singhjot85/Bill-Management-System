@@ -1,0 +1,308 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bma.agents.frontend_plugin_state",
+  "title": "BMA Frontend Plugin State",
+  "description": "Internal state machine for the frontend-plugin pipeline. Tracks design and coding stages, retry counts, touched files, version, and blocks.",
+  "type": "object",
+  "required": [
+    "feature",
+    "feature_type",
+    "current_stage",
+    "pipeline",
+    "completed_stages",
+    "pending_stages",
+    "blocked_on",
+    "retry_counts",
+    "files_touched",
+    "last_validated_at",
+    "architect_notes",
+    "version",
+    "contract"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "feature": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must exactly match active_feature in session_state.json."
+    },
+    "feature_type": {
+      "type": "string",
+      "enum": [
+        "new_feature",
+        "bug_fix",
+        "refactor",
+        "infra_change"
+      ],
+      "description": "Determined on start."
+    },
+    "current_stage": {
+      "type": "string",
+      "enum": [
+        "DESIGN_DRAFT",
+        "DESIGN_LINT",
+        "DESIGN_REVIEW",
+        "DESIGN_APPROVED",
+        "CODE_GEN",
+        "CODE_LINT",
+        "CODE_SELF_CHECK",
+        "MANUAL_QA_PENDING"
+      ]
+    },
+    "pipeline": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "DESIGN_DRAFT",
+          "DESIGN_LINT",
+          "DESIGN_REVIEW",
+          "DESIGN_APPROVED",
+          "CODE_GEN",
+          "CODE_LINT",
+          "CODE_SELF_CHECK",
+          "MANUAL_QA_PENDING"
+        ]
+      }
+    },
+    "completed_stages": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "pending_stages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocked_on": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "hook_name",
+            "stage",
+            "summary",
+            "blocked_at"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "hook_name": {
+              "type": "string"
+            },
+            "stage": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string"
+            },
+            "blocked_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      ],
+      "default": null
+    },
+    "retry_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "DESIGN_LINT": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "DESIGN_REVIEW": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "CODE_LINT": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "CODE_SELF_CHECK": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      "default": {
+        "DESIGN_LINT": 0,
+        "DESIGN_REVIEW": 0,
+        "CODE_LINT": 0,
+        "CODE_SELF_CHECK": 0
+      }
+    },
+    "files_touched": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "operation",
+          "stage",
+          "touched_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "created",
+              "modified"
+            ]
+          },
+          "stage": {
+            "type": "string"
+          },
+          "touched_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": []
+    },
+    "last_validated_at": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        }
+      ],
+      "default": null
+    },
+    "architect_notes": {
+      "type": "string",
+      "default": ""
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "contract": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "component_name",
+            "tier",
+            "vuetify_components",
+            "design_tokens",
+            "states",
+            "animation_spec",
+            "wireframe",
+            "review",
+            "code_files"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "component_name": {
+              "type": "string"
+            },
+            "tier": {
+              "type": "string",
+              "enum": [
+                "generic",
+                "layout",
+                "view"
+              ]
+            },
+            "vuetify_components": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "design_tokens": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "states": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "animation_spec": {
+              "type": "string"
+            },
+            "wireframe": {
+              "type": "object",
+              "required": [
+                "svg_content",
+                "review_mode"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "svg_content": {
+                  "type": "string"
+                },
+                "review_mode": {
+                  "type": "string"
+                }
+              }
+            },
+            "review": {
+              "type": "object",
+              "required": [
+                "status",
+                "iteration",
+                "notes"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "approved",
+                    "rejected"
+                  ]
+                },
+                "iteration": {
+                  "type": "integer"
+                },
+                "notes": {
+                  "type": "string"
+                }
+              }
+            },
+            "code_files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "default": null
+    }
+  }
+}
