@@ -2,11 +2,18 @@
   <v-container class="pricing-section py-16">
     <v-row justify="center" class="text-center mb-12">
       <v-col cols="12">
-        <h2 class="section-headline font-weight-bold">Simple Tiering</h2>
+        <h2 class="section-headline font-weight-bold">
+          {{ config.headline || 'Simple Tiering' }}
+        </h2>
       </v-col>
     </v-row>
     <v-row align="stretch">
-      <v-col v-for="(tier, index) in config.tiers" :key="index" cols="12" md="4">
+      <v-col
+        v-for="(tier, index) in config.tiers"
+        :key="index"
+        cols="12"
+        :md="config.tiers && config.tiers.length === 3 ? (tier.popular ? 5 : (index === 0 ? 3 : 4)) : 4"
+      >
         <v-card
           :class="['pricing-card pa-8 text-center d-flex flex-column', { 'popular-tier': tier.popular }]"
           flat
@@ -51,11 +58,12 @@ defineProps<{
 }
 
 .pricing-card {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   height: 100%;
   border-radius: var(--radius-lg);
   background-color: var(--surface-color);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.15); /* ponytail: theme-aware border */
+  transition: transform 250ms var(--ease-out), box-shadow 250ms var(--ease-out), border-color 250ms var(--ease-out);
 }
 
 .pricing-card:hover {
@@ -64,8 +72,16 @@ defineProps<{
 }
 
 .popular-tier {
-  border: 2px solid var(--primary-color);
+  border: 2px solid var(--primary-color) !important;
   position: relative;
+  transform: scale(1.03);
+  box-shadow: var(--shadow-md) !important;
+  z-index: 1;
+}
+
+.popular-tier:hover {
+  transform: scale(1.03) translateY(-5px);
+  box-shadow: var(--shadow-lg) !important;
 }
 
 .popular-badge {

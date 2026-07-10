@@ -48,11 +48,14 @@ Thumbs.db
 **/local_testing/
 **/source_codes/
 
+# IDE settings
 .vscode/
 .zed/
 
-.agents/logs
+# Agent Loop log(s), and state(s)
+.agents/**/logs/*
 .agents/session_state.json
 **/plugin_state.json
 **/backend/logs/*
 **/.features/*
+.agents/plugins/frontend-plugin/context/*.svg
