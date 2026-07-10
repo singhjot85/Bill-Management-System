@@ -206,7 +206,7 @@ def check_python_syntax(handoff: dict, project_root: Path, log_path: Path) -> li
             continue  # already caught by check_files_exist_on_disk
         try:
             result = subprocess.run(
-                ["python", "-m", "py_compile", str(file_path)],
+                [sys.executable, "-m", "py_compile", str(file_path)],
                 capture_output=True, text=True, timeout=PY_COMPILE_TIMEOUT,
             )
             if result.returncode != 0:
@@ -237,7 +237,7 @@ def check_django_system_check(project_root: Path, log_path: Path) -> list[dict]:
     log(log_path, "CHECK: Django system check (manage.py check)")
     try:
         result = subprocess.run(
-            ["docker", "compose", "exec", "-T", "backend", "python", "manage.py", "check"],
+            ["docker", "compose", "-f", "compose/compose.local.yaml", "exec", "-T", "django", "python", "manage.py", "check"],
             capture_output=True, text=True, timeout=DJANGO_CHECK_TIMEOUT, cwd=str(project_root),
         )
         if result.returncode != 0:
@@ -281,7 +281,7 @@ def check_migrations_consistent(handoff: dict, project_root: Path, log_path: Pat
 
     try:
         result = subprocess.run(
-            ["docker", "compose", "exec", "-T", "backend", "python", "manage.py",
+            ["docker", "compose", "-f", "compose/compose.local.yaml", "exec", "-T", "django", "python", "manage.py",
              "makemigrations", "--check", "--dry-run"],
             capture_output=True, text=True, timeout=MAKEMIGRATIONS_CHECK_TIMEOUT, cwd=str(project_root),
         )

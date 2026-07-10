@@ -46,14 +46,7 @@ inject_for_agents:
 sources:
   - file: docs/architecture/async-system.md
     sections:
-      - "Infrastructure Decisions"
-      - "Task File Structure"
-      - "Task Discovery & Naming"
-      - "Multi-Tenancy & Task Context"
-      - "Failure Classification System"
-      - "Periodic Tasks & Beat Fan-Out"
-      - "Canvas Primitives: group vs chord"
-      - "Things to remember in an Async Task"
+      - "Key Concepts"
   - file: backend/apps/tasks/Readme.md
     required: warn_and_continue
     missing_caveat: >
@@ -118,7 +111,7 @@ inject_for_agents:
 sources:
   - file: docs/architecture/data-models.md
     sections:
-      - "Tenants (Public Schema)"
+      - "Key Concepts"
     required: hard_stop
     reason: >
       Tenant model definitions are non-negotiable reference. Without them
@@ -150,7 +143,7 @@ inject_for_agents:
 sources:
   - file: docs/architecture/data-models.md
     sections:
-      - "Customer Management (Tenant Schema)"
+      - "Key Concepts"
     required: hard_stop
     reason: >
       Customer model definitions are the canonical reference for this domain.
@@ -206,7 +199,7 @@ inject_for_agents:
 sources:
   - file: docs/architecture/data-models.md
     sections:
-      - "Setup (Tenant Schema)"
+      - "Key Concepts"
     required: hard_stop
     reason: >
       The Configurations model pattern must be followed for all new

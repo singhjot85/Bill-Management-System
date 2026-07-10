@@ -384,6 +384,18 @@ After a subagent completes, it must:
 If a subagent's output does not include a file list, ask it explicitly before
 updating state. Never infer file changes from conversation.
 
+### Intermediate File Storage
+
+To prevent temporary prompt files, subagent handoffs, and verification output files from polluting the workspace and being tracked by VCS, you must save them under the `.agents/logs/outputs/` directory.
+
+The following standard paths must be used:
+- Architect prompt: `.agents/logs/outputs/architect_prompt.txt`
+- Architect output (plan): `.agents/logs/outputs/architect_output.txt`
+- Coder output (handoff): `.agents/logs/outputs/coder_output.txt`
+- Tester output (handoff): `.agents/logs/outputs/tester_output.txt`
+
+These files are dynamically created by the orchestrator at each stage and passed as arguments to hooks (e.g., `pre_coder.py`, `pre_tester.py`, `pre_commit.py`).
+
 ### Logging Subagent Invocations (Token Usage)
 
 Hooks log their own execution time and validation detail to

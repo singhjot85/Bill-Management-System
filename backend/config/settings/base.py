@@ -140,6 +140,16 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_AUTH = {"USER_DETAILS_SERIALIZER": USER_DETAIL_SERIALIZER}
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
+
 # ------------------
 #  django-mail
 # ------------------

@@ -8,11 +8,15 @@ tags: [celery, valkey, background-tasks, workers]
 
 # Asynchronous Task System
 
+## Purpose
+
 TL;DR: BMA's asynchronous system uses Celery with Valkey to handle background tasks and periodic jobs. It features a tenant-aware task base class, explicit task naming, and a three-tier failure classification system (SILENT, ALERT, DLQ).
 
 This document covers the infrastructure, task structure, multi-tenancy integration, and failure handling of the asynchronous engine.
 
-## Infrastructure
+## Key Concepts
+
+### Infrastructure
 
 ### Message Broker: Valkey
 We use two separate Valkey instances to avoid resource contention:
@@ -25,7 +29,7 @@ Task results are stored in PostgreSQL via `django-celery-results`. This provides
 ### Beat Scheduler: Database-backed
 We use `django-celery-beat` with the `DatabaseScheduler`. This allows managing periodic jobs (adding, modifying, disabling) at runtime via the Django Admin without requiring redeployments.
 
-## Multi-Tenancy Integration
+### Multi-Tenancy Integration
 
 ### `TenantAwareTask`
 Since Celery workers run outside the HTTP request/response cycle, they lack an active tenant context. BMA uses a custom `TenantAwareTask` base class to inject and activate the correct schema at runtime.
@@ -44,7 +48,7 @@ sequenceDiagram
     Worker->>DB: Execute Task Logic
 ```
 
-## Failure Classification System
+### Failure Classification System
 Not all failures are equal. We classify failures into three tiers at task declaration:
 
 | Tier     | Behaviour                                                   | Use Case                                           |
@@ -56,7 +60,7 @@ Not all failures are equal. We classify failures into three tiers at task declar
 ### Dead Letter Queue (DLQ)
 The DLQ lives in the `public` schema and stores failed tasks that require manual review and replay. This ensures that no critical business event is permanently lost due to transient failures or configuration issues.
 
-## Periodic Tasks & Fan-Out
+### Periodic Tasks & Fan-Out
 Periodic tasks follow a **Coordinator Pattern** to handle multi-tenancy.
 
 1. **Beat** fires a coordinator task (in `public` schema).
@@ -65,7 +69,7 @@ Periodic tasks follow a **Coordinator Pattern** to handle multi-tenancy.
 
 ---
 
-## Related Documents
+## Related Documentation
 - [Architectural Overview](./overview.md)
 - [Multi-Tenancy](./multi-tenancy.md)
 - [Notification Design](../patterns/notifications.md)

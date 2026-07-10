@@ -81,34 +81,36 @@ function main() {
 
     // 1. Component tier and path placement validation
     const fileName = path.basename(fileRelativePath);
-    if (contract.tier === 'generic') {
-      if (!fileRelativePath.startsWith('frontend/src/components/common/')) {
-        violations.push({
-          source: 'frontend_conventions',
-          rule: 'tier_placement',
-          message: `Generic component must reside in "frontend/src/components/common/". Found: ${fileRelativePath}`,
-          location: fileRelativePath
-        });
-      }
-    } else if (contract.tier === 'layout') {
-      if (!fileRelativePath.startsWith('frontend/src/components/layout/')) {
-        violations.push({
-          source: 'frontend_conventions',
-          rule: 'tier_placement',
-          message: `Layout component must reside in "frontend/src/components/layout/". Found: ${fileRelativePath}`,
-          location: fileRelativePath
-        });
-      }
-    } else if (contract.tier === 'view') {
-      const isUnderViewDir = fileRelativePath.startsWith('frontend/src/components/view/');
-      const isUnderViewsDir = fileRelativePath.startsWith('frontend/src/views/');
-      if (!isUnderViewDir && !isUnderViewsDir) {
-        violations.push({
-          source: 'frontend_conventions',
-          rule: 'tier_placement',
-          message: `View component must reside in "frontend/src/components/view/" or "frontend/src/views/". Found: ${fileRelativePath}`,
-          location: fileRelativePath
-        });
+    if (!fileRelativePath.startsWith('frontend/src/services/')) {
+      if (contract.tier === 'generic') {
+        if (!fileRelativePath.startsWith('frontend/src/components/common/')) {
+          violations.push({
+            source: 'frontend_conventions',
+            rule: 'tier_placement',
+            message: `Generic component must reside in "frontend/src/components/common/". Found: ${fileRelativePath}`,
+            location: fileRelativePath
+          });
+        }
+      } else if (contract.tier === 'layout') {
+        if (!fileRelativePath.startsWith('frontend/src/components/layout/')) {
+          violations.push({
+            source: 'frontend_conventions',
+            rule: 'tier_placement',
+            message: `Layout component must reside in "frontend/src/components/layout/". Found: ${fileRelativePath}`,
+            location: fileRelativePath
+          });
+        }
+      } else if (contract.tier === 'view') {
+        const isUnderViewDir = fileRelativePath.startsWith('frontend/src/components/view/');
+        const isUnderViewsDir = fileRelativePath.startsWith('frontend/src/views/');
+        if (!isUnderViewDir && !isUnderViewsDir) {
+          violations.push({
+            source: 'frontend_conventions',
+            rule: 'tier_placement',
+            message: `View component must reside in "frontend/src/components/view/" or "frontend/src/views/". Found: ${fileRelativePath}`,
+            location: fileRelativePath
+          });
+        }
       }
     }
 

@@ -1,8 +1,12 @@
 # Invoice Management Application (Bill Management Application)
 
-A system that can be used to generate and manage bills/invoices. This files contains the norms and conventions followed for backend development of the project.
+## Purpose
 
-# Directory Structure
+A system that can be used to generate and manage bills/invoices. This file contains the norms and conventions followed for backend development of the project.
+
+## Key Concepts
+
+### Directory Structure
 
 ```
 project_root/
@@ -28,7 +32,7 @@ project_root/
 |- project_templating   # Django Templates and Static Assets
 ```
 
-# Generic Coding Conventions
+### Generic Coding Conventions
 
 - Follow these coding conventions when writing and contributing to the project.
 - These are not hard and fast rules, but deviating from them should be well explanitory and reasoned.
@@ -201,14 +205,16 @@ class ObjectCreation:
 
 Using the DRY, and OOP practice's we have split a complex monolith logic, into extendable, clean and easy-to-extend solution.
 
-## Testing Phase:
+## Testing
+
+### Testing Phase:
 
 - Whatever logic you build or write, write unittest for individual fn.
 - Writing a test for a function make(s) it future proof, that is any change to that method's behaviour won't propogate to deployment.
 - Mock/Patch extenal API and I/O calls.
 - Write end-to-end flow test for the functionality built, it tests if the feature's works altogether.
 
-# Project Specific Coding Conventions
+### Project Specific Coding Conventions
 
 **Views:**
 
@@ -239,3 +245,8 @@ Using the DRY, and OOP practice's we have split a complex monolith logic, into e
   - `backend/config/routers.py` only contain Tenant Level routes, `backend/config/public_routers.py` contain Public routes.
   - `backend/config/settings/settings.py` only does definition, everything get defined in helper files/sub-directories.
 - Keep all the application related logic in `backend/apps` directory.
+
+## Related Documentation
+
+- [Data Modeling](file:///Users/gurjotsingh/Documents/bma-worktrees/frontend2/docs/architecture/data-models.md)
+- [Asynchronous Task System](file:///Users/gurjotsingh/Documents/bma-worktrees/frontend2/docs/architecture/async-system.md)

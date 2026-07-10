@@ -38,6 +38,7 @@ To onboard a new organization:
 - `TENANT_MODEL`: Must be set to `tenants.OrganizationTenant`.
 - `TENANT_DOMAIN_MODEL`: Must be set to `tenants.OrganizationDomain`.
 - `SHARED_APPS`: Includes this app to ensure it resides in the `public` schema.
+- `REST_FRAMEWORK` (in settings): TokenAuthentication and SessionAuthentication are enabled to support client authentication.
 
 ## Testing
 ```bash

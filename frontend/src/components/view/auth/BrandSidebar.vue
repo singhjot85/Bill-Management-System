@@ -17,14 +17,14 @@
         Grow Business.
       </h2>
       <p class="text-h6 font-weight-medium mb-12 opacity-80">
-        One app for invoices, donations, bills & inventory.
+        One app for invoices, donations, bills &amp; inventory.
       </p>
 
-      <!-- Trust Badges -->
+      <!-- Trust Badges (config-driven) -->
       <div class="trust-badges d-flex flex-column gap-4">
         <div v-for="badge in badges" :key="badge.text" class="d-flex align-center">
           <v-avatar color="white" size="32" class="mr-4">
-            <v-icon color="primary" size="18">mdi-check</v-icon>
+            <v-icon color="primary" size="18">{{ badge.icon ?? 'mdi-check' }}</v-icon>
           </v-avatar>
           <span class="text-subtitle-1 font-weight-bold">{{ badge.text }}</span>
         </div>
@@ -35,19 +35,24 @@
 
 <script setup lang="ts">
 import { useBrandingStore } from "@/stores/brandingStore";
+import type { BadgeItem } from '@/config/types/authTypes';
+import { defaultBrandSidebarConfig } from '@/config/defaults/authDefaults';
 
 const brandingStore = useBrandingStore();
 
-const badges = [
-  { text: "15,000+ active businesses" },
-  { text: "₹50Cr+ invoices processed" },
-  { text: "500+ NGOs onboarded" }
-];
+// ponytail: prop with default — caller overrides, else falls back to config defaults
+const props = withDefaults(defineProps<{ badges?: BadgeItem[] }>(), {
+  badges: () => defaultBrandSidebarConfig.badges
+});
 </script>
 
 <style scoped>
 .brand-sidebar {
-  background: linear-gradient(135deg, #1B5E20 0%, #0D47A1 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-color-rgb), 0.95) 0%,
+    rgba(var(--secondary-color-rgb), 0.90) 100%
+  );
   position: relative;
   overflow: hidden;
 }
