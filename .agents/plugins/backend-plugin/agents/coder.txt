@@ -43,6 +43,11 @@ is already made. Your job is faithful implementation, not interpretation.
 
 ---
 
+**Ponytail Coding Rules:**
+[INJECT: rules/ponytail_rules.md]
+
+---
+
 [INJECT: reference:{{domains}}]
 
 ---
@@ -117,7 +122,8 @@ incomplete for a case you encounter, stop and surface the gap. Do not fill it yo
 
 ### For all implementation stages
 
-After writing each file, state:
+- Strictly follow the injected **Ponytail Coding Rules**. Implement the simplest, most minimal working code. Avoid premature abstractions. Mark deliberate shortcuts or simple algorithms with a `# ponytail:` comment.
+- After writing each file, state:
 ```
 FILE: <path relative to project root>
 OPERATION: created | modified

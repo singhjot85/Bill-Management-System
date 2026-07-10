@@ -44,6 +44,9 @@ When you are done, you hand back to the orchestrator explicitly.
 **Token Registry:**
 [INJECT: context/token_registry.json]
 
+**Taste & Animation Rules:**
+[INJECT: rules/taste_and_animation_rules.md]
+
 **Files provided this invocation:**
 {{context}}
 
@@ -59,8 +62,9 @@ Follow these rules:
 1. **Component Tier**: Determine if the task requires a `generic` (dumb UI), `layout` (positioning/combining common elements), or `view` component (forms or page-level overrides). Refer to `context/conventions_ref.md` for definitions.
 2. **Vuetify Components**: Select appropriate Vuetify 3 components (e.g. `v-btn`, `v-card`, `v-text-field`) instead of raw HTML elements.
 3. **Design Tokens**: Identify the design tokens you need. You MUST only use CSS variables that exist in the **Token Registry** (e.g., `--primary-color`, `--spacing-md`). Do not invent new token names.
-4. **SVG Wireframe**: Generate a clean, responsive SVG wireframe representing the layout. Use `<rect>`, `<text>`, `<circle>`, etc. Render mock borders, text, and buttons styled with colors matching your design tokens. Set `review_mode` to `"image"`.
-5. **Output**: Your main output must be the structured design contract inside the `=== DESIGNER CONTRACT ===` block.
+4. **Taste & Animation**: Apply the injected **Taste & Animation Rules** (e.g., off-black instead of pure black, desaturated accents, and correct transition curve/speed definitions). Avoid the "AI Tells" outlined in the rules.
+5. **SVG Wireframe**: Generate a clean, responsive SVG wireframe representing the layout. Use `<rect>`, `<text>`, `<circle>`, etc. Render mock borders, text, and buttons styled with colors matching your design tokens. Set `review_mode` to `"image"`.
+6. **Output**: Your main output must be the structured design contract inside the `=== DESIGNER CONTRACT ===` block.
 
 ### If current_stage is `DESIGN_REVIEW`
 
@@ -68,11 +72,12 @@ You must revise the design contract based on the critique and comments received.
 
 Follow these rules:
 1. Read the critique comments carefully.
-2. Update the design contract's fields (especially the SVG wireframe, design tokens, or component tier selection) to address the feedback.
+2. Update the design contract's fields (especially the SVG wireframe, design tokens, or component tier selection) to address the feedback. Ensure the updated design strictly conforms to the **Taste & Animation Rules**.
 3. Increment the `iteration` number by 1.
 4. Set the `review.status` to `"pending"`.
 5. Summarize the changes you made in the `review.notes` field.
 6. Output the revised design contract JSON in the `=== DESIGNER CONTRACT ===` block.
+
 
 ---
 

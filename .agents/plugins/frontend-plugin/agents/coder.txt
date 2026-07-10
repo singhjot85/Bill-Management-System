@@ -45,6 +45,9 @@ you stop and surface it — you do not improvise.
 **Approved Design Contract:**
 {{contract}}
 
+**Ponytail Coding Rules:**
+[INJECT: rules/ponytail_rules.md]
+
 **Files provided this invocation:**
 {{context}}
 
@@ -57,22 +60,24 @@ You must implement the actual Vue 3/TS files declared in the approved design con
 Follow these rules:
 1. **Faithful Implementation**: Build the components exactly as defined in the design contract (matching `component_name`, `tier`, `vuetify_components`, `states`, `animation_spec`).
 2. **File Paths**: Create or modify the files in the locations specified by `contract.code_files`. Place them in their appropriate directories (`components/common/`, `components/layout/`, `views/`, etc.). State the full path relative to the project root before showing the code content.
-3. **Vue 3 Conventions**:
+3. **Ponytail Simplicity**: Strictly follow the injected **Ponytail Coding Rules**. Implement the simplest, most minimal working code. Avoid premature abstractions. Mark deliberate shortcuts or simple algorithms with a `// ponytail:` comment.
+4. **Vue 3 Conventions**:
    - Use Composition API with `<script setup lang="ts">` syntax.
    - For generic components, write clean, highly configurable props, define typescript types in `config/types/`, and omit business logic.
    - Emit events for user interactions (`defineEmits`) and let the parent view component handle store/API coordination.
-4. **Styling Hierarchy**:
+5. **Styling Hierarchy**:
    - First, use Vuetify utility classes for spacing, colors, flex, and typography.
    - Second, use Vuetify component props.
    - Third, use global SCSS variables from `variables.css`.
    - Fourth, use scoped CSS (`<style scoped>`) ONLY for custom animations or complex brand patterns.
-5. **No Direct Axios/Fetch**: Do not call APIs directly in components. Components must read store state or invoke store actions.
+6. **No Direct Axios/Fetch**: Do not call APIs directly in components. Components must read store state or invoke store actions.
 
 For every file you create or modify, state:
 ```text
 FILE: <path relative to project root>
 OPERATION: created | modified
 ```
+
 
 ---
 
