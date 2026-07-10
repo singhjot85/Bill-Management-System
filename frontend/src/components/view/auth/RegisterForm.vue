@@ -65,7 +65,7 @@
         block
         size="large"
         height="54"
-        class="font-weight-bold text-none rounded-lg"
+        class="font-weight-bold text-none rounded-lg cta-btn"
         type="submit"
         :disabled="!isValid"
         elevation="0"
@@ -77,6 +77,11 @@
         No credit card required. Cancel anytime. You will get 500 invoice credits on signup.
       </p>
     </v-form>
+
+    <!-- Signup info snackbar -->
+    <v-snackbar v-model="snackbar.show" :timeout="3000" location="bottom">
+      {{ snackbar.message }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -89,10 +94,19 @@ const email = ref('');
 const phone = ref('');
 const password = ref('');
 const agree = ref(false);
+const snackbar = ref({ show: false, message: '' });
 
 const handleSubmit = () => {
   if (isValid.value) {
-    alert("Signup functionality coming soon!");
+    // ponytail: signup API not wired — show info toast
+    snackbar.value = { show: true, message: 'Signup functionality coming soon!' };
   }
 };
 </script>
+
+<style scoped>
+.text-muted { color: var(--text-secondary); }
+
+/* CTA button press micro-animation */
+.cta-btn:active { transform: scale(0.97); transition: transform 120ms ease-out; }
+</style>

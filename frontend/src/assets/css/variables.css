@@ -14,6 +14,7 @@
   --warning-color: #f59e0b;
 
   --text-primary: #1e293b;
+  --text-primary-rgb: 30, 41, 59;
   --text-secondary: #64748b;
   --text-muted: #94a3b8;
 
@@ -58,6 +59,7 @@
   --background-color: #0f172a;
   --surface-color: #1e293b;
   --text-primary: #f1f5f9;
+  --text-primary-rgb: 241, 245, 249;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
 }

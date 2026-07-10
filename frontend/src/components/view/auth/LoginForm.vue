@@ -2,7 +2,7 @@
   <div class="login-form">
     <div class="mb-8">
       <h3 class="text-h5 font-weight-bold mb-1">Welcome back</h3>
-      <p class="text-body-2 text-muted">Sign in to manage your invoices, donations & inventory</p>
+      <p class="text-body-2 text-muted">Sign in to manage your invoices, donations &amp; inventory</p>
     </div>
 
     <v-form @submit.prevent="handleSubmit" v-model="isValid">
@@ -47,7 +47,7 @@
         block
         size="large"
         height="54"
-        class="font-weight-bold text-none rounded-lg"
+        class="font-weight-bold text-none rounded-lg cta-btn"
         type="submit"
         :loading="authStore.loading"
         :disabled="!isValid"
@@ -56,9 +56,13 @@
         Sign In
       </v-btn>
 
+      <!-- Divider label — token-driven background, dark-mode safe -->
       <div class="text-center my-8 position-relative">
         <v-divider />
-        <span class="bg-white px-4 text-caption text-muted position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%)">
+        <span
+          class="px-4 text-caption text-muted position-absolute divider-label"
+          style="top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--surface-color);"
+        >
           Or continue with
         </span>
       </div>
@@ -113,3 +117,10 @@ const handleSubmit = async () => {
   }
 };
 </script>
+
+<style scoped>
+.text-muted { color: var(--text-secondary); }
+
+/* CTA button press micro-animation */
+.cta-btn:active { transform: scale(0.97); transition: transform 120ms ease-out; }
+</style>
