@@ -20,10 +20,9 @@ reason: >
   This is the primary backend convention source. If it is missing, the agent
   has no grounding for any backend work. Do not proceed without it.
 sections:
-  - "Directory Structure"
-  - "Clean Code"
-  - "URL Patterns"
-  - "Views"
+  - "Purpose"
+  - "Key Concepts"
+  - "Testing"
 inject_for_stages:
   - architecture
   - dependency_setup

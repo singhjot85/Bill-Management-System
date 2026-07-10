@@ -11,7 +11,8 @@ from apps.tenants.serializers import BrandingSerializer, LoginSerializer, UserSe
 
 class AuthViewSet(viewsets.ViewSet):
     """
-    API Endpoints for Authentication
+    API Endpoints for Authentication.
+    DEPRECATED: Use dj_rest_auth endpoints instead of this ViewSet.
     """
 
     permission_classes = [AllowAny]

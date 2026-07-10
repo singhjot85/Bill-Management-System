@@ -254,9 +254,16 @@ def run_scoped_precommit(touched_files: list[str], backend_dir: Path, project_ro
         log(log_path, "  SKIP: No files to scope pre-commit against")
         return errors
 
-    # Paths in files_touched are relative to project_root; pre-commit run --files
-    # expects paths relative to the repo root pre-commit is invoked from.
-    relative_paths = [str(Path(f)) for f in touched_files]
+    relative_paths = []
+    for f in touched_files:
+        path_obj = Path(f)
+        if path_obj.parts and path_obj.parts[0] == "backend":
+            # Strip "backend" prefix
+            rel_path = Path(*path_obj.parts[1:])
+            relative_paths.append(str(rel_path))
+        else:
+            # Path is outside backend, reference it relative to backend_dir
+            relative_paths.append(str(Path("..") / path_obj))
 
     cmd = ["poetry", "run", "pre-commit", "run", "--files"] + relative_paths
     log(log_path, f"  Running: {' '.join(cmd)} (cwd={backend_dir})")

@@ -5,6 +5,12 @@ from rest_framework.viewsets import ViewSet
 
 
 class AuthenticatedViewMixin:
+    """
+    Mixin for session-based views.
+    WARNING: Do not mix this into API or Token-authenticated views.
+    It expects a valid session key and performs redirects to the login URL.
+    """
+
     login_url = "login"
 
     def dispatch(self, request, *args, **kwargs):

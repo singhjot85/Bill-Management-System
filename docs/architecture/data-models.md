@@ -8,11 +8,15 @@ tags: [models, database, postgresql, schemas]
 
 # Data Modeling
 
+## Purpose
+
 TL;DR: BMA's data model is split between the public schema (tenant management) and tenant schemas (business operations). It uses UUIDs, soft deletes, and timestamps across all entities to ensure auditability and data integrity.
 
 This document covers the database structure, core mixins, and detailed field-level specifications for all models in the system.
 
-## Core Mixins
+## Key Concepts
+
+### Core Mixins
 
 All models implement the following mixins (via `BetterModelMixin` or `SafeModelMixin`):
 
@@ -22,7 +26,7 @@ All models implement the following mixins (via `BetterModelMixin` or `SafeModelM
 
 ---
 
-## 🏗️ Public Schema Models
+### Public Schema Models
 
 These models are global and reside in the `public` schema.
 
@@ -62,7 +66,7 @@ Manages the multi-tenant infrastructure and organization-level metadata.
 
 ---
 
-## 🏢 Tenant Schema Models
+### Tenant Schema Models
 
 These models are isolated within each tenant's private database schema.
 

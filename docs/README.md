@@ -21,6 +21,7 @@ This document covers the high-level index and roadmap for the BMA platform docum
 - [**Data Modeling**](./architecture/data-models.md) — Database relationships and auditing.
 - [**Asynchronous Task System**](./architecture/async-system.md) — Celery, Valkey, and task registry.
 - [**Frontend Architecture**](./architecture/frontend.md) — Vue 3, Pinia, and component boundaries.
+- [**Authentication**](./architecture/authentication.md) — Authentication flow and Token/Session controls.
 
 ### Design Patterns
 

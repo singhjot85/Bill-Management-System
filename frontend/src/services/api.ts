@@ -53,7 +53,13 @@ api.interceptors.response.use((response) => {
   if (error.response && error.response.status === 401) {
     const authStore = useAuthStore();
     authStore.destroyToken();
-    router.push({ name: 'Login' });
+
+    const currentRoute = router.currentRoute.value;
+    const requiresAuth = currentRoute?.meta?.requiresAuth;
+
+    if (requiresAuth) {
+      router.push({ name: 'Login' });
+    }
   }
 
   return Promise.reject(error);
