@@ -95,6 +95,7 @@ export interface PricingTier {
 }
 
 export interface PricingConfig {
+  headline?: string;
   tiers: PricingTier[];
 }
 
@@ -356,6 +357,7 @@ export const defaultTenantConfig: TenantViewConfig = {
       ]
     },
     pricing: {
+      headline: 'Simple Tiering',
       tiers: [
         {
           name: 'Free Tier',

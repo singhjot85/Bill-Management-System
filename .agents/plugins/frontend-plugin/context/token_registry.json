@@ -1,0 +1,54 @@
+{
+  "colors": [
+    "--primary-color",
+    "--primary-color-rgb",
+    "--primary-hover",
+    "--secondary-color",
+    "--secondary-color-rgb",
+    "--background-color",
+    "--surface-color",
+    "--error-color",
+    "--error-color-rgb",
+    "--info-color",
+    "--success-color",
+    "--success-color-rgb",
+    "--warning-color",
+    "--text-primary",
+    "--text-secondary",
+    "--text-muted"
+  ],
+  "spacing": [
+    "--spacing-xs",
+    "--spacing-sm",
+    "--spacing-md",
+    "--spacing-lg",
+    "--spacing-xl",
+    "--spacing-xxl"
+  ],
+  "typography": [
+    "--font-size-xs",
+    "--font-size-sm",
+    "--font-size-base",
+    "--font-size-lg",
+    "--font-size-xl",
+    "--font-size-xxl",
+    "--font-size-h3",
+    "--font-size-h2",
+    "--font-size-h1"
+  ],
+  "border_radius": [
+    "--radius-sm",
+    "--radius-md",
+    "--radius-lg",
+    "--radius-xl"
+  ],
+  "shadows": [
+    "--shadow-sm",
+    "--shadow-md",
+    "--shadow-lg"
+  ],
+  "transitions": [
+    "--transition-fast",
+    "--transition-smooth"
+  ]
+}

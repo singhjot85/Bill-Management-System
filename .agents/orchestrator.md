@@ -513,7 +513,6 @@ The following are deliberately left for future definition. Do not attempt to fil
 at runtime by guessing:
 
 - `infra-plugin` pipeline stages and agent definitions — not yet designed
-- `frontend-plugin` pipeline stages and agent definitions — not yet designed
 - `notify_admin` utility for escalating hard-stops beyond the terminal — not yet designed
 - Cross-session monitoring/aggregation across the per-feature logs in `.agents/logs/`
   (e.g. a dashboard or summary view spanning multiple features) — not yet designed.

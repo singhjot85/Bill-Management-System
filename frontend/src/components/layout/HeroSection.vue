@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="hero-section py-16">
+  <v-container fluid class="hero-section">
     <v-row justify="center" align="center" class="text-center">
       <v-col cols="12" md="10" lg="8">
         <h1 class="hero-headline font-weight-black mb-6">
@@ -31,6 +31,7 @@ defineProps<{
 
 <style scoped>
 .hero-section {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   padding-top: var(--spacing-xxl);
   padding-bottom: var(--spacing-xxl);
   background: radial-gradient(circle at 50% -20%, var(--primary-color) 0%, transparent 70%);
@@ -58,6 +59,16 @@ defineProps<{
   font-size: var(--font-size-lg);
   border-radius: var(--radius-lg);
   text-transform: none;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+/* ponytail: subtle hover scale and active press feedback using custom ease-out curve */
+.hero-cta:hover {
+  transform: scale(1.03);
+}
+
+.hero-cta:active {
+  transform: scale(0.97);
 }
 
 @media (max-width: 960px) {

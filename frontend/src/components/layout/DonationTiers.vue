@@ -8,9 +8,14 @@
       </v-chip>
     </div>
 
-    <v-row>
-      <v-col v-for="(tier, index) in config.tiers" :key="index" cols="12" md="4" lg="2.4">
-        <v-card class="tier-card pa-6 text-center h-100 d-flex flex-column" flat>
+    <v-row justify="center">
+      <v-col v-for="(tier, index) in config.tiers" :key="index" cols="12" md="6" lg="4">
+        <v-card
+          :class="['tier-card pa-6 text-center h-100 d-flex flex-column', { 'highlighted-tier': index === 0 }]"
+          flat
+        >
+          <!-- ponytail: highlight badge for the first/popular donation tier -->
+          <div v-if="index === 0" class="highlight-badge mb-4">Most Popular</div>
           <div class="tier-name font-weight-bold mb-2">{{ tier.name }}</div>
           <div class="tier-amount font-weight-black color-primary mb-4">₹{{ tier.amount }}</div>
           <v-divider class="mb-4"></v-divider>
@@ -20,7 +25,7 @@
             color="primary"
             variant="flat"
             block
-            class="rounded-lg font-weight-bold"
+            class="rounded-lg font-weight-bold mt-auto"
             @click="$emit('select-tier', tier)"
           >
             Select
@@ -47,16 +52,41 @@ defineEmits(['select-tier']);
 }
 
 .tier-card {
-  border: 1px solid rgba(0,0,0,0.05);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.15); /* ponytail: theme-aware border */
   border-radius: var(--radius-lg);
-  transition: all 0.3s ease;
+  transition: transform 250ms var(--ease-out), box-shadow 250ms var(--ease-out), border-color 250ms var(--ease-out);
   background-color: var(--surface-color);
+  position: relative;
 }
 
 .tier-card:hover {
   transform: translateY(-5px);
   box-shadow: var(--shadow-md) !important;
   border-color: var(--primary-color);
+}
+
+/* ponytail: make first/popular tier stand out visually */
+.highlighted-tier {
+  border: 2px solid var(--primary-color) !important;
+  transform: scale(1.02);
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.highlighted-tier:hover {
+  transform: scale(1.02) translateY(-5px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+.highlight-badge {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+  text-transform: uppercase;
+  align-self: center;
 }
 
 .tier-name {

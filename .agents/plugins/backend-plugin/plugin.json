@@ -1,0 +1,5 @@
+{
+	"$schema": "https://antigravity.google/schemas/v1/plugin.json",
+	"name": "backend-plugin",
+	"description": "A plugin to manage backend related tasks, from architectural designing, coding to testing the code. Invoke when the user is trying to build a new feature, or when plan for a feature is ready and needs to be built from backend side."
+}
